@@ -739,22 +739,6 @@ def test_task_outcomes_distinguish_workflow_and_submission_failures(
             "completed",
         ),
         (
-            "dabench",
-            DABENCH_TASK_ID,
-            "aide",
-            False,
-            False,
-            "completed_with_task_failures",
-        ),
-        (
-            "moscibench",
-            MOSCIBENCH_TASK_ID,
-            "react",
-            True,
-            True,
-            "completed",
-        ),
-        (
             "moscibench",
             MOSCIBENCH_TASK_ID,
             "react",

@@ -6,37 +6,41 @@ measures annotation-skill effects through downstream solving-agent performance.
 ## Language
 
 **L1 Semantic Data Map**:
-A task-independent annotation of an underlying public dataset's important data objects, variables, and structural relationships. One dataset has one map per Annotation Arm.
+A task-independent annotation of an underlying public dataset's important data objects, variables, and structural relationships. One dataset has one map per Perception Skill Condition.
 _Avoid_: task-conditioned map, solver workflow, schema dump
 
 **Annotation Unit**:
-An underlying public dataset that receives one L1 Semantic Data Map per Annotation Arm. Multiple benchmark tasks over the same dataset reuse the annotation.
+An underlying public dataset that receives one L1 Semantic Data Map per Perception Skill Condition. Multiple benchmark tasks over the same dataset reuse the annotation.
 _Avoid_: benchmark task, solver question
 
 **Annotation Sub-agent**:
 An offline agent that inspects permitted public data and produces an L1 Semantic Data Map without receiving a solver task.
 _Avoid_: Solving Agent, online data profiler
 
-**Annotation Data Perception Skill**:
+**Perception Skill**:
 A reusable public-data inspection capability attached only to an Annotation Sub-agent. It never appears in the Solving Agent's context.
-_Avoid_: solver skill, workflow hint, L2 card
+_Avoid_: annotation arm, solver skill, workflow hint, L2 card
 
-**Annotation Arm**:
-An experimental condition whose Annotation Sub-agent setup differs from other arms only by its attached Annotation Data Perception Skills.
-_Avoid_: solver-context level, benchmark variant
+**Perception Skill Condition**:
+An experimental condition identified by the Perception Skill attached to the Annotation Sub-agent, or by the explicit absence of an added skill in the control condition.
+_Avoid_: arm, solver-context level, benchmark variant
 
-**No-Added-Skill Arm**:
-The Annotation Arm that uses the same Annotation Sub-agent setup without attaching an additional Annotation Data Perception Skill.
-_Avoid_: no-tools arm, no-context arm
+**Downstream Experiment Condition**:
+One solver-facing comparison condition: either the Main Reference Condition or one Perception Skill Condition.
+_Avoid_: annotation arm, Data Card level
+
+**No-Added-Skill Condition**:
+The control Perception Skill Condition that uses the same Annotation Sub-agent setup without attaching an additional Perception Skill.
+_Avoid_: no-tools condition, no-context condition, baseline skill
 
 **Solving Agent**:
-The downstream agent that receives a benchmark task and exactly one arm's L1 Semantic Data Map, then produces the benchmark submission.
+The downstream agent that receives a benchmark task and exactly one Perception Skill Condition's L1 Semantic Data Map, then produces the benchmark submission.
 _Avoid_: Annotation Sub-agent, annotation generator
 
 **Downstream Performance**:
-The MoSciBench outcomes produced by a fixed Solving Agent under one Annotation Arm, including score, valid output, and missing output.
+The MoSciBench outcomes produced by a fixed Solving Agent under one Downstream Experiment Condition, including score, valid output, and missing output.
 _Avoid_: annotation quality score, independent per-task evidence
 
-**Reference Condition**:
-An optional non-treatment condition using the benchmark-provided Dataset Description for comparison. It is not an Annotation Arm.
-_Avoid_: baseline skill arm, no-added-skill arm
+**Main Reference Condition**:
+The non-treatment condition that gives the Solving Agent the benchmark-provided Dataset Description instead of a generated L1 Semantic Data Map. It is not a Perception Skill Condition.
+_Avoid_: main skill, baseline skill, no-added-skill condition

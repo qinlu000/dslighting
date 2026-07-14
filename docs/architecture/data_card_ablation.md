@@ -1,6 +1,13 @@
-# Cross-Benchmark Data Card Ablation Architecture
+# Cross-Benchmark Data Card Level Ablation Architecture
 
 **Status:** Accepted
+
+This document covers the `main`/`l1`/`l2`/`l3` Data Card level axis. That
+axis remains supported. The separate perception-skills experiment fixes the
+generated annotation conditions at `l1` and varies only which
+perception-skill-produced annotation bundle is supplied. It may additionally
+run the original Dataset Description through a `main` reference condition; see
+[`experiments/data_card_ablation/PERCEPTION_SKILLS.md`](../../experiments/data_card_ablation/PERCEPTION_SKILLS.md).
 
 ## Decision
 

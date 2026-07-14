@@ -1,4 +1,22 @@
-# Data Card Ablation
+# Data Card Experiments
+
+This directory contains two independent experiments that share the same
+validated task-context boundary:
+
+1. **Data Card levels** use `run_ablation.py` to compare `main`, `l1`, `l2`,
+   and `l3` solver-context policies.
+2. **Perception skills** use `run_perception_skills.py` to compare L1
+   annotations produced with different perception skills through downstream
+   Solving Agent performance.
+
+The level experiment remains useful and is not replaced by the perception
+skills experiment. The latter adds the benchmark's original Dataset Description
+as a `main` reference, uses `l1` for every generated annotation condition,
+never exposes annotation-generation skills to the Solving Agent, and varies
+only the reviewed L1 annotation bundle among those generated conditions. See
+[`PERCEPTION_SKILLS.md`](PERCEPTION_SKILLS.md) for its design and commands.
+
+## Data Card level ablation
 
 This entry runs one benchmark task set under any selected subset of four
 solver-context policies. The bundled profiles support DABench and MoSciBench;
