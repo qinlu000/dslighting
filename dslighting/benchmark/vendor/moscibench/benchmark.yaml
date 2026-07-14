@@ -7,3 +7,6 @@ default_data_env_var: DSLIGHTING_MOSCIBENCH_DATA
 supports_single_task_loader: true
 legacy_task_prefixes:
 - mosci-
+context_dataset:
+  id_field: task_metadata.source_family
+  id_prefix: mosci-

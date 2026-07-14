@@ -1,0 +1,139 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "mosci-health_spa",
+  "data_objects": [
+    {
+      "name": "subject_physiological_environmental_data",
+      "files": [
+        "subject_physiological_environmental_data.csv"
+      ],
+      "kind": "table",
+      "meaning": "A row-oriented table of physiological and environmental measurements associated with numbered subjects."
+    }
+  ],
+  "variables": [
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Skin Resistance",
+      "meaning": "Skin-resistance measurement recorded for the subject represented by the row.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Light",
+      "meaning": "Light-level measurement recorded with the row.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Nr.particles0.3",
+      "meaning": "Particle-number measurement for the channel labeled 0.3; the channel's size basis and counting convention are not stated in the file.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Nr.particles0.5",
+      "meaning": "Particle-number measurement for the channel labeled 0.5; the channel's size basis and counting convention are not stated in the file.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Nr.particles1.0",
+      "meaning": "Particle-number measurement for the channel labeled 1.0; the channel's size basis and counting convention are not stated in the file.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Temperature",
+      "meaning": "Temperature measurement recorded with the row.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Humidity",
+      "meaning": "Humidity measurement recorded with the row.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Pressure",
+      "meaning": "Pressure measurement recorded with the row.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "IAQ",
+      "meaning": "Air-quality-related measurement labeled IAQ; its scale and calculation are not stated in the file.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Sound",
+      "meaning": "Sound-level measurement recorded with the row.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Heart Rate",
+      "meaning": "Heart-rate measurement recorded for the subject represented by the row.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Subject",
+      "meaning": "Integer identifier grouping records by subject; observed group-start rows use identifiers 1 through 14.",
+      "unit": null
+    },
+    {
+      "object": "subject_physiological_environmental_data",
+      "file": "subject_physiological_environmental_data.csv",
+      "name": "Relative_Index",
+      "meaning": "Zero-based sequential index within a subject's contiguous record block in the inspected rows.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "description": "The CSV contains one header row followed by 33,993 data rows, with 13 fields per inspected record.",
+      "objects": [
+        "subject_physiological_environmental_data"
+      ]
+    },
+    {
+      "description": "Each row combines two subject-related physiological measurements (Skin Resistance and Heart Rate), environmental measurements, a Subject identifier, and Relative_Index.",
+      "objects": [
+        "subject_physiological_environmental_data"
+      ]
+    },
+    {
+      "description": "Records are arranged in contiguous Subject blocks in the inspected portions. Group-start records were observed for Subject values 1 through 14, where Relative_Index resets to 0; sampled following records show it increasing sequentially.",
+      "objects": [
+        "subject_physiological_environmental_data"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "The CSV headers do not provide units for Skin Resistance, Light, particle numbers, Temperature, Humidity, Pressure, IAQ, Sound, or Heart Rate, so all units are left null.",
+    "The meanings and units of the particle-channel suffixes 0.3, 0.5, and 1.0, as well as whether the channels are cumulative or size-binned counts, are not specified.",
+    "The IAQ scale, derivation, directionality, and interpretation are not specified.",
+    "No timestamp or sampling interval is present, so Relative_Index establishes order within observed subject blocks but does not establish elapsed time or cadence.",
+    "Subject characteristics, collection protocol, measurement devices, calibration, and experimental conditions are not described by the public CSV itself.",
+    "A simple scan found no blank CSV fields, but bounded inspection cannot rule out encoded missing-value sentinels, anomalous rows, or all data-quality issues."
+  ],
+  "annotation_notes": [
+    "This semantic map was derived only from the public CSV filename, header, line count, group-start rows, and bounded representative samples from the beginning, middle, and end of the file.",
+    "Meanings follow explicit column labels and observed row organization; no unit was inferred solely from numeric ranges."
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "mosci-terra",
+  "data_objects": [
+    {
+      "name": "Grid-cell metadata",
+      "files": [
+        "metadata_merged.xlsx"
+      ],
+      "kind": "table",
+      "meaning": "A single-sheet workbook of grid-cell identifiers and associated latitude and longitude ranges, country labels, mean elevation values, named land-cover fields, and named climate-category fields. The worksheet dimension is 61,201 rows including the header and 68 columns."
+    },
+    {
+      "name": "Monthly global gridded time series",
+      "files": [
+        "timeseries/lwd_monthly_1degree_2021_to_2023.csv",
+        "timeseries/precipitation_monthly_1degree_2021_to_2023.csv",
+        "timeseries/pres_monthly_1degree_2021_to_2023.csv",
+        "timeseries/spechumidity_monthly_1degree_2021_to_2023.csv",
+        "timeseries/swd_monthly_1degree_2021_to_2023.csv",
+        "timeseries/temp_monthly_1degree_2021_to_2023.csv"
+      ],
+      "kind": "table",
+      "meaning": "Six wide monthly tables, one for each filename-labelled quantity. Each has a Date column, 64,800 coordinate-labelled value columns, and 36 data rows under the header; the filenames indicate nominal coverage from 2021 through 2023 on a one-degree grid."
+    },
+    {
+      "name": "Daily global gridded temperature",
+      "files": [
+        "timeseries/temp_daily_1degree_2023.csv"
+      ],
+      "kind": "table",
+      "meaning": "A wide daily temperature-labelled table with a Date column, 64,800 coordinate-labelled value columns, and 365 data rows under the header; the filename indicates nominal coverage of 2023 on a one-degree grid."
+    },
+    {
+      "name": "Ten-location daily temperature table",
+      "files": [
+        "temp_daily_1degree_2023.csv"
+      ],
+      "kind": "table",
+      "meaning": "A separate daily temperature-labelled table with Date and ten generically named series, Location_1 through Location_10, and 365 data rows under the header."
+    },
+    {
+      "name": "Relief image collection",
+      "files": [
+        "images/img_relief"
+      ],
+      "kind": "image",
+      "meaning": "A collection of 57,300 coordinate-labelled PNG relief images. Three inspected files were non-interlaced 8-bit RGB images with width 1,418 pixels and differing heights."
+    }
+  ],
+  "variables": [
+    {
+      "object": "Grid-cell metadata",
+      "file": "metadata_merged.xlsx",
+      "name": "ID",
+      "meaning": "Coordinate-like grid-cell identifier, exemplified by 84S_180W; its format corresponds to the coordinate labels used by the gridded CSV columns and relief filenames.",
+      "unit": null
+    },
+    {
+      "object": "Grid-cell metadata",
+      "file": "metadata_merged.xlsx",
+      "name": "Latitude range",
+      "meaning": "Textual numeric latitude interval associated with the grid-cell ID.",
+      "unit": "degrees"
+    },
+    {
+      "object": "Grid-cell metadata",
+      "file": "metadata_merged.xlsx",
+      "name": "Longitude range",
+      "meaning": "Textual numeric longitude interval associated with the grid-cell ID.",
+      "unit": "degrees"
+    },
+    {
+      "object": "Grid-cell metadata",
+      "file": "metadata_merged.xlsx",
+      "name": "Country",
+      "meaning": "Country or territory label associated with the grid cell.",
+      "unit": null
+    },
+    {
+      "object": "Grid-cell metadata",
+      "file": "metadata_merged.xlsx",
+      "name": "Mean elevation",
+      "meaning": "Numeric mean-elevation value associated with the grid cell.",
+      "unit": null
+    },
+    {
+      "object": "Grid-cell metadata",
+      "file": "metadata_merged.xlsx",
+      "name": "water through sparse_shrub (32 land-cover columns)",
+      "meaning": "A family of numeric fields, each named for a land-cover class such as water, snow_and_ice, grassland, cropland, tree cover, shrubland, urban, or bare areas.",
+      "unit": null
+    },
+    {
+      "object": "Grid-cell metadata",
+      "file": "metadata_merged.xlsx",
+      "name": "dry_steppe_hot_arid through mild_temperate_dry_winter_cool_summer (31 climate-category columns)",
+      "meaning": "A family of numeric fields named for climate categories, including dry, polar, tropical, mild-temperate, and snow categories.",
+      "unit": null
+    },
+    {
+      "object": "Monthly global gridded time series",
+      "file": null,
+      "name": "Date",
+      "meaning": "Temporal label for each monthly record in all six monthly files.",
+      "unit": null
+    },
+    {
+      "object": "Monthly global gridded time series",
+      "file": null,
+      "name": "coordinate-labelled value columns",
+      "meaning": "The 64,800 columns after Date are labelled by latitude and longitude tokens; observed header endpoints are 90S_180W and 89N_179W, consistent with a 180 by 360 one-degree global grid.",
+      "unit": "degrees"
+    },
+    {
+      "object": "Monthly global gridded time series",
+      "file": "timeseries/lwd_monthly_1degree_2021_to_2023.csv",
+      "name": "lwd",
+      "meaning": "Monthly grid-cell value for the quantity abbreviated lwd in the filename.",
+      "unit": null
+    },
+    {
+      "object": "Monthly global gridded time series",
+      "file": "timeseries/precipitation_monthly_1degree_2021_to_2023.csv",
+      "name": "precipitation",
+      "meaning": "Monthly grid-cell precipitation-labelled value.",
+      "unit": null
+    },
+    {
+      "object": "Monthly global gridded time series",
+      "file": "timeseries/pres_monthly_1degree_2021_to_2023.csv",
+      "name": "pres",
+      "meaning": "Monthly grid-cell value for the quantity abbreviated pres in the filename.",
+      "unit": null
+    },
+    {
+      "object": "Monthly global gridded time series",
+      "file": "timeseries/spechumidity_monthly_1degree_2021_to_2023.csv",
+      "name": "spechumidity",
+      "meaning": "Monthly grid-cell specific-humidity-labelled value.",
+      "unit": null
+    },
+    {
+      "object": "Monthly global gridded time series",
+      "file": "timeseries/swd_monthly_1degree_2021_to_2023.csv",
+      "name": "swd",
+      "meaning": "Monthly grid-cell value for the quantity abbreviated swd in the filename.",
+      "unit": null
+    },
+    {
+      "object": "Monthly global gridded time series",
+      "file": "timeseries/temp_monthly_1degree_2021_to_2023.csv",
+      "name": "temp",
+      "meaning": "Monthly grid-cell temperature-labelled value.",
+      "unit": null
+    },
+    {
+      "object": "Daily global gridded temperature",
+      "file": "timeseries/temp_daily_1degree_2023.csv",
+      "name": "Date",
+      "meaning": "Temporal label for each daily record.",
+      "unit": null
+    },
+    {
+      "object": "Daily global gridded temperature",
+      "file": "timeseries/temp_daily_1degree_2023.csv",
+      "name": "coordinate-labelled temperature columns",
+      "meaning": "The 64,800 columns after Date are temperature-labelled values indexed by the same observed coordinate-header endpoints as the monthly files.",
+      "unit": null
+    },
+    {
+      "object": "Ten-location daily temperature table",
+      "file": "temp_daily_1degree_2023.csv",
+      "name": "Date",
+      "meaning": "Temporal label for each daily record.",
+      "unit": null
+    },
+    {
+      "object": "Ten-location daily temperature table",
+      "file": "temp_daily_1degree_2023.csv",
+      "name": "Location_1 through Location_10",
+      "meaning": "Ten generically labelled daily temperature series; no coordinate or other location mapping is embedded in their column names.",
+      "unit": null
+    },
+    {
+      "object": "Relief image collection",
+      "file": null,
+      "name": "filename grid-cell identifier",
+      "meaning": "Coordinate-like identifier encoded between the relief_ prefix and .png suffix, such as 54S_8W.",
+      "unit": "degrees"
+    },
+    {
+      "object": "Relief image collection",
+      "file": null,
+      "name": "RGB pixel values",
+      "meaning": "Three 8-bit color channels forming each relief image.",
+      "unit": null
+    },
+    {
+      "object": "Relief image collection",
+      "file": null,
+      "name": "image width and height",
+      "meaning": "Raster dimensions; the three inspected images all had width 1,418 while their heights were 1,408, 2,436, and 7,782.",
+      "unit": "pixels"
+    }
+  ],
+  "structure": [
+    {
+      "description": "All seven full gridded time-series CSVs have 64,801 columns: Date followed by 64,800 coordinate-labelled columns with matching observed first and last labels. The six monthly files each contain 36 records; the daily file contains 365 records.",
+      "objects": [
+        "Monthly global gridded time series",
+        "Daily global gridded temperature"
+      ]
+    },
+    {
+      "description": "The metadata worksheet is a 68-column wide table with 61,200 records under its header. ID is the candidate row key; uniqueness was not established by the bounded inspection.",
+      "objects": [
+        "Grid-cell metadata"
+      ]
+    },
+    {
+      "description": "Metadata IDs, gridded CSV column labels, and relief-image filename suffixes share the same latitude/longitude token pattern. Removing relief_ and .png yields a candidate alignment key, but the differing counts of metadata rows, time-series grid columns, and images show that identical coverage cannot be assumed.",
+      "objects": [
+        "Grid-cell metadata",
+        "Monthly global gridded time series",
+        "Daily global gridded temperature",
+        "Relief image collection"
+      ]
+    },
+    {
+      "description": "Relief filenames contain 160 distinct latitude labels from 79S through 80N and 360 distinct longitude labels from 180W through 179E. The 57,300 files do not form a complete 160 by 360 rectangle. Sampled PNG heights vary, so a single common image shape is not established.",
+      "objects": [
+        "Relief image collection"
+      ]
+    },
+    {
+      "description": "The top-level ten-location daily table has the same nominal year and daily record count as the full daily temperature table, but its generic Location_1 through Location_10 columns provide no grounded key for alignment to grid coordinates.",
+      "objects": [
+        "Ten-location daily temperature table",
+        "Daily global gridded temperature"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "No embedded data dictionary or unit metadata was observed. Units remain unknown for mean elevation, temperature, precipitation, pres, spechumidity, lwd, and swd.",
+    "The exact expansions and physical definitions of the filename abbreviations lwd, swd, and pres are not established by the permitted evidence.",
+    "The scale and interpretation of the workbook's land-cover and climate-category numeric fields are not documented; they may be shares, indicators, or another encoding.",
+    "Date string formats, row ordering, missing-value encodings, and value dtypes in the CSV bodies were not established by the bounded inspection.",
+    "The uniqueness and complete coordinate coverage of workbook IDs were not verified, and cross-object coordinate coverage is not one-to-one by count.",
+    "The identities or coordinates represented by Location_1 through Location_10 are not supplied by their column names.",
+    "The relief images have no established pixel-value legend, geographic transform, spatial bounds, or reason for their varying heights in the inspected metadata."
+  ],
+  "annotation_notes": [
+    "This semantic map uses only the declared public directory, with task, private, gold, grader, output, description, and existing-annotation material excluded.",
+    "Evidence was limited to directory inventory and counts, CSV headers and line counts, workbook sheet metadata with a bounded preview, and format metadata for three PNG files.",
+    "All paths are relative to the mosci-terra prepared/public root; the relief-image directory is referenced as a logical collection.",
+    "Null units are intentional where the public artifacts did not establish a unit."
+  ]
+}

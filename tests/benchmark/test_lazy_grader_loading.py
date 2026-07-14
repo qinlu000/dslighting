@@ -2,49 +2,56 @@ import importlib.util
 import sys
 import types
 from pathlib import Path
-from unittest.mock import Mock
-
-
-sys.modules.setdefault("pandas", Mock())
-
-mock_utils = Mock()
-mock_utils.get_logger = Mock(return_value=Mock())
-mock_utils.import_fn = Mock()
-sys.modules["dslighting.benchmark.vendor.mlebench.utils"] = mock_utils
-
-fake_dslighting = types.ModuleType("dslighting")
-fake_benchmark = types.ModuleType("dslighting.benchmark")
-fake_grading = types.ModuleType("dslighting.benchmark.grading")
-fake_errors = types.ModuleType("dslighting.benchmark.grading.errors")
-fake_reporting = types.ModuleType("dslighting.benchmark.reporting")
-fake_reporting_models = types.ModuleType("dslighting.benchmark.reporting.models")
+from unittest.mock import Mock, patch
 
 
 class InvalidSubmissionError(Exception):
     pass
 
 
-fake_errors.InvalidSubmissionError = InvalidSubmissionError
-fake_reporting_models.CompetitionReport = object
-sys.modules["dslighting"] = fake_dslighting
-sys.modules["dslighting.benchmark"] = fake_benchmark
-sys.modules["dslighting.benchmark.grading"] = fake_grading
-sys.modules["dslighting.benchmark.grading.errors"] = fake_errors
-sys.modules["dslighting.benchmark.reporting"] = fake_reporting
-sys.modules["dslighting.benchmark.reporting.models"] = fake_reporting_models
+def _load_grade_helpers():
+    """Load the helper with lightweight stubs without leaking them globally."""
 
-spec = importlib.util.spec_from_file_location(
-    "lazy_grade_helpers_under_test",
-    Path(__file__).parent.parent.parent
-    / "dslighting"
-    / "benchmark"
-    / "vendor"
-    / "mlebench"
-    / "grade_helpers.py",
-)
-grade_helpers = importlib.util.module_from_spec(spec)
-sys.modules["lazy_grade_helpers_under_test"] = grade_helpers
-spec.loader.exec_module(grade_helpers)
+    mock_utils = Mock()
+    mock_utils.get_logger = Mock(return_value=Mock())
+    mock_utils.import_fn = Mock()
+
+    fake_errors = types.ModuleType("dslighting.benchmark.grading.errors")
+    fake_errors.InvalidSubmissionError = InvalidSubmissionError
+    fake_reporting_models = types.ModuleType("dslighting.benchmark.reporting.models")
+    fake_reporting_models.CompetitionReport = object
+
+    spec = importlib.util.spec_from_file_location(
+        "lazy_grade_helpers_under_test",
+        Path(__file__).parent.parent.parent
+        / "dslighting"
+        / "benchmark"
+        / "vendor"
+        / "mlebench"
+        / "grade_helpers.py",
+    )
+    grade_helpers = importlib.util.module_from_spec(spec)
+    stubs = {
+        "pandas": Mock(),
+        "dslighting": types.ModuleType("dslighting"),
+        "dslighting.benchmark": types.ModuleType("dslighting.benchmark"),
+        "dslighting.benchmark.grading": types.ModuleType(
+            "dslighting.benchmark.grading"
+        ),
+        "dslighting.benchmark.grading.errors": fake_errors,
+        "dslighting.benchmark.reporting": types.ModuleType(
+            "dslighting.benchmark.reporting"
+        ),
+        "dslighting.benchmark.reporting.models": fake_reporting_models,
+        "dslighting.benchmark.vendor.mlebench.utils": mock_utils,
+        "lazy_grade_helpers_under_test": grade_helpers,
+    }
+    with patch.dict(sys.modules, stubs):
+        spec.loader.exec_module(grade_helpers)
+    return grade_helpers
+
+
+grade_helpers = _load_grade_helpers()
 
 Grader = grade_helpers.Grader
 

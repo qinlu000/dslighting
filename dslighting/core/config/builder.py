@@ -18,6 +18,7 @@ from dslighting.config import (
     LLMConfig,
     OutputContractConfig,
     RunConfig,
+    TaskContextConfig,
     WorkflowConfig,
     AgentConfig,
     SandboxConfig,
@@ -94,6 +95,7 @@ class ConfigBuilder:
         provider: str = None,
         temperature: float = None,
         data_analysis: Optional[Dict[str, Any]] = None,
+        task_context: Optional[Dict[str, Any]] = None,
         agent_runtime: Optional[Dict[str, Any]] = None,
         output_contract: Optional[Dict[str, Any]] = None,
         max_iterations: int = None,
@@ -116,6 +118,7 @@ class ConfigBuilder:
             provider: LLM provider (for LiteLLM)
             temperature: LLM temperature
             data_analysis: Shared data analysis settings
+            task_context: Dataset-context policy and artifact locations
             agent_runtime: Shared agent runtime settings
             output_contract: Shared output artifact contract settings
             max_iterations: Maximum agent iterations
@@ -146,6 +149,7 @@ class ConfigBuilder:
             provider=provider,
             temperature=temperature,
             data_analysis=data_analysis,
+            task_context=task_context,
             agent_runtime=agent_runtime,
             output_contract=output_contract,
             max_iterations=max_iterations,
@@ -196,6 +200,7 @@ class ConfigBuilder:
         provider: str = None,
         temperature: float = None,
         data_analysis: Optional[Dict[str, Any]] = None,
+        task_context: Optional[Dict[str, Any]] = None,
         agent_runtime: Optional[Dict[str, Any]] = None,
         output_contract: Optional[Dict[str, Any]] = None,
         max_iterations: int = None,
@@ -305,6 +310,14 @@ class ConfigBuilder:
                     error_code="CFG-002",
                 )
             config.setdefault("data_analysis", {}).update(data_analysis)
+
+        if task_context is not None:
+            if not isinstance(task_context, dict):
+                raise ConfigurationError(
+                    "`task_context` must be a dictionary matching TaskContextConfig",
+                    error_code="CFG-002",
+                )
+            config.setdefault("task_context", {}).update(task_context)
 
         if agent_runtime is not None:
             try:
@@ -424,6 +437,11 @@ class ConfigBuilder:
         data_analysis_dict = config_dict.get("data_analysis", {})
         data_analysis_config = DataAnalysisConfig(**data_analysis_dict)
 
+        # Extract task-context policy. The default is byte-compatible with the
+        # main branch's file-submission prompt assembly.
+        task_context_dict = config_dict.get("task_context", {})
+        task_context_config = TaskContextConfig(**task_context_dict)
+
         # Extract shared agent runtime config
         agent_runtime_dict = config_dict.get("agent_runtime", {})
         agent_runtime_config = AgentRuntimeConfig(**agent_runtime_dict)
@@ -444,6 +462,7 @@ class ConfigBuilder:
             agent=agent_config,
             sandbox=sandbox_config,
             data_analysis=data_analysis_config,
+            task_context=task_context_config,
             agent_runtime=agent_runtime_config,
             output_contract=output_contract_config,
             scheduler=scheduler_config,

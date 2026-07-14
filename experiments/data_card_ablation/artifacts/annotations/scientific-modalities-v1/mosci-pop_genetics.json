@@ -1,0 +1,310 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "mosci-pop_genetics",
+  "data_objects": [
+    {
+      "name": "France genotype bundle",
+      "files": [
+        "France_Group.bed",
+        "France_Group.bim",
+        "France_Group.fam",
+        "France_Group_updated.fam"
+      ],
+      "kind": "bundle",
+      "meaning": "A PLINK-style genotype dataset whose BED binary call matrix is indexed by the ordered variant records in the BIM file and the ordered sample records in either byte-identical FAM file."
+    },
+    {
+      "name": "Naples genotype bundle",
+      "files": [
+        "Naples_Group.bed",
+        "Naples_Group.bim",
+        "Naples_Group.bim.orig",
+        "Naples_Group.fam",
+        "Naples_Group_updated.fam"
+      ],
+      "kind": "bundle",
+      "meaning": "A PLINK-style genotype dataset with a BED binary call matrix, an ordered BIM variant table, two FAM sample-table versions, and a headered backup representation of the BIM variant table."
+    },
+    {
+      "name": "France group summary",
+      "files": [
+        "France_Group_Info.csv"
+      ],
+      "kind": "table",
+      "meaning": "Seven group-level records containing a group code, average latitude and longitude, a sample count, and a filtered variant count."
+    }
+  ],
+  "variables": [
+    {
+      "object": "France genotype bundle",
+      "file": "France_Group.bed",
+      "name": "genotype_call_code",
+      "meaning": "Packed PLINK genotype-call values on the sample-by-variant axes; the payload values were not decoded during annotation.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": "France_Group.bim",
+      "name": "chromosome",
+      "meaning": "Chromosome code for the variant record.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": "France_Group.bim",
+      "name": "variant_id",
+      "meaning": "Variant identifier on the BED variant axis.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": "France_Group.bim",
+      "name": "genetic_position",
+      "meaning": "Genetic-position value supplied for the variant.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": "France_Group.bim",
+      "name": "base_pair_position",
+      "meaning": "Base-pair coordinate supplied for the variant.",
+      "unit": "base pairs"
+    },
+    {
+      "object": "France genotype bundle",
+      "file": "France_Group.bim",
+      "name": "allele_1",
+      "meaning": "First allele-code field in the BIM record; no reference, alternate, effect, ancestral, or derived role is established.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": "France_Group.bim",
+      "name": "allele_2",
+      "meaning": "Second allele-code field in the BIM record; no reference, alternate, effect, ancestral, or derived role is established.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": null,
+      "name": "family_id",
+      "meaning": "Family identifier field shared by France_Group.fam and France_Group_updated.fam; all 256 data records carry the value French.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": null,
+      "name": "individual_id",
+      "meaning": "Sample identifier on the BED sample axis, unique across the 256 observed data records and shared by both FAM copies.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": null,
+      "name": "paternal_id",
+      "meaning": "Paternal-identifier field shared by both France FAM copies; the meaning of numeric sentinel values is not documented in the public files.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": null,
+      "name": "maternal_id",
+      "meaning": "Maternal-identifier field shared by both France FAM copies; the meaning of numeric sentinel values is not documented in the public files.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": null,
+      "name": "sex",
+      "meaning": "Numeric sex-code field shared by both France FAM copies; code meanings are not supplied.",
+      "unit": null
+    },
+    {
+      "object": "France genotype bundle",
+      "file": null,
+      "name": "phenotype",
+      "meaning": "Numeric phenotype-code field shared by both France FAM copies; code meanings are not supplied.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": "Naples_Group.bed",
+      "name": "genotype_call_code",
+      "meaning": "Packed PLINK genotype-call values on the sample-by-variant axes; the payload values were not decoded during annotation.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "chromosome",
+      "meaning": "Chromosome code for each variant, represented in both Naples_Group.bim and Naples_Group.bim.orig.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "variant_id",
+      "meaning": "Variant identifier on the BED variant axis, represented in both BIM versions.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "genetic_position",
+      "meaning": "Genetic-position value supplied for the variant in both BIM versions.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "base_pair_position",
+      "meaning": "Base-pair coordinate supplied for the variant in both BIM versions.",
+      "unit": "base pairs"
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "allele_1",
+      "meaning": "First allele-code field in both BIM versions; no biological allele role is established, and an observed zero code is not interpreted.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "allele_2",
+      "meaning": "Second allele-code field in both BIM versions; no reference, alternate, effect, ancestral, or derived role is established.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "family_id",
+      "meaning": "Family identifier field in the two Naples FAM versions; all eight data records carry the value Naples, while the versions differ only in the first cell of their header-like row.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "individual_id",
+      "meaning": "Sample identifier on the BED sample axis, unique across the eight observed data records and shared by both FAM versions.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "paternal_id",
+      "meaning": "Paternal-identifier field shared by both Naples FAM versions; the meaning of numeric sentinel values is not documented in the public files.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "maternal_id",
+      "meaning": "Maternal-identifier field shared by both Naples FAM versions; the meaning of numeric sentinel values is not documented in the public files.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "sex",
+      "meaning": "Numeric sex-code field shared by both Naples FAM versions; code meanings are not supplied.",
+      "unit": null
+    },
+    {
+      "object": "Naples genotype bundle",
+      "file": null,
+      "name": "phenotype",
+      "meaning": "Numeric phenotype-code field shared by both Naples FAM versions; code meanings, including the observed negative value, are not supplied.",
+      "unit": null
+    },
+    {
+      "object": "France group summary",
+      "file": "France_Group_Info.csv",
+      "name": "Group",
+      "meaning": "Code identifying one of the seven summary groups.",
+      "unit": null
+    },
+    {
+      "object": "France group summary",
+      "file": "France_Group_Info.csv",
+      "name": "average_LAT",
+      "meaning": "Average latitude recorded for the group.",
+      "unit": "decimal degrees"
+    },
+    {
+      "object": "France group summary",
+      "file": "France_Group_Info.csv",
+      "name": "average_LON",
+      "meaning": "Average longitude recorded for the group.",
+      "unit": "decimal degrees"
+    },
+    {
+      "object": "France group summary",
+      "file": "France_Group_Info.csv",
+      "name": "num_samples",
+      "meaning": "Number of samples represented by the group summary row.",
+      "unit": "samples"
+    },
+    {
+      "object": "France group summary",
+      "file": "France_Group_Info.csv",
+      "name": "filtered_SNP_count",
+      "meaning": "Filtered variant count recorded for the group summary row.",
+      "unit": "variants"
+    }
+  ],
+  "structure": [
+    {
+      "description": "France_Group.bed begins with PLINK BED magic bytes 6c 1b and orientation byte 01. Excluding the header-like first FAM row leaves 256 ordered sample records, and France_Group.bim has 520,564 ordered variant rows. The 33,316,099-byte BED size equals 3 + 520,564 × ceil(256/4), consistent with variant-major packing aligned to those two axes.",
+      "objects": [
+        "France genotype bundle"
+      ]
+    },
+    {
+      "description": "France_Group.fam and France_Group_updated.fam are byte-identical 257-line files: one header-like row followed by 256 sample records. The first header cell is French rather than a field label, while the remaining five cells name the other columns.",
+      "objects": [
+        "France genotype bundle"
+      ]
+    },
+    {
+      "description": "Naples_Group.bed has the same PLINK magic bytes and orientation byte 01. Excluding the FAM header-like row leaves eight ordered sample records, and Naples_Group.bim has 564,353 ordered variant rows. The 1,128,709-byte BED size equals 3 + 564,353 × ceil(8/4), consistent with variant-major packing aligned to those axes.",
+      "objects": [
+        "Naples genotype bundle"
+      ]
+    },
+    {
+      "description": "Naples_Group.bim.orig contains a six-field header followed by content byte-identical to the headerless Naples_Group.bim. Naples_Group.fam and Naples_Group_updated.fam contain the same eight sample records and differ only in the first header cell: family_id in the former and Naples in the latter.",
+      "objects": [
+        "Naples genotype bundle"
+      ]
+    },
+    {
+      "description": "Within each PLINK bundle, BIM row order defines the BED variant axis and FAM data-record order defines the BED sample axis. The France and Naples bundles have separate sample and variant dimensions; the public artifacts do not assert row-wise alignment between the two bundles.",
+      "objects": [
+        "France genotype bundle",
+        "Naples genotype bundle"
+      ]
+    },
+    {
+      "description": "The seven France group-summary rows have num_samples values summing to 256, matching the France FAM sample count, and every filtered_SNP_count value is 520,564, matching the France BIM variant count. No public field directly maps an individual_id to a Group code.",
+      "objects": [
+        "France genotype bundle",
+        "France group summary"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "No genome build, chromosome-code convention, coordinate reference metadata, or strand convention is supplied for either variant table.",
+    "The unit of genetic_position is not stated in the public artifacts.",
+    "The two BIM allele columns are not identified as reference/alternate, effect/non-effect, ancestral/derived, or otherwise biologically oriented; the meaning of the observed zero allele code is also unspecified.",
+    "The meanings of FAM sex and phenotype codes and of zero-valued parental identifiers are not documented, so conventional PLINK interpretations were not assigned.",
+    "BED genotype payloads were not decoded; genotype-call distributions, missing-call occurrence, and dataset-specific semantic treatment of missing calls remain unknown.",
+    "The filenames indicate original or updated sidecars, but the public artifacts do not explicitly declare which version is canonical. The observable equivalences and header differences are recorded without selecting one.",
+    "The France summary counts align in aggregate with the France genotype dimensions, but no sample-to-Group membership key is present, so the seven group codes cannot be joined to individual records from the public files alone."
+  ],
+  "annotation_notes": [
+    "Evidence was limited to the permitted public descendants and the routed population-genetics reference.",
+    "Inspection covered the file inventory, line and field counts, bounded representative BIM/FAM/CSV rows, sidecar comparisons, and the first three BED bytes plus size/dimension consistency; no genotype payload was decoded or analyzed.",
+    "Names assigned to headerless BIM columns follow the observed six-column PLINK structure and the routed format reference."
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "mosci-nurse_stress",
+  "data_objects": [
+    {
+      "name": "subject_sensor_tables",
+      "files": [
+        "subject_15_combined.csv",
+        "subject_5C_combined.csv",
+        "subject_6B_combined.csv",
+        "subject_6D_combined.csv",
+        "subject_7A_combined.csv",
+        "subject_7E_combined.csv",
+        "subject_83_combined.csv",
+        "subject_8B_combined.csv",
+        "subject_94_combined.csv",
+        "subject_BG_combined.csv",
+        "subject_CE_combined.csv",
+        "subject_DF_combined.csv",
+        "subject_E4_combined.csv",
+        "subject_EG_combined.csv",
+        "subject_F5_combined.csv"
+      ],
+      "kind": "table",
+      "meaning": "Fifteen per-subject CSV tables of combined, timestamped physiological-sensor signals. The inspected tables share the columns session, real_time, eda, hr, temp, and bvp."
+    },
+    {
+      "name": "survey_results",
+      "files": [
+        "survey_results.csv"
+      ],
+      "kind": "table",
+      "meaning": "Interval-level survey records keyed by subject code, with start and end times, a duration and date, a coded stress level, and 13 context or stressor indicator fields."
+    }
+  ],
+  "variables": [
+    {
+      "object": "subject_sensor_tables",
+      "file": null,
+      "name": "session",
+      "meaning": "Composite session code repeated across contiguous samples; sampled values combine the subject code and a numeric suffix separated by an underscore.",
+      "unit": "identifier"
+    },
+    {
+      "object": "subject_sensor_tables",
+      "file": null,
+      "name": "real_time",
+      "meaning": "Numeric sample timestamp. Within inspected contiguous runs it advances by 0.25, and it jumps between sessions.",
+      "unit": "seconds (epoch-like reference; exact convention not stated)"
+    },
+    {
+      "object": "subject_sensor_tables",
+      "file": null,
+      "name": "eda",
+      "meaning": "Electrodermal-activity signal value at the sample timestamp.",
+      "unit": "not stated"
+    },
+    {
+      "object": "subject_sensor_tables",
+      "file": null,
+      "name": "hr",
+      "meaning": "Heart-rate signal value at the sample timestamp.",
+      "unit": "not stated"
+    },
+    {
+      "object": "subject_sensor_tables",
+      "file": null,
+      "name": "temp",
+      "meaning": "Temperature signal value at the sample timestamp.",
+      "unit": "not stated"
+    },
+    {
+      "object": "subject_sensor_tables",
+      "file": null,
+      "name": "bvp",
+      "meaning": "Blood-volume-pulse signal value at the sample timestamp.",
+      "unit": "not stated"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "ID",
+      "meaning": "Subject code. Sampled values match the subject codes in sensor-table filenames and session prefixes.",
+      "unit": "identifier"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Start time",
+      "meaning": "Recorded start timestamp of the survey interval, formatted as YYYY-MM-DD HH:MM:SS.",
+      "unit": "timestamp to one-second precision"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "End time",
+      "meaning": "Recorded end timestamp of the survey interval, formatted as YYYY-MM-DD HH:MM:SS.",
+      "unit": "timestamp to one-second precision"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Duration",
+      "meaning": "Recorded elapsed duration between the interval endpoints, formatted as HH:MM:SS.",
+      "unit": "hours:minutes:seconds"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Date",
+      "meaning": "Recorded calendar date associated with the survey interval; sampled overnight rows show that it is not always the calendar-date component of Start time.",
+      "unit": "calendar date"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Stress level",
+      "meaning": "Coded stress-level value; sampled rows contain 0, 1, and 2, but their category labels are not declared in the inspected files.",
+      "unit": "coded category"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "COVID related",
+      "meaning": "Survey indicator labeled COVID related.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Treating a COVID patient",
+      "meaning": "Survey indicator labeled Treating a COVID patient.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Patient in crisis",
+      "meaning": "Survey indicator labeled Patient in crisis.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Patients or their family",
+      "meaning": "Survey indicator labeled Patients or their family.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Doctors or colleagues",
+      "meaning": "Survey indicator labeled Doctors or colleagues.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Ancilliary services",
+      "meaning": "Survey indicator labeled Ancilliary services; source spelling is preserved.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Increased workload",
+      "meaning": "Survey indicator labeled Increased workload.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Technology related stress",
+      "meaning": "Survey indicator labeled Technology related stress.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Lack of supplies",
+      "meaning": "Survey indicator labeled Lack of supplies.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Documentation",
+      "meaning": "Survey indicator labeled Documentation.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Competency related stress",
+      "meaning": "Survey indicator labeled Competency related stress.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Safety",
+      "meaning": "Survey indicator labeled Safety.",
+      "unit": "binary code (0/1 in sampled rows)"
+    },
+    {
+      "object": "survey_results",
+      "file": "survey_results.csv",
+      "name": "Work environment",
+      "meaning": "Survey indicator labeled Work environment.",
+      "unit": "binary code (0/1 in sampled rows)"
+    }
+  ],
+  "structure": [
+    {
+      "description": "Each subject_sensor_tables row is one combined sensor sample within one session. The inspected contiguous runs are locally ordered by real_time at 0.25-second steps, while session boundaries introduce time gaps.",
+      "objects": [
+        "subject_sensor_tables"
+      ]
+    },
+    {
+      "description": "Each survey_results row represents one time interval for one subject code, accompanied by a stress-level code and context indicators. Survey file order is not reliably chronological in the sampled regions.",
+      "objects": [
+        "survey_results"
+      ]
+    },
+    {
+      "description": "The apparent cross-object subject link is survey_results.ID to the code in each sensor filename and the prefix of subject_sensor_tables.session. Time fields may support interval alignment, but no explicit sensor-session foreign key is present.",
+      "objects": [
+        "subject_sensor_tables",
+        "survey_results"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "The inspected CSVs contain no embedded data dictionary. Units, calibration, preprocessing, interpolation, and missing-value conventions for eda, hr, temp, and bvp are not stated.",
+    "real_time has epoch-like magnitude and quarter-second increments, but its epoch, time zone, and exact relation to the timezone-free survey timestamps are not declared.",
+    "The numeric suffix in session resembles a time value, and sampled sessions begin about 10 seconds after that suffix, but the suffix's formal definition is not stated.",
+    "The meanings and ordering of Stress level codes 0, 1, and 2 are not defined in the inspected files, so no verbal class labels are assigned.",
+    "The 13 survey indicator columns are 0/1 in sampled rows, but the files do not define whether 1 means selected, present, causal, or something else, nor whether other codes or blanks occur elsewhere.",
+    "The Date field can differ from the date component of Start time for overnight records; it may represent a reporting date, shift date, or another convention that is not documented in the files.",
+    "No unique survey-row key is declared. Sampled survey rows include the same ID, start time, end time, and duration more than once with a differing indicator, so those fields should not be assumed to form a unique key.",
+    "The subject-code and temporal relationships between the sensor and survey objects are inferred from matching values and formats; alignment rules and intended interval boundaries are not supplied in the inspected files.",
+    "Content checks were deliberately bounded to representative rows and regions, so schema consistency, value domains, ordering, and data-quality behavior were not exhaustively profiled across roughly 18 million lines."
+  ],
+  "annotation_notes": [
+    "Scope was limited to the 16 CSV files in the permitted prepared/public directory: 15 subject sensor tables and survey_results.csv.",
+    "The public inventory and line counts were checked, then rows were sampled from the beginnings, interiors, session transitions, and ends of representative numeric- and alphabetic-code subject files; survey_results.csv was sampled at its beginning, middle, and end.",
+    "All variable names preserve source capitalization, spacing, and spelling, including Ancilliary services.",
+    "For sensor variables, file is null because the variable applies across the grouped 15-file data object; the concrete relative paths are enumerated in that object's files list.",
+    "This is a task-independent semantic map: it describes available objects, row grains, fields, and apparent links without selecting a prediction target or imposing downstream label semantics."
+  ]
+}

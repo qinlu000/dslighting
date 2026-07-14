@@ -8,13 +8,16 @@ from pathlib import Path
 import tempfile
 from typing import Any, Mapping, Protocol
 
-from dslighting.config import DSLightingConfig
+from dslighting.config import DSLightingConfig, TaskContextConfig
 from dslighting.benchmark.evaluation.models import TaskEvaluationContractRef
 from dslighting.benchmark.grading.models import SubmissionArtifactContract
+from dslighting.core.task_context import TaskContextBuilder
 from dslighting.core.tasks.errors import TaskExecutionSpecError
 from dslighting.core.tasks.models import ResolvedTaskLayout, TaskExecutionSpec
+from dslighting.core.tasks.payload_layout import resolve_file_submission_payload_layout
 from dslighting.core.types import TaskDefinition
 from dslighting.services.data_analysis_provider import create_data_perception_runtime
+from dslighting.services.task_context_provider import create_task_context_builder
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +37,10 @@ class BaseTaskAdapter(ABC):
         except Exception as exc:  # pragma: no cover - defensive
             logger.error("Failed to create temporary directory for %s: %s", self.__class__.__name__, exc)
         self.data_perception = self._create_data_perception_runtime(config)
+        self.task_context_builder = create_task_context_builder(
+            config,
+            perception_runtime=self.data_perception,
+        )
 
     @staticmethod
     def _create_data_perception_runtime(config: DSLightingConfig):
@@ -79,60 +86,19 @@ class BaseTaskAdapter(ABC):
                 engine_id=str(spec.get("engine_id") or "") or None,
                 submission_artifact_contract=submission_contract,
                 evaluation_contract_ref=evaluation_contract_ref,
+                task_context_provenance=(
+                    dict(spec["task_context_provenance"])
+                    if isinstance(spec.get("task_context_provenance"), Mapping)
+                    else None
+                ),
             )
         return None
 
     @staticmethod
     def build_file_submission_spec(layout: ResolvedTaskLayout, perception_runtime) -> TaskExecutionSpec:
-        data_report = ""
-        submission_contract = layout.evaluation_contract.grading.submission if layout.evaluation_contract.grading else None
-        if submission_contract is None:
-            raise TaskExecutionSpecError(
-                f"Task '{layout.task_id}' does not have an artifact submission contract."
-            )
-        io_instructions = (
-            "All input data files are located in the current working directory (./).\n"
-            f"You MUST save the final submission artifact to `{layout.output_path.name}` in the current working directory."
-        )
-        if perception_runtime is not None:
-            data_report = perception_runtime.analyze_data(
-                layout.agent_visible_dir,
-                task_type=layout.task_type,
-                task_id=layout.task_id,
-                submission_context=layout.submission_context,
-            )
-            io_instructions = perception_runtime.generate_io_instructions(
-                layout.output_path.name,
-                optimization_context=False,
-                submission_context=layout.submission_context,
-            )
-        elif submission_contract.root_kind == "directory":
-            required_files = ", ".join(
-                f"`{entry.relative_path}`"
-                for entry in submission_contract.entries
-                if entry.relative_path
-            )
-            io_instructions = (
-                "All input data files are located in the current working directory (./).\n"
-                f"You MUST create the submission directory `{layout.output_path.name}` in the current working directory.\n"
-                f"The directory must contain: {required_files}."
-            )
-        submission_contract = submission_contract.with_output_path(layout.output_path)
-        lower_is_better = layout.evaluation_contract.evaluation_semantics.objective == "lower_is_better"
-        return TaskExecutionSpec(
-            task_id=layout.task_id,
-            task_type=layout.task_type,
-            description_text=f"{layout.description_text}\n\n{data_report}" if data_report else layout.description_text,
-            io_instructions=io_instructions,
-            agent_visible_dir=layout.agent_visible_dir,
-            output_path=layout.output_path,
-            metric_name="score",
-            lower_is_better=lower_is_better,
-            source_id=layout.source_id,
-            engine_id=layout.engine_id,
-            submission_artifact_contract=submission_contract,
-            evaluation_contract_ref=layout.evaluation_contract_ref,
-        )
+        """Compatibility shim for callers that still use the former helper."""
+
+        return TaskContextBuilder(TaskContextConfig(), perception_runtime).build(layout)
 
     def cleanup(self) -> None:
         temp_dir = getattr(self, "temp_dir", None)
@@ -181,6 +147,58 @@ class FileSubmissionTaskAdapter(BaseTaskAdapter):
         submission_contract = SubmissionArtifactContract.from_payload(payload)
         submission_context = submission_contract.to_payload() if submission_contract else {"output_submission_path": str(output_value)}
         evaluation_contract_ref = TaskEvaluationContractRef.from_payload(payload)
+        io_instructions = str(payload.get("io_instructions") or "").strip()
+        requires_canonical_layout = self.task_context_builder.requires_canonical_layout
+        if requires_canonical_layout:
+            try:
+                layout = resolve_file_submission_payload_layout(
+                    task_id=task.task_id,
+                    description=description,
+                    data_dir=data_dir,
+                    output_path=Path(str(output_value)),
+                    registry_dir=str(payload.get("registry_dir") or "").strip() or None,
+                    submission_contract=submission_contract,
+                    submission_context=submission_context,
+                )
+            except Exception as exc:
+                raise TaskExecutionSpecError(
+                    "Cannot resolve the canonical task layout required by "
+                    f"task-context policy {self.task_context_builder.policy.value!r} "
+                    f"for task {task.task_id!r}."
+                ) from exc
+            else:
+                spec = self.task_context_builder.build(
+                    layout,
+                    explicit_io_instructions=io_instructions or None,
+                )
+                spec = replace(
+                    spec,
+                    metric_name=str(payload.get("metric_name") or "").strip() or None,
+                    lower_is_better=(
+                        payload.get("lower_is_better")
+                        if isinstance(payload.get("lower_is_better"), bool)
+                        else None
+                    ),
+                    source_id=(
+                        str(payload.get("source_id") or "").strip() or spec.source_id
+                    ),
+                    engine_id=(
+                        str(payload.get("engine_id") or "").strip() or spec.engine_id
+                    ),
+                    evaluation_contract_ref=(
+                        evaluation_contract_ref or spec.evaluation_contract_ref
+                    ),
+                )
+                if self.data_perception is None and not io_instructions:
+                    return replace(
+                        spec,
+                        io_instructions=self._legacy_payload_io_instructions(
+                            output_value,
+                            submission_contract,
+                        ),
+                    )
+                return spec
+
         data_report = ""
         if self.data_perception is not None:
             data_report = self.data_perception.analyze_data(
@@ -189,7 +207,6 @@ class FileSubmissionTaskAdapter(BaseTaskAdapter):
                 task_id=task.task_id,
                 submission_context=submission_context,
             )
-        io_instructions = str(payload.get("io_instructions") or "").strip()
         if not io_instructions:
             if self.data_perception is not None:
                 io_instructions = self.data_perception.generate_io_instructions(
@@ -197,21 +214,10 @@ class FileSubmissionTaskAdapter(BaseTaskAdapter):
                     optimization_context=False,
                     submission_context=submission_context,
                 )
-            elif submission_contract is not None and submission_contract.root_kind == "directory":
-                required_files = ", ".join(
-                    f"`{entry.relative_path}`"
-                    for entry in submission_contract.entries
-                    if entry.relative_path
-                )
-                io_instructions = (
-                    "All input data files are in the current working directory.\n"
-                    f"Create the submission directory `{Path(output_value).name}` in the current working directory.\n"
-                    f"The directory must contain: {required_files}."
-                )
             else:
-                io_instructions = (
-                    "All input data files are in the current working directory.\n"
-                    f"Save the final submission artifact to `{Path(output_value).name}` in the current working directory."
+                io_instructions = self._legacy_payload_io_instructions(
+                    output_value,
+                    submission_contract,
                 )
         return TaskExecutionSpec(
             task_id=task.task_id,
@@ -228,6 +234,32 @@ class FileSubmissionTaskAdapter(BaseTaskAdapter):
             engine_id=str(payload.get("engine_id") or "") or None,
             submission_artifact_contract=submission_contract,
             evaluation_contract_ref=evaluation_contract_ref,
+        )
+
+    @staticmethod
+    def _legacy_payload_io_instructions(
+        output_value: Any,
+        submission_contract: SubmissionArtifactContract | None,
+    ) -> str:
+        """Preserve the main branch's raw-payload fallback wording."""
+
+        output_name = Path(str(output_value)).name
+        if submission_contract is not None and submission_contract.root_kind == "directory":
+            required_files = ", ".join(
+                f"`{entry.relative_path}`"
+                for entry in submission_contract.entries
+                if entry.relative_path
+            )
+            return (
+                "All input data files are in the current working directory.\n"
+                f"Create the submission directory `{output_name}` in the current "
+                "working directory.\n"
+                f"The directory must contain: {required_files}."
+            )
+        return (
+            "All input data files are in the current working directory.\n"
+            f"Save the final submission artifact to `{output_name}` in the current "
+            "working directory."
         )
 
     def parse_output(self, output_path: Path) -> Path:

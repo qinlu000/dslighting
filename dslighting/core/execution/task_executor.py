@@ -64,10 +64,17 @@ class TaskExecutor:
                 registry_dir=registry_dir,
             )
             adapter = FileSubmissionTaskAdapter(self._config)
-            spec = adapter.build_file_submission_spec(layout, adapter.data_perception)
+            is_treatment = adapter.task_context_builder.policy.value != "main"
+            if task_description and is_treatment:
+                # Treatments must compile against the effective description;
+                # replacing the finished spec would silently discard L1/L2
+                # while leaving misleading provenance behind.
+                layout = replace(layout, description_text=task_description)
+            spec = adapter.task_context_builder.build(layout)
             adapter.cleanup()
 
-            if task_description:
+            if task_description and not is_treatment:
+                # Preserve the main branch's historical full-prompt override.
                 spec = replace(spec, description_text=task_description)
             if output is not None:
                 overridden_output = Path(output)

@@ -7,52 +7,60 @@ This is a standalone test that mocks dependencies to avoid import issues.
 import sys
 from pathlib import Path
 from dataclasses import dataclass
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import pytest
 import pandas as pd
 
 
-# Mock the dependencies before importing
-sys.modules['diskcache'] = Mock()
-sys.modules['yaml'] = Mock()
-sys.modules['tenacity'] = Mock()
-sys.modules['tqdm'] = Mock()
-sys.modules['tqdm.auto'] = Mock()
-sys.modules['appdirs'] = Mock()
-
-# Mock utility functions
-mock_utils = Mock()
-mock_utils.get_logger = Mock(return_value=Mock())
-mock_utils.authenticate_kaggle_api = Mock()
-mock_utils.extract = Mock()
-mock_utils.get_diff = Mock()
-mock_utils.is_empty = lambda path: not any(path.iterdir()) if path.exists() and path.is_dir() else True
-mock_utils.load_yaml = Mock()
-mock_utils.get_path_to_callable = Mock(return_value="test")
-sys.modules['dslighting.benchmark.vendor.mlebench.utils'] = mock_utils
-sys.modules['dslighting.benchmark.vendor.mlebench.registry'] = Mock()
-
-# Now we can import the data module functions directly
 import importlib.util
-spec = importlib.util.spec_from_file_location(
-    "mlebench_data",
-    Path(__file__).resolve().parents[2]
-    / "dslighting"
-    / "benchmark"
-    / "vendor"
-    / "mlebench"
-    / "data.py"
-)
-mlebench_data = importlib.util.module_from_spec(spec)
-sys.modules['mlebench_data'] = mlebench_data
 
-# Mock pandas before loading
-with patch('pandas.DataFrame', pd.DataFrame):
-    with patch('pandas.read_csv', pd.read_csv):
-        spec.loader.exec_module(mlebench_data)
 
-is_dataset_prepared = mlebench_data.is_dataset_prepared
+def _load_is_dataset_prepared():
+    """Load the data helper with temporary stubs and restore real modules."""
+
+    mock_utils = Mock()
+    mock_utils.get_logger = Mock(return_value=Mock())
+    mock_utils.authenticate_kaggle_api = Mock()
+    mock_utils.extract = Mock()
+    mock_utils.get_diff = Mock()
+    mock_utils.is_empty = (
+        lambda path: not any(path.iterdir())
+        if path.exists() and path.is_dir()
+        else True
+    )
+    mock_utils.load_yaml = Mock()
+    mock_utils.get_path_to_callable = Mock(return_value="test")
+
+    spec = importlib.util.spec_from_file_location(
+        "mlebench_data",
+        Path(__file__).resolve().parents[2]
+        / "dslighting"
+        / "benchmark"
+        / "vendor"
+        / "mlebench"
+        / "data.py",
+    )
+    mlebench_data = importlib.util.module_from_spec(spec)
+    stubs = {
+        "diskcache": Mock(),
+        "yaml": Mock(),
+        "tenacity": Mock(),
+        "tqdm": Mock(),
+        "tqdm.auto": Mock(),
+        "appdirs": Mock(),
+        "dslighting.benchmark.vendor.mlebench.utils": mock_utils,
+        "dslighting.benchmark.vendor.mlebench.registry": Mock(),
+        "mlebench_data": mlebench_data,
+    }
+    with patch.dict(sys.modules, stubs):
+        with patch("pandas.DataFrame", pd.DataFrame):
+            with patch("pandas.read_csv", pd.read_csv):
+                spec.loader.exec_module(mlebench_data)
+    return mlebench_data.is_dataset_prepared
+
+
+is_dataset_prepared = _load_is_dataset_prepared()
 
 
 @dataclass

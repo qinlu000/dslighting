@@ -1,0 +1,118 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "mosci-massspecgym",
+  "data_objects": [
+    {
+      "name": "mass_spectra",
+      "files": [
+        "massspecgym.tsv"
+      ],
+      "kind": "table",
+      "meaning": "A tab-separated collection of mass-spectrum records. Each row couples a variable-length peak list to molecular-structure, formula, mass, precursor, and adduct metadata."
+    }
+  ],
+  "variables": [
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "identifier",
+      "meaning": "Spectrum-record identifier in the form MassSpecGymID followed by digits; it is the candidate row key, although uniqueness was not checked exhaustively and the numeric suffixes are not contiguous in file order.",
+      "unit": null
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "mzs",
+      "meaning": "Comma-separated mass-to-charge values for the spectrum's peaks. The list is positionally aligned with intensities and was ascending in every sampled row.",
+      "unit": "m/z"
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "intensities",
+      "meaning": "Comma-separated peak-intensity values positionally aligned with mzs. Every sampled spectrum had a maximum value of 1.0, consistent with per-spectrum relative scaling, but the normalization convention is not declared.",
+      "unit": null
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "smiles",
+      "meaning": "SMILES representation of the molecular structure associated with the spectrum; sampled strings may encode stereochemistry.",
+      "unit": null
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "inchikey",
+      "meaning": "Short molecular key labeled as an InChIKey. Sampled values are 14-character strings and repeat across spectra having the same molecular metadata.",
+      "unit": null
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "formula",
+      "meaning": "Molecular formula associated with the represented parent molecule and SMILES string.",
+      "unit": null
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "precursor_formula",
+      "meaning": "Formula assigned to the precursor ion; sampled differences from formula are consistent with the row's proton or sodium adduct notation.",
+      "unit": null
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "parent_mass",
+      "meaning": "Numeric mass associated with the parent molecule before the precursor adduct is represented. The public file does not state the mass convention or unit.",
+      "unit": null
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "precursor_mz",
+      "meaning": "Mass-to-charge value assigned to the precursor ion represented by precursor_formula and adduct.",
+      "unit": "m/z"
+    },
+    {
+      "object": "mass_spectra",
+      "file": "massspecgym.tsv",
+      "name": "adduct",
+      "meaning": "Ion/adduct notation for the precursor. Bounded samples contained protonated [M+H]+ and sodium-adducted [M+Na]+ values; this is not an exhaustive category inventory.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "description": "The TSV has one header row and 231,104 data rows. The observation unit is one spectrum record, with identifier serving as the apparent spectrum-level key; row order has no declared semantic meaning.",
+      "objects": [
+        "mass_spectra"
+      ]
+    },
+    {
+      "description": "Within a row, mzs and intensities are variable-length comma-separated arrays whose elements align one-to-one by position. In 800 rows sampled from eight blocks across the file, the arrays always had equal lengths, m/z values were ascending, and no field was empty.",
+      "objects": [
+        "mass_spectra"
+      ]
+    },
+    {
+      "description": "Molecular and precursor metadata can repeat across several identifiers while the peak arrays differ, giving a repeated-spectrum, many-rows-to-one-represented-molecule pattern. No separate molecule table or acquisition-metadata object is present in the public root.",
+      "objects": [
+        "mass_spectra"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "The file provides no embedded data dictionary or acquisition metadata, so instrument type, ionization source, collision energy, MS level, experimental provenance, and the reason for repeated spectra cannot be established.",
+    "The exact meaning and unit of parent_mass, including whether it is monoisotopic or another mass convention, are not declared.",
+    "The observed maximum intensity of 1.0 suggests normalization, but the denominator, preprocessing, and interpretation of intensity values are not documented.",
+    "The 14-character inchikey values resemble only part of a standard full InChIKey, but the file does not define how they were produced or which molecular distinctions they retain.",
+    "Identifier uniqueness, complete missing-value behavior, complete adduct vocabulary, and peak-array invariants were assessed only through bounded sampling rather than exhaustive value profiling."
+  ],
+  "annotation_notes": [
+    "Evidence was limited to the mandated dataset-semantics skill and the public artifact massspecgym.tsv; no task, description, private, gold, grader, output, or existing-annotation artifacts were inspected.",
+    "Physical inventory: one 257,027,435-byte ASCII TSV with ten columns and very long lines.",
+    "Representative inspection covered the header, beginning and ending records, eight spread-out individual records, and 800 rows in eight bounded blocks."
+  ]
+}

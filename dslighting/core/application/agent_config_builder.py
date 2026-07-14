@@ -12,6 +12,7 @@ from dslighting.config import (
     OutputContractConfig,
     RunConfig,
     SandboxConfig,
+    TaskContextConfig,
     WorkflowConfig,
 )
 from dslighting.core.config.llm_resolution import build_llm_config
@@ -97,6 +98,7 @@ class AgentConfigBuilder:
         # Keep legacy precedence: call-time kwargs override init-time kwargs.
         merged = {**self.init_kwargs, **run_kwargs}
         self._apply_data_analysis_overrides(config, merged)
+        self._apply_task_context_overrides(config, merged)
         self._apply_agent_runtime_overrides(config, merged)
         self._apply_output_contract_overrides(config, merged)
         self._apply_sandbox_overrides(config, merged)
@@ -181,6 +183,19 @@ class AgentConfigBuilder:
         except (TypeError, ValueError) as exc:
             raise ConfigurationError(str(exc), error_code="CFG-002") from None
         config.agent_runtime = AgentRuntimeConfig(**normalized)
+
+    def _apply_task_context_overrides(
+        self, config: DSLightingConfig, merged: Dict[str, Any]
+    ) -> None:
+        raw = merged.pop("task_context", None)
+        if raw is None:
+            return
+        if not isinstance(raw, dict):
+            raise ConfigurationError(
+                "`task_context` must be a dict matching TaskContextConfig",
+                error_code="CFG-002",
+            )
+        config.task_context = TaskContextConfig(**raw)
 
     def _apply_output_contract_overrides(
         self, config: DSLightingConfig, merged: Dict[str, Any]

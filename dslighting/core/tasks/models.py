@@ -10,6 +10,7 @@ from dslighting.benchmark.grading.models import SubmissionArtifactContract
 @dataclass(frozen=True)
 class ResolvedTaskLayout:
     task_id: str
+    dataset_id: str
     source_id: str
     engine_id: str
     task_type: str
@@ -41,6 +42,7 @@ class TaskExecutionSpec:
     engine_id: str | None = None
     submission_artifact_contract: SubmissionArtifactContract | None = None
     evaluation_contract_ref: TaskEvaluationContractRef | None = None
+    task_context_provenance: Mapping[str, Any] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -62,6 +64,11 @@ class TaskExecutionSpec:
             "evaluation_contract_ref": (
                 self.evaluation_contract_ref.to_payload().get("evaluation_contract_ref")
                 if self.evaluation_contract_ref
+                else None
+            ),
+            "task_context_provenance": (
+                dict(self.task_context_provenance)
+                if self.task_context_provenance is not None
                 else None
             ),
         }
@@ -88,4 +95,6 @@ class TaskExecutionSpec:
             payload.update(self.submission_artifact_contract.to_payload())
         if self.evaluation_contract_ref is not None:
             payload.update(self.evaluation_contract_ref.to_payload())
+        if self.task_context_provenance is not None:
+            payload["task_context_provenance"] = dict(self.task_context_provenance)
         return payload

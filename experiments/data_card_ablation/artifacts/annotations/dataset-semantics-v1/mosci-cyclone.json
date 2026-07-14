@@ -1,0 +1,235 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "mosci-cyclone",
+  "data_objects": [
+    {
+      "name": "cyclone_track_metadata",
+      "files": [
+        "combined_metadata_2020_to_2024.csv"
+      ],
+      "kind": "table",
+      "meaning": "A row-oriented table of time-stamped cyclone track points, associated intensity and quality fields, a cyclone identifier, and a relative reference to an infrared HDF5 frame."
+    },
+    {
+      "name": "infrared_brightness_temperature_frames",
+      "files": [
+        "image_2020_to_2024"
+      ],
+      "kind": "raster",
+      "meaning": "A collection of per-time HDF5 rasters. Representative files contain one 512 by 512 floating-point array named /Infrared whose embedded long_name is Brightness temperature."
+    }
+  ],
+  "variables": [
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "year",
+      "meaning": "Calendar year component of the track-point timestamp.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "month",
+      "meaning": "Calendar month component of the track-point timestamp.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "day",
+      "meaning": "Calendar day component of the track-point timestamp.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "hour",
+      "meaning": "Hour-of-day component of the track-point timestamp, encoded from 0 through 23.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "grade",
+      "meaning": "Coded cyclone intensity grade; observed public values are 0, 2, 3, 4, and 5, but their category definitions are not embedded.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "lat",
+      "meaning": "Latitude of the cyclone track point.",
+      "unit": "degrees"
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "lng",
+      "meaning": "Longitude of the cyclone track point; observed values include longitudes greater than 180 degrees.",
+      "unit": "degrees"
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "pressure",
+      "meaning": "Pressure measurement associated with the cyclone track point.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "wind",
+      "meaning": "Wind measurement associated with the cyclone track point.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "dir50",
+      "meaning": "Direction-code field in the group labeled 50; it is constant at 9 in the public table and the code definition is not embedded.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "long50",
+      "meaning": "Long-extent field in the group labeled 50; it is constant at 0 in the public table.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "short50",
+      "meaning": "Short-extent field in the group labeled 50; it is constant at 0 in the public table.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "dir30",
+      "meaning": "Direction-code field in the group labeled 30; it is constant at 9 in the public table and the code definition is not embedded.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "long30",
+      "meaning": "Long-extent field in the group labeled 30; it is constant at 0 in the public table.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "short30",
+      "meaning": "Short-extent field in the group labeled 30; it is constant at 0 in the public table.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "landfall",
+      "meaning": "Landfall-status field; it is constant at 0 in the public table and the code definition is not embedded.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "intp",
+      "meaning": "Interpolation-status indicator. Its timing pattern is consistent with 1 marking temporally interpolated hourly records and 0 marking source-time records.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "mask",
+      "meaning": "Count-like mask amount associated with a frame; mask_pct equals this value divided by the 512 by 512 raster cell count within CSV rounding.",
+      "unit": "pixels"
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "mask_pct",
+      "meaning": "Masked-cell fraction associated with a frame, encoded from 0 to 1 despite the pct suffix.",
+      "unit": "fraction"
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "id",
+      "meaning": "Six-digit cyclone identifier used to group repeated track points and to name the corresponding image subdirectory.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "hdf_full_path",
+      "meaning": "Relative path intended to identify the HDF5 infrared frame for the same cyclone and timestamp.",
+      "unit": null
+    },
+    {
+      "object": "infrared_brightness_temperature_frames",
+      "file": "image_2020_to_2024",
+      "name": "/Infrared",
+      "meaning": "A 512 by 512 float64 raster of brightness temperature; representative HDF5 files expose it as a compressed CArray with embedded long_name Brightness temperature.",
+      "unit": "K (kelvin)"
+    },
+    {
+      "object": "infrared_brightness_temperature_frames",
+      "file": "image_2020_to_2024",
+      "name": "/Infrared axis 0",
+      "meaning": "First raster index axis of length 512; no coordinate values, orientation, or spatial unit are embedded.",
+      "unit": null
+    },
+    {
+      "object": "infrared_brightness_temperature_frames",
+      "file": "image_2020_to_2024",
+      "name": "/Infrared axis 1",
+      "meaning": "Second raster index axis of length 512; no coordinate values, orientation, or spatial unit are embedded.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "description": "The metadata table contains 10,347 repeated track-point rows across 58 cyclone IDs. The observed combination of id, year, month, day, and hour is unique, while each id relates to many time-stamped rows.",
+      "objects": [
+        "cyclone_track_metadata"
+      ]
+    },
+    {
+      "description": "Image files are partitioned into cyclone-ID subdirectories. Observed filenames begin with a ten-digit YYYYMMDDHH timestamp, repeat the cyclone ID, include an HMW8 or HMW9 tag, and end in HDF5 format.",
+      "objects": [
+        "cyclone_track_metadata",
+        "infrared_brightness_temperature_frames"
+      ]
+    },
+    {
+      "description": "hdf_full_path provides the row-to-frame link. The public directory contains 8,279 HDF5 files, each referenced by one metadata row; 2,068 additional metadata path values do not resolve to a public file, so the relationship is one-to-zero-or-one from metadata rows to available frames.",
+      "objects": [
+        "cyclone_track_metadata",
+        "infrared_brightness_temperature_frames"
+      ]
+    },
+    {
+      "description": "Representative HDF5 files from the collection share a single /Infrared dataset with shape 512 by 512 and float64 storage. No latitude grid, longitude grid, time coordinate, fill value, or other raster-level coordinate variable is embedded in those files.",
+      "objects": [
+        "infrared_brightness_temperature_frames"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "The CSV provides no embedded data dictionary or unit metadata. Pressure, wind, and the 30/50 direction and extent families therefore retain unknown units and partly unknown semantics.",
+    "The meanings of grade codes, direction code 9, landfall code 0, and the exact intp coding convention are not explicitly defined; intp is interpreted only from its name and hourly pattern.",
+    "The 30/50 extent fields are uniformly zero and their direction fields are uniformly 9, so it is unclear whether these are meaningful constants, unavailable measurements, or sentinel encodings.",
+    "The physical phenomenon represented by mask is not named. Only its numerical relationship to mask_pct and the raster cell count is established.",
+    "The timestamp time standard or time zone is not stated, and the longitude wrapping convention is not documented.",
+    "The metadata track-point latitude and longitude do not establish the raster pixel geolocation, center registration, resolution, footprint, or axis orientation because those raster coordinates are absent.",
+    "The meanings of the HMW8/HMW9 filename tags and the trailing numeric filename component are not embedded in the public artifacts.",
+    "The public table has no blank fields, but no explicit missing-value or sentinel-value policy is supplied. Representative infrared arrays have no declared fill-value attribute.",
+    "Of the metadata references that lack public HDF5 counterparts, all rows dated 2020 are affected along with 41 rows dated 2021; their intended image contents cannot be inspected."
+  ],
+  "annotation_notes": [
+    "This task-independent map uses only the public CSV, the public image inventory, and bounded representative inspection of HDF5 contents.",
+    "HDF5 array name, shape, dtype, long_name, and kelvin unit come from embedded file metadata; interpretations of CSV fields are limited to names, encodings, and consistent value patterns."
+  ]
+}

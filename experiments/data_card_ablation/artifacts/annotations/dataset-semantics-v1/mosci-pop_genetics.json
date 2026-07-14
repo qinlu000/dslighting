@@ -1,0 +1,305 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "mosci-pop_genetics",
+  "data_objects": [
+    {
+      "name": "france_plink_genotypes",
+      "files": [
+        "France_Group.bed",
+        "France_Group.bim",
+        "France_Group.fam",
+        "France_Group_updated.fam"
+      ],
+      "kind": "bundle",
+      "meaning": "A PLINK 1 binary genotype dataset for 256 individuals at 520,564 autosomal variants. The BED contains packed genotype calls, the BIM defines the variant axis, and the FAM files define the individual axis and sample metadata."
+    },
+    {
+      "name": "france_group_summary",
+      "files": [
+        "France_Group_Info.csv"
+      ],
+      "kind": "table",
+      "meaning": "Seven French geographic-group records with average latitude and longitude, reported sample counts, and reported filtered SNP counts."
+    },
+    {
+      "name": "naples_plink_genotypes",
+      "files": [
+        "Naples_Group.bed",
+        "Naples_Group.bim",
+        "Naples_Group.bim.orig",
+        "Naples_Group.fam",
+        "Naples_Group_updated.fam"
+      ],
+      "kind": "bundle",
+      "meaning": "A PLINK 1 binary genotype dataset for 8 individuals at 564,353 autosomal variants. The BED contains packed genotype calls, the headerless BIM defines the variant axis, the .bim.orig file preserves the same variant rows with a header, and the FAM files define the individual axis and sample metadata."
+    }
+  ],
+  "variables": [
+    {
+      "object": "france_plink_genotypes",
+      "file": null,
+      "name": "genotype_call",
+      "meaning": "Packed PLINK genotype state for one individual and one variant, interpreted relative to the two allele labels in the aligned BIM row; the encoding includes a missing-call state.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.bim",
+      "name": "chromosome",
+      "meaning": "Autosomal chromosome code; observed codes are 1 through 22.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.bim",
+      "name": "snp_id",
+      "meaning": "Variant identifier; values are unique within this BIM file.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.bim",
+      "name": "genetic_distance",
+      "meaning": "Genetic-map coordinate for the variant; all France records contain nonzero values.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.bim",
+      "name": "bp_position",
+      "meaning": "One-based physical coordinate of the variant on its chromosome.",
+      "unit": "base pair"
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.bim",
+      "name": "allele1",
+      "meaning": "First allele label used by the PLINK genotype encoding.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.bim",
+      "name": "allele2",
+      "meaning": "Second allele label used by the PLINK genotype encoding.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.fam",
+      "name": "family_id",
+      "meaning": "PLINK family identifier; every sample row has the value French.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.fam",
+      "name": "individual_id",
+      "meaning": "Identifier for an individual; values are unique among the 256 sample rows.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.fam",
+      "name": "paternal_id",
+      "meaning": "Paternal individual identifier; 0 denotes an unavailable parent identifier and occurs in every sample row.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.fam",
+      "name": "maternal_id",
+      "meaning": "Maternal individual identifier; 0 denotes an unavailable parent identifier and occurs in every sample row.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.fam",
+      "name": "sex",
+      "meaning": "PLINK sex code, where 1 denotes male and 2 denotes female; both codes occur.",
+      "unit": null
+    },
+    {
+      "object": "france_plink_genotypes",
+      "file": "France_Group.fam",
+      "name": "phenotype",
+      "meaning": "PLINK phenotype/status field; every France sample row contains 4, whose dataset-specific interpretation is not supplied.",
+      "unit": null
+    },
+    {
+      "object": "france_group_summary",
+      "file": "France_Group_Info.csv",
+      "name": "Group",
+      "meaning": "Geographic-group code identifying one summary row.",
+      "unit": null
+    },
+    {
+      "object": "france_group_summary",
+      "file": "France_Group_Info.csv",
+      "name": "average_LAT",
+      "meaning": "Average latitude reported for the group.",
+      "unit": "decimal degree"
+    },
+    {
+      "object": "france_group_summary",
+      "file": "France_Group_Info.csv",
+      "name": "average_LON",
+      "meaning": "Average longitude reported for the group.",
+      "unit": "decimal degree"
+    },
+    {
+      "object": "france_group_summary",
+      "file": "France_Group_Info.csv",
+      "name": "num_samples",
+      "meaning": "Reported number of samples in the geographic group.",
+      "unit": "individuals"
+    },
+    {
+      "object": "france_group_summary",
+      "file": "France_Group_Info.csv",
+      "name": "filtered_SNP_count",
+      "meaning": "Reported number of filtered SNP records for the geographic group.",
+      "unit": "variants"
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": null,
+      "name": "genotype_call",
+      "meaning": "Packed PLINK genotype state for one individual and one variant, interpreted relative to the two allele labels in the aligned BIM row; the encoding includes a missing-call state.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.bim",
+      "name": "chromosome",
+      "meaning": "Autosomal chromosome code; observed codes are 1 through 22.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.bim",
+      "name": "snp_id",
+      "meaning": "Variant identifier; values are unique within this BIM file.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.bim",
+      "name": "genetic_distance",
+      "meaning": "Genetic-map field for the variant; every Naples record contains 0, so it does not provide varying map coordinates here.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.bim",
+      "name": "bp_position",
+      "meaning": "One-based physical coordinate of the variant on its chromosome.",
+      "unit": "base pair"
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.bim",
+      "name": "allele1",
+      "meaning": "First allele label used by the PLINK genotype encoding; 0 occurs for some variants as an unavailable allele label.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.bim",
+      "name": "allele2",
+      "meaning": "Second allele label used by the PLINK genotype encoding.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.fam",
+      "name": "family_id",
+      "meaning": "PLINK family identifier; every sample row has the value Naples.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.fam",
+      "name": "individual_id",
+      "meaning": "Identifier for an individual; values are unique among the 8 sample rows.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.fam",
+      "name": "paternal_id",
+      "meaning": "Paternal individual identifier; 0 denotes an unavailable parent identifier and occurs in every sample row.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.fam",
+      "name": "maternal_id",
+      "meaning": "Maternal individual identifier; 0 denotes an unavailable parent identifier and occurs in every sample row.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.fam",
+      "name": "sex",
+      "meaning": "PLINK sex code, where 1 denotes male and 2 denotes female; both codes occur.",
+      "unit": null
+    },
+    {
+      "object": "naples_plink_genotypes",
+      "file": "Naples_Group.fam",
+      "name": "phenotype",
+      "meaning": "PLINK phenotype/status field; every Naples sample row contains -9, the conventional PLINK missing-phenotype code.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "description": "Each BED begins with the PLINK 1 magic bytes and SNP-major orientation byte (6c 1b 01). File sizes are exactly 3 + variant_count multiplied by ceil(sample_count/4): 33,316,099 bytes for 520,564 France variants and 256 samples, and 1,128,709 bytes for 564,353 Naples variants and 8 samples. BED blocks therefore align by order to BIM variant rows, while calls within each block align by order to non-header FAM sample rows.",
+      "objects": [
+        "france_plink_genotypes",
+        "naples_plink_genotypes"
+      ]
+    },
+    {
+      "description": "The France FAM files each contain one header-like first line followed by 256 sample rows, and France_Group_updated.fam is byte-identical to France_Group.fam. The Naples FAM files each contain one header-like first line followed by the same 8 sample rows; they differ only in the first token of that header line (family_id versus Naples). BED size consistency establishes that these first lines are not members of the encoded sample axes.",
+      "objects": [
+        "france_plink_genotypes",
+        "naples_plink_genotypes"
+      ]
+    },
+    {
+      "description": "France_Group.bim and Naples_Group.bim are headerless six-field variant tables with 520,564 and 564,353 rows, respectively. SNP identifiers are unique within each file, and chromosome codes span autosomes 1 through 22. Naples_Group.bim.orig consists of a six-name header followed by exactly the same 564,353 variant rows as Naples_Group.bim.",
+      "objects": [
+        "france_plink_genotypes",
+        "naples_plink_genotypes"
+      ]
+    },
+    {
+      "description": "Each FAM data row represents one individual. Individual IDs are unique within each cohort, family IDs are constant within a cohort, and all paternal and maternal identifiers are 0, so no within-file pedigree links are populated.",
+      "objects": [
+        "france_plink_genotypes",
+        "naples_plink_genotypes"
+      ]
+    },
+    {
+      "description": "The seven num_samples values in France_Group_Info.csv sum to 256, matching the France FAM sample count. Every filtered_SNP_count value is 520,564, matching the France BIM variant count. The public files provide no explicit individual-to-Group foreign key.",
+      "objects": [
+        "france_group_summary",
+        "france_plink_genotypes"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "No public dictionary explains the France phenotype value 4; it must not be interpreted as a disease, trait, or class label from these artifacts alone.",
+    "The unit of the BIM genetic_distance field is not stated in the public files. Naples uses 0 in every row, and it is unclear whether that field was intentionally omitted or unavailable.",
+    "The BIM allele columns establish BED coding labels but do not establish reference/alternate, ancestral/derived, or minor/major roles. The biological reason for Naples allele1 values of 0 is not documented.",
+    "France group codes and coordinate values do not provide an explicit mapping from individual IDs to geographic groups, even though aggregate counts match. The coordinate reference datum is also unstated.",
+    "The public files do not declare whether the base or _updated FAM filename is canonical; their sample payloads are equivalent, with only the Naples header token differing."
+  ],
+  "annotation_notes": [
+    "This task-independent map was derived only from the permitted prepared/public artifacts.",
+    "Sample counts exclude the header-like first line in each FAM file; BED magic, orientation, and byte-size consistency were inspected without decoding genotype payloads.",
+    "PLINK sidecars were treated as components of cohort-level logical bundles rather than as disconnected tables."
+  ]
+}

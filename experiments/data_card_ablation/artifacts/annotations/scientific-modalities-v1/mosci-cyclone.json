@@ -1,0 +1,239 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "mosci-cyclone",
+  "data_objects": [
+    {
+      "name": "cyclone_track_scene_metadata",
+      "files": [
+        "combined_metadata_2020_to_2024.csv"
+      ],
+      "kind": "table",
+      "meaning": "A row-wise table of time-stamped tracked-event metadata, including location and intensity-related fields, categorical or indicator fields, image-mask summaries, an event identifier, and a relative path to an associated HDF5 scene."
+    },
+    {
+      "name": "infrared_brightness_temperature_scenes",
+      "files": [
+        "image_2020_to_2024"
+      ],
+      "kind": "raster",
+      "meaning": "A directory-partitioned collection of HDF5 scenes. Each representative file contains one 512 by 512 Float64 dataset named Infrared whose embedded metadata identifies it as brightness temperature in kelvin."
+    }
+  ],
+  "variables": [
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "year",
+      "meaning": "Four-digit year component of the row timestamp and linked scene filename timestamp.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "month",
+      "meaning": "Month component of the row timestamp.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "day",
+      "meaning": "Day-of-month component of the row timestamp.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "hour",
+      "meaning": "Hour component of the row timestamp, encoded from 0 through 23.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "grade",
+      "meaning": "Integer categorical grade assigned to the tracked event at the row timestamp; the public artifacts do not define the code labels.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "lat",
+      "meaning": "Latitude coordinate of the tracked-event location at the row timestamp.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "lng",
+      "meaning": "Longitude coordinate of the tracked-event location at the row timestamp; observed values extend above 180, so the encoding is not confined to the -180 to 180 interval.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "pressure",
+      "meaning": "Pressure measurement associated with the tracked event at the row timestamp; its pressure reference and unit are not stated.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "wind",
+      "meaning": "Wind measurement associated with the tracked event at the row timestamp; its averaging convention and unit are not stated.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "dir50",
+      "meaning": "Direction-or-code field in the 50-labeled field triplet; it is constant at 9 in the public table and its code meaning is not defined.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "long50",
+      "meaning": "Long-axis-like field in the 50-labeled triplet; it is zero throughout the public table and its meaning and unit are not defined.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "short50",
+      "meaning": "Short-axis-like field in the 50-labeled triplet; it is zero throughout the public table and its meaning and unit are not defined.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "dir30",
+      "meaning": "Direction-or-code field in the 30-labeled field triplet; it is constant at 9 in the public table and its code meaning is not defined.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "long30",
+      "meaning": "Long-axis-like field in the 30-labeled triplet; it is zero throughout the public table and its meaning and unit are not defined.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "short30",
+      "meaning": "Short-axis-like field in the 30-labeled triplet; it is zero throughout the public table and its meaning and unit are not defined.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "landfall",
+      "meaning": "Indicator-like field labeled landfall; it is zero throughout the public table, so its positive encoding is not exhibited.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "intp",
+      "meaning": "Binary interpolation indicator for the time-stamped track row, encoded as 0 or 1.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "mask",
+      "meaning": "Scene mask count. In representative rows with a nonzero value, it equals the number of linked Infrared pixels encoded exactly as 130.",
+      "unit": "pixels"
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "mask_pct",
+      "meaning": "Masked-pixel fraction for the linked 512 by 512 scene. Despite the pct suffix, observed values equal mask divided by 262144 and are encoded on a 0-to-1 scale rather than a 0-to-100 scale.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "id",
+      "meaning": "Tracked-event identifier that also names the first-level image directory partition; it is an identifier rather than a calendar field despite its numeric form.",
+      "unit": null
+    },
+    {
+      "object": "cyclone_track_scene_metadata",
+      "file": "combined_metadata_2020_to_2024.csv",
+      "name": "hdf_full_path",
+      "meaning": "Relative path intended to link the metadata row to its event- and timestamp-specific HDF5 scene under the public image directory.",
+      "unit": null
+    },
+    {
+      "object": "infrared_brightness_temperature_scenes",
+      "file": "image_2020_to_2024",
+      "name": "Infrared",
+      "meaning": "Single-band 512 by 512 Float64 brightness-temperature array stored in each representative HDF5 scene.",
+      "unit": "K (kelvin)"
+    },
+    {
+      "object": "infrared_brightness_temperature_scenes",
+      "file": "image_2020_to_2024",
+      "name": "pixel row index",
+      "meaning": "First displayed raster axis with 512 pixel positions; no geographic direction or coordinate values are embedded in the inspected scene metadata.",
+      "unit": null
+    },
+    {
+      "object": "infrared_brightness_temperature_scenes",
+      "file": "image_2020_to_2024",
+      "name": "pixel column index",
+      "meaning": "Second displayed raster axis with 512 pixel positions; no geographic direction or coordinate values are embedded in the inspected scene metadata.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "description": "Metadata rows are repeated scene-time observations grouped by id. The year, month, day, and hour fields form an hour-resolved timestamp, while intp distinguishes rows marked as interpolated from other rows.",
+      "objects": [
+        "cyclone_track_scene_metadata"
+      ]
+    },
+    {
+      "description": "The HDF5 collection is partitioned into directories named by id. Scene filenames combine a YYYYMMDDHH timestamp, the same id, an HMW8 or HMW9 token, and a trailing channel/version-like token; representative files contain exactly one Infrared raster.",
+      "objects": [
+        "infrared_brightness_temperature_scenes"
+      ]
+    },
+    {
+      "description": "hdf_full_path is the explicit row-to-scene alignment key and is unique across metadata rows. Public image coverage is partial: some table paths refer to event partitions that are absent from the public image directory, so a populated path does not guarantee an available counterpart.",
+      "objects": [
+        "cyclone_track_scene_metadata",
+        "infrared_brightness_temperature_scenes"
+      ]
+    },
+    {
+      "description": "Each available scene has two 512-position pixel axes and one Float64 Infrared measurement per pixel. The HDF5 metadata exposes brightness-temperature name and unit but no CRS, geotransform, latitude/longitude arrays, or declared NoData value through the available raster reader.",
+      "objects": [
+        "infrared_brightness_temperature_scenes"
+      ]
+    },
+    {
+      "description": "For representative nonzero-mask scenes, mask counts pixels equal to 130 and mask_pct records that count divided by the full 512 by 512 pixel count; scenes with mask equal to zero need not contain that exact value.",
+      "objects": [
+        "cyclone_track_scene_metadata",
+        "infrared_brightness_temperature_scenes"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "The timestamp timezone, time standard, and whether a scene is instantaneous or represents an interval are not stated.",
+    "The grade codebook, pressure unit and reference, wind unit and averaging convention, and the intended semantics of the 30- and 50-labeled triplets are not defined by the public artifacts.",
+    "The coordinate datum and explicit latitude/longitude units are not provided. The scene files expose only pixel coordinates, so the relationship between each raster footprint or center and the row latitude/longitude cannot be established.",
+    "The value 130 behaves like a mask or fill sentinel in representative scenes, but the inspected HDF5 metadata does not declare it as NoData; its exact status outside the observed mask relationship remains ambiguous.",
+    "The HMW8 and HMW9 filename tokens distinguish scene subsets, but their full platform or processing-level meanings are not expanded in the public artifacts.",
+    "The metadata table includes more row paths and event identifiers than are represented by available HDF5 files, and complete counterpart coverage cannot be assumed."
+  ],
+  "annotation_notes": [
+    "The annotation was derived from the complete CSV schema and bounded representative inspection of HDF5 scenes spanning the observed filename variants.",
+    "Embedded HDF5 attributes establish that Infrared is brightness temperature in kelvin; other physical units were left null where the public artifacts provide no unit metadata.",
+    "Only the declared public root and the specified dataset-perception and earth-observation treatment references were used."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "annotation_skill_arms_v1",
+  "arms": [
+    {
+      "arm_id": "no-added-skill-v1",
+      "skill_entrypoints": []
+    },
+    {
+      "arm_id": "dataset-semantics-v1",
+      "skill_entrypoints": [
+        "perceive-dataset-semantics/SKILL.md"
+      ]
+    },
+    {
+      "arm_id": "scientific-modalities-v1",
+      "skill_entrypoints": [
+        "perceive-dataset-semantics/SKILL.md",
+        "perceive-scientific-modalities/SKILL.md"
+      ]
+    }
+  ]
+}
