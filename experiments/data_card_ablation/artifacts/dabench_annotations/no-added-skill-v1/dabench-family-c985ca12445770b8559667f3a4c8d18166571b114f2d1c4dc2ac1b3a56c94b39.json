@@ -1,0 +1,31 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-c985ca12445770b8559667f3a4c8d18166571b114f2d1c4dc2ac1b3a56c94b39",
+  "data_objects": [
+    {
+      "name": "offense_age_records",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Year- and age-specific offense records carrying an offense label, an aggregated count measure, offense category and type, and boolean legal-status flags."
+    }
+  ],
+  "variables": [
+    {"object": "offense_age_records", "file": "train.csv", "name": "Date", "meaning": "Calendar year associated with the offense record.", "unit": "year"},
+    {"object": "offense_age_records", "file": "train.csv", "name": "Offense", "meaning": "Name of the offense represented by the record.", "unit": null},
+    {"object": "offense_age_records", "file": "train.csv", "name": "Age", "meaning": "Age associated with the offense record.", "unit": "years"},
+    {"object": "offense_age_records", "file": "train.csv", "name": "Count", "meaning": "Aggregated count measure for the year, offense, and age combination; the counted entity is not stated.", "unit": null},
+    {"object": "offense_age_records", "file": "train.csv", "name": "Category", "meaning": "Broad offense-category label.", "unit": null},
+    {"object": "offense_age_records", "file": "train.csv", "name": "Disqualifying_Offense", "meaning": "Boolean indicator labeling whether the offense is disqualifying under an unspecified rule or policy.", "unit": null},
+    {"object": "offense_age_records", "file": "train.csv", "name": "Offense_Type", "meaning": "Legal type or severity category assigned to the offense.", "unit": null},
+    {"object": "offense_age_records", "file": "train.csv", "name": "Expungible", "meaning": "Boolean indicator labeling whether the offense is expungible under an unspecified rule or policy.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row describes a calendar-year, offense, and age combination with an associated count and offense-level classifications.", "objects": ["offense_age_records"]},
+    {"description": "Category, Disqualifying_Offense, Offense_Type, and Expungible classify the named offense, while Count is the numeric measure for the row's year and age context.", "objects": ["offense_age_records"]}
+  ],
+  "uncertainties": [
+    "The jurisdiction, source population, counted entity, and legal definitions governing the boolean flags are not specified.",
+    "Date is formatted as a year even though its column name does not state the granularity."
+  ],
+  "annotation_notes": ["Semantics are limited to the column labels, boolean encodings, and values visible in train.csv."]
+}

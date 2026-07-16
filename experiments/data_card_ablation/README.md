@@ -5,9 +5,11 @@ validated task-context boundary:
 
 1. **Data Card levels** use `run_ablation.py` to compare `main`, `l1`, `l2`,
    and `l3` solver-context policies.
-2. **Perception skills** use `run_perception_skills.py` to compare L1
-   annotations produced with different perception skills through downstream
-   Solving Agent performance.
+2. **Perception skills** use the repository-local `./perception-skills run`
+   command to compare L1 annotations produced with different perception skills
+   through downstream Solving Agent performance. Both experiments declare
+   conditions to the same `ConditionExperimentEngine`; there is no nested
+   runner or second experiment process.
 
 The level experiment remains useful and is not replaced by the perception
 skills experiment. The latter adds the benchmark's original Dataset Description

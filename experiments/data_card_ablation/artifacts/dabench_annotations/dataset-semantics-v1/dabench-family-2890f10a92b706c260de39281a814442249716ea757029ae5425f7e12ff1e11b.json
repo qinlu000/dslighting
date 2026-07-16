@@ -1,0 +1,30 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-2890f10a92b706c260de39281a814442249716ea757029ae5425f7e12ff1e11b",
+  "data_objects": [
+    {
+      "name": "category_measurement_series",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "An ordered multivariate series of numeric measurements for medium-industrial, large-industrial, agricultural, residential, and full or overall categories.",
+      "notes": "The category expansions are inferred from abbreviated column labels; the measured phenomenon and observation cadence are not supplied."
+    }
+  ],
+  "variables": [
+    {"name": "Unnamed: 0", "object": "category_measurement_series", "file": "train.csv", "unit": "dimensionless", "meaning": "Sequential exported row index that preserves series order."},
+    {"name": "MedInd", "object": "category_measurement_series", "file": "train.csv", "unit": null, "meaning": "Measurement for the category abbreviated MedInd, plausibly medium industry."},
+    {"name": "LarInd", "object": "category_measurement_series", "file": "train.csv", "unit": null, "meaning": "Measurement for the category abbreviated LarInd, plausibly large industry."},
+    {"name": "Agri", "object": "category_measurement_series", "file": "train.csv", "unit": null, "meaning": "Measurement for the agricultural category."},
+    {"name": "Residential", "object": "category_measurement_series", "file": "train.csv", "unit": null, "meaning": "Measurement for the residential category."},
+    {"name": "Full", "object": "category_measurement_series", "file": "train.csv", "unit": null, "meaning": "Full or overall measurement associated with the category-specific series."}
+  ],
+  "structure": [
+    {"objects": ["category_measurement_series"], "description": "Each row is one position in an ordered sequence; Unnamed: 0 is a nonrepeating sequential index and candidate row key."},
+    {"objects": ["category_measurement_series"], "description": "The category columns are aligned measurements at the same sequence position, with Full representing an overall series whose exact aggregation rule is not declared."}
+  ],
+  "uncertainties": [
+    "The measured phenomenon, physical unit, time origin, and sampling cadence are absent from the CSV.",
+    "MedInd and LarInd label expansions and the exact relationship between Full and the category series remain inferred rather than documented."
+  ],
+  "annotation_notes": ["Only the declared neutral train.csv informed this task-independent description."]
+}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 import uuid
 from dataclasses import dataclass
@@ -18,10 +19,16 @@ from dslighting.services.llm.observed_call import (
     attach_debug_metadata,
     emit_llm_event,
     extract_response_content,
+    summarize_empty_response,
 )
+from dslighting.utils.defaults import DEFAULT_MAX_RETRIES
 
 if TYPE_CHECKING:
     from dslighting.services.llm.service import LLMService
+
+
+MAX_TRANSPORT_RETRY_DELAY_SECONDS = 30.0
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -30,7 +37,7 @@ class LLMCallSpec:
     response_format: dict[str, Any] | None = None
     output_model: type[BaseModel] | None = None
     response_mode: str = "text"
-    max_transport_retries: int = 3
+    max_transport_retries: int = DEFAULT_MAX_RETRIES
     max_validation_retries: int = 1
     base_delay: float = 1.0
 
@@ -227,6 +234,20 @@ class LLMCallExecutor:
                         content = self._extract_content(response)
                         duration = time.perf_counter() - perf_start
                         if not content.strip():
+                            response_metadata = summarize_empty_response(response)
+                            logger.warning(
+                                "LLM returned an empty response | logical_call_id=%s "
+                                "semantic_attempt=%s transport_attempt=%s response_metadata=%s",
+                                logical_call_id,
+                                semantic_attempt,
+                                transport_attempt,
+                                response_metadata,
+                            )
+                            await self._emit_empty_response(
+                                llm_context,
+                                response_metadata=response_metadata,
+                                duration=duration,
+                            )
                             raise LLMServiceError("LLM returned an empty response.")
 
                         await self._emit_response_received(
@@ -257,7 +278,11 @@ class LLMCallExecutor:
                                 reason=str(exc),
                                 next_transport_attempt=transport_attempt + 1,
                             )
-                            delay = spec.base_delay * (3 ** (transport_attempt - 1)) + (asyncio.get_event_loop().time() % 1)
+                            delay = min(
+                                MAX_TRANSPORT_RETRY_DELAY_SECONDS,
+                                spec.base_delay * (3 ** (transport_attempt - 1))
+                                + (asyncio.get_event_loop().time() % 1),
+                            )
                             await asyncio.sleep(delay)
                             continue
 
@@ -352,6 +377,29 @@ class LLMCallExecutor:
             llm_context=llm_context,
             payloads={"response_body": ("response_body", serialized)},
             metrics=metrics,
+        )
+
+    async def _emit_empty_response(
+        self,
+        llm_context: LLMCallContext,
+        *,
+        response_metadata: dict[str, Any],
+        duration: float,
+    ) -> None:
+        await self._emit_event(
+            "llm.response.empty",
+            "Received LLM response without text content",
+            llm_context=llm_context,
+            payloads={"response_metadata": ("response_body", response_metadata)},
+            metrics={"duration_seconds": round(duration, 4)},
+            tags={
+                "content_state": response_metadata.get("content_state"),
+                "finish_reason": response_metadata.get("finish_reason"),
+                "reasoning_content_present": response_metadata.get(
+                    "reasoning_content_present"
+                ),
+                "tool_call_count": response_metadata.get("tool_call_count"),
+            },
         )
 
     async def _emit_validated(self, llm_context: LLMCallContext, *, summary: str) -> None:

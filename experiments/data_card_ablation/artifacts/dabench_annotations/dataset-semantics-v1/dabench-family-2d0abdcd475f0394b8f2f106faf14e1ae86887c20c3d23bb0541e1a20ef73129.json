@@ -1,0 +1,36 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-2d0abdcd475f0394b8f2f106faf14e1ae86887c20c3d23bb0541e1a20ef73129",
+  "data_objects": [
+    {
+      "name": "forest_tree_measurements",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Measurements and species attributes for individual trees grouped into forest plots.",
+      "notes": "Tree-level measurements are associated with a plot identifier and paired species code and scientific name."
+    }
+  ],
+  "variables": [
+    {"name": "LIVE_ID", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Identifier for the individual live-tree record.", "unit": null},
+    {"name": "PLTID", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Identifier of the forest plot containing or representing the tree.", "unit": null},
+    {"name": "SPP_SYMBOL", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Abbreviated species code associated with the tree.", "unit": null},
+    {"name": "SCIENTIFIC_NAME", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Scientific taxon name corresponding to the species code.", "unit": null},
+    {"name": "CON", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Binary indicator named CON, encoded as 0 or 1; its underlying condition is not defined by the evidence.", "unit": null},
+    {"name": "DBH_CM", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Tree diameter at breast height.", "unit": "cm"},
+    {"name": "HT_M", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Tree height.", "unit": "m"},
+    {"name": "BA_M2", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Tree basal area.", "unit": "m^2"},
+    {"name": "TPH_PLT", "object": "forest_tree_measurements", "file": "train.csv", "meaning": "Plot-associated trees-per-hectare value carried on the tree record.", "unit": "trees/ha"}
+  ],
+  "structure": [
+    {"objects": ["forest_tree_measurements"], "description": "Each row represents an individual tree measurement; LIVE_ID serves as the record identifier and PLTID groups multiple trees by plot."},
+    {"objects": ["forest_tree_measurements"], "description": "SPP_SYMBOL and SCIENTIFIC_NAME provide coded and human-readable representations of species identity."},
+    {"objects": ["forest_tree_measurements"], "description": "CON is a binary 0/1 encoding, while DBH_CM, HT_M, BA_M2, and TPH_PLT carry units in their source names."}
+  ],
+  "uncertainties": [
+    "The expansion or sampling interpretation of TPH_PLT is not stated.",
+    "The meaning of the CON indicator and the taxonomic treatment of combined scientific names are not defined."
+  ],
+  "annotation_notes": [
+    "Only the declared train.csv table was used as evidence."
+  ]
+}

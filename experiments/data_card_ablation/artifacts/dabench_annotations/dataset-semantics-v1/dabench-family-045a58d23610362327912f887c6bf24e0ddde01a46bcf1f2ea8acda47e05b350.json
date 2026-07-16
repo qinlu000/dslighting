@@ -1,0 +1,96 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-045a58d23610362327912f887c6bf24e0ddde01a46bcf1f2ea8acda47e05b350",
+  "data_objects": [
+    {
+      "name": "debate_team_standings",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Standings-style records for two-person school debate teams, including wins, original and standardized team labels, and sheet-level round and weighting metadata.",
+      "notes": "The physical CSV header is not the semantic field-name row: the first data row supplies in-band labels. Two source columns are empty spacers."
+    }
+  ],
+  "variables": [
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "JAMES LOGAN",
+      "meaning": "Team win count after an initial in-band cell labeled Wins.",
+      "unit": "wins"
+    },
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "Unnamed: 1",
+      "meaning": "Names of the two team members after an initial in-band cell labeled Name.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "Unnamed: 2",
+      "meaning": "Original team code combining a school label with member initials, after an initial in-band cell labeled Code.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "Unnamed: 3",
+      "meaning": "School represented by the team, after an initial in-band cell labeled School.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "Unnamed: 4",
+      "meaning": "Empty spacer field with no supplied semantic label or values.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "Unnamed: 5",
+      "meaning": "Empty spacer field with no supplied semantic label or values.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "Unnamed: 6",
+      "meaning": "Standardized team-name variant, identified by the in-band label STANDARD TEAM NAME.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "Unnamed: 7",
+      "meaning": "Number-of-rounds metadata stored once beneath the in-band label NUM ROUNDS rather than repeated for each team.",
+      "unit": "rounds"
+    },
+    {
+      "object": "debate_team_standings",
+      "file": "train.csv",
+      "name": "Unnamed: 8",
+      "meaning": "Dimensionless weighting metadata stored once beneath the in-band label WEIGHTING rather than repeated for each team.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "description": "The first data row is an embedded semantic header and is not a team observation; subsequent rows each describe one two-person team.",
+      "objects": ["debate_team_standings"]
+    },
+    {
+      "description": "Team records are ordered by non-increasing win count. The original code and standardized name are alternative labels rather than documented stable identifiers.",
+      "objects": ["debate_team_standings"]
+    }
+  ],
+  "uncertainties": [
+    "The role of the physical header text JAMES LOGAN is not documented by the table.",
+    "The intended scope of NUM ROUNDS and WEIGHTING is inferred to be table-level from their single placement; no accompanying metadata confirms it.",
+    "No semantics are supplied for the two empty spacer columns."
+  ],
+  "annotation_notes": [
+    "Only the declared train.csv and its neutral packet were used as evidence."
+  ]
+}

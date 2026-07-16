@@ -1,0 +1,39 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-411cf03455d6026823fbd3ab65e2839075a22f9a5c088b85aef0d272d79cca00",
+  "data_objects": [
+    {
+      "name": "passenger_records",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Passenger-level manifest records with identity, travel class, party and ticket information, demographic attributes, fare, embarkation, cabin, and survival status.",
+      "notes": "Blank cells and numeric-like zero values appear in some categorical fields; their intended missing-data treatment is not documented."
+    }
+  ],
+  "variables": [
+    {"name": "Unnamed: 0", "object": "passenger_records", "file": "train.csv", "unit": "dimensionless", "meaning": "Sequential exported row index."},
+    {"name": "PassengerId", "object": "passenger_records", "file": "train.csv", "unit": "dimensionless", "meaning": "Passenger identifier and candidate record key."},
+    {"name": "Survived", "object": "passenger_records", "file": "train.csv", "unit": "dimensionless", "meaning": "Binary survival indicator, with 1 denoting survived and 0 denoting did not survive."},
+    {"name": "Pclass", "object": "passenger_records", "file": "train.csv", "unit": "dimensionless", "meaning": "Ordinal passenger travel-class code; a zero-like value also appears and is not defined."},
+    {"name": "Name", "object": "passenger_records", "file": "train.csv", "unit": null, "meaning": "Passenger name, including honorific and sometimes parenthetical alternate or spouse-related text."},
+    {"name": "Sex", "object": "passenger_records", "file": "train.csv", "unit": null, "meaning": "Recorded sex category; a zero-like category is also present without definition."},
+    {"name": "Age", "object": "passenger_records", "file": "train.csv", "unit": "years", "meaning": "Passenger age."},
+    {"name": "SibSp", "object": "passenger_records", "file": "train.csv", "unit": "people", "meaning": "Count of siblings and spouses accompanying the passenger."},
+    {"name": "Parch", "object": "passenger_records", "file": "train.csv", "unit": "people", "meaning": "Count of parents and children accompanying the passenger."},
+    {"name": "Ticket", "object": "passenger_records", "file": "train.csv", "unit": null, "meaning": "Ticket identifier or ticket code; it can link passengers sharing a ticket."},
+    {"name": "Fare", "object": "passenger_records", "file": "train.csv", "unit": null, "meaning": "Recorded passenger fare in an unspecified currency."},
+    {"name": "Cabin", "object": "passenger_records", "file": "train.csv", "unit": null, "meaning": "Cabin code, blank when unavailable."},
+    {"name": "Embarked", "object": "passenger_records", "file": "train.csv", "unit": null, "meaning": "Coded port of embarkation; code expansions and a zero-like value are not defined in the CSV."},
+    {"name": "AgeBand", "object": "passenger_records", "file": "train.csv", "unit": "dimensionless", "meaning": "Ordinal age-band code associated with Age; band boundaries are not supplied."}
+  ],
+  "structure": [
+    {"objects": ["passenger_records"], "description": "Each row describes one passenger; PassengerId is a nonrepeating candidate key, and Unnamed: 0 preserves export order."},
+    {"objects": ["passenger_records"], "description": "Ticket and Cabin can group multiple passenger records, while SibSp and Parch describe party relationships as counts rather than identifiers."},
+    {"objects": ["passenger_records"], "description": "AgeBand is a categorical encoding derived from or aligned with Age, but the cutpoints are not declared."}
+  ],
+  "uncertainties": [
+    "The fare currency, embarkation-code dictionary, age-band cutpoints, and meaning of zero-like values in categorical fields are not documented.",
+    "Cabin and Embarked use blank cells as an unavailable-value representation, but the reason for absence is not distinguished."
+  ],
+  "annotation_notes": ["The description is grounded only in the declared neutral train.csv and remains independent of downstream use."]
+}

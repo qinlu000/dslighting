@@ -94,6 +94,7 @@ class ConfigBuilder:
         api_base: str = None,
         provider: str = None,
         temperature: float = None,
+        sandbox: Optional[Dict[str, Any]] = None,
         data_analysis: Optional[Dict[str, Any]] = None,
         task_context: Optional[Dict[str, Any]] = None,
         agent_runtime: Optional[Dict[str, Any]] = None,
@@ -117,6 +118,7 @@ class ConfigBuilder:
             api_base: API base URL
             provider: LLM provider (for LiteLLM)
             temperature: LLM temperature
+            sandbox: Code-execution sandbox settings
             data_analysis: Shared data analysis settings
             task_context: Dataset-context policy and artifact locations
             agent_runtime: Shared agent runtime settings
@@ -148,6 +150,7 @@ class ConfigBuilder:
             api_base=api_base,
             provider=provider,
             temperature=temperature,
+            sandbox=sandbox,
             data_analysis=data_analysis,
             task_context=task_context,
             agent_runtime=agent_runtime,
@@ -199,6 +202,7 @@ class ConfigBuilder:
         api_base: str = None,
         provider: str = None,
         temperature: float = None,
+        sandbox: Optional[Dict[str, Any]] = None,
         data_analysis: Optional[Dict[str, Any]] = None,
         task_context: Optional[Dict[str, Any]] = None,
         agent_runtime: Optional[Dict[str, Any]] = None,
@@ -302,6 +306,14 @@ class ConfigBuilder:
 
         if temperature is not None:
             config.setdefault("llm", {})["temperature"] = temperature
+
+        if sandbox is not None:
+            if not isinstance(sandbox, dict):
+                raise ConfigurationError(
+                    "`sandbox` must be a dictionary matching SandboxConfig",
+                    error_code="CFG-002",
+                )
+            config.setdefault("sandbox", {}).update(sandbox)
 
         if data_analysis is not None:
             if not isinstance(data_analysis, dict):

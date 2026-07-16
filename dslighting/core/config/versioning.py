@@ -27,8 +27,8 @@ Example Usage:
 """
 
 import logging
-from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
 from typing_extensions import ClassVar
 
 logger = logging.getLogger(__name__)
@@ -108,10 +108,8 @@ class ConfigVersionManager:
             if version not in self.SUPPORTED_VERSIONS:
                 logger.warning(
                     f"Unknown config version '{version}'. "
-                    f"Supported versions: {self.SUPPORTED_VERSIONS}. "
-                    f"Assuming compatibility with latest version."
+                    f"Supported versions: {self.SUPPORTED_VERSIONS}."
                 )
-                return self.VERSION
             return version
 
         # Default to current version for unknown configs
@@ -146,14 +144,10 @@ class ConfigVersionManager:
             >>> migrated["_version"]
             '2.0'
         """
-        current_version = self.detect_version(config)
+        current_version = from_version or self.detect_version(config)
         target_version = to_version or self.VERSION
+        self._validate_version(target_version)
 
-        # No changes needed if already at target version
-        if current_version == target_version:
-            return config
-
-        # Legacy versions no longer supported
         if current_version not in self.SUPPORTED_VERSIONS:
             raise MigrationNotSupportedError(
                 f"Legacy version '{current_version}' is no longer supported. "
@@ -161,21 +155,8 @@ class ConfigVersionManager:
                 f"Supported versions: {self.SUPPORTED_VERSIONS}"
             )
 
-        # Initialize migration history
-        migration_history: List[Dict[str, Any]] = config.get("_migration_history", [])
-
-        # Record migration step
-        migration_history.append({
-            "from_version": current_version,
-            "to_version": target_version,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
-
-        # Update version and history
         migrated_config = config.copy()
         migrated_config["_version"] = target_version
-        migrated_config["_migration_history"] = migration_history
-
         return migrated_config
 
     def get_migration_path(self, from_version: str, to_version: str) -> List[Tuple[str, str]]:

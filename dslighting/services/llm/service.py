@@ -36,6 +36,7 @@ from dslighting.utils.constants import (
     DEFAULT_CACHE_TTL_SECONDS,
     DEFAULT_MAX_CONCURRENT_PER_KEY,
 )
+from dslighting.utils.defaults import DEFAULT_MAX_RETRIES
 
 # Ensure custom pricing is applied
 apply_custom_model_pricing()
@@ -306,6 +307,12 @@ class LLMService:
         }
         if self.config.provider:
             kwargs["custom_llm_provider"] = self.config.provider
+        if self.config.thinking is not None:
+            kwargs["extra_body"] = {
+                "thinking": {
+                    "type": "enabled" if self.config.thinking else "disabled",
+                }
+            }
         if response_format:
             kwargs["response_format"] = response_format
         return kwargs
@@ -407,7 +414,7 @@ class LLMService:
         self,
         messages: list,
         response_format: dict | None = None,
-        max_retries: int = 3,
+        max_retries: int = DEFAULT_MAX_RETRIES,
         base_delay: float = 1.0,
     ):
         """
@@ -530,7 +537,7 @@ class LLMService:
         Args:
             prompt: The user's prompt.
             system_message: An optional system message to guide the LLM's behavior.
-            max_retries: Maximum number of retry attempts (default: 3).
+            max_retries: Maximum number of retry attempts (default: 10).
 
         Returns:
             The string content of the LLM's response.
@@ -598,7 +605,7 @@ class LLMService:
         Args:
             prompt: The user's prompt.
             output_model: The Pydantic model class for the desired output structure.
-            max_retries: Maximum number of retry attempts (default: 3).
+            max_retries: Maximum number of retry attempts (default: 10).
 
         Returns:
             An instantiated Pydantic model with the LLM's response.

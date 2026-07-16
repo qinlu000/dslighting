@@ -1,0 +1,40 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-55770473647050ba8f11d46108aac81f38df600e8261b105321fffd5c5a6ecec",
+  "data_objects": [
+    {
+      "name": "security_trading_days",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Daily equity-market records for a named security series, with price summaries, trading activity, turnover, trade counts, and deliverable quantity.",
+      "notes": "The CSV identifies the instrument and series codes but does not provide exchange, currency, or price-adjustment metadata."
+    }
+  ],
+  "variables": [
+    {"name": "Symbol", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Market symbol identifying the traded security."},
+    {"name": "Series", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Market series or security-type code associated with the symbol."},
+    {"name": "Date", "object": "security_trading_days", "file": "train.csv", "unit": "calendar date", "meaning": "Trading date for the daily record."},
+    {"name": "Prev Close", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Closing price from the preceding trading session, in an unspecified currency."},
+    {"name": "Open Price", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Opening price for the trading session, in an unspecified currency."},
+    {"name": "High Price", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Highest recorded price during the trading session, in an unspecified currency."},
+    {"name": "Low Price", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Lowest recorded price during the trading session, in an unspecified currency."},
+    {"name": "Last Price", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Last traded price recorded for the session, in an unspecified currency."},
+    {"name": "Close Price", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Official or recorded closing price for the session, in an unspecified currency."},
+    {"name": "Average Price", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Average traded price reported for the session, in an unspecified currency."},
+    {"name": "Total Traded Quantity", "object": "security_trading_days", "file": "train.csv", "unit": "shares", "meaning": "Total quantity traded during the session."},
+    {"name": "Turnover", "object": "security_trading_days", "file": "train.csv", "unit": null, "meaning": "Total traded monetary value for the session, in an unspecified currency."},
+    {"name": "No. of Trades", "object": "security_trading_days", "file": "train.csv", "unit": "trades", "meaning": "Count of recorded trades during the session."},
+    {"name": "Deliverable Qty", "object": "security_trading_days", "file": "train.csv", "unit": "shares", "meaning": "Quantity of traded shares marked deliverable."},
+    {"name": "% Dly Qt to Traded Qty", "object": "security_trading_days", "file": "train.csv", "unit": "percent", "meaning": "Deliverable quantity as a percentage of total traded quantity."}
+  ],
+  "structure": [
+    {"objects": ["security_trading_days"], "description": "Each row is one trading date for a symbol-series combination; Symbol, Series, and Date form the natural candidate key."},
+    {"objects": ["security_trading_days"], "description": "Rows are chronologically ordered, and Prev Close links each session conceptually to the prior session while the remaining price fields summarize the current session."},
+    {"objects": ["security_trading_days"], "description": "Deliverable Qty and its percentage are aligned with Total Traded Quantity, while Turnover represents the monetary trading amount."}
+  ],
+  "uncertainties": [
+    "The trading venue, price and turnover currency, price adjustment status, and exact definition of the Series code are not supplied.",
+    "The CSV does not state whether Average Price is arithmetic, volume-weighted, or calculated by another exchange convention."
+  ],
+  "annotation_notes": ["The semantic description is confined to the declared neutral train.csv and does not assume a downstream analysis."]
+}

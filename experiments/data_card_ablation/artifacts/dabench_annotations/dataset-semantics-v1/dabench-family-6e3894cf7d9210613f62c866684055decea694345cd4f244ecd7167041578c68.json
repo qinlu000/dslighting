@@ -1,0 +1,87 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-6e3894cf7d9210613f62c866684055decea694345cd4f244ecd7167041578c68",
+  "data_objects": [
+    {
+      "name": "individual_insurance_charge_records",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Individual insurance-charge records with demographic, body-mass, dependent-child, smoking, and regional attributes.",
+      "notes": "The table has no explicit record identifier or documented monetary unit."
+    }
+  ],
+  "variables": [
+    {
+      "name": "age",
+      "object": "individual_insurance_charge_records",
+      "file": "train.csv",
+      "meaning": "Age of the person associated with the record.",
+      "unit": "years"
+    },
+    {
+      "name": "sex",
+      "object": "individual_insurance_charge_records",
+      "file": "train.csv",
+      "meaning": "Recorded sex category, encoded as lowercase female or male.",
+      "unit": null
+    },
+    {
+      "name": "bmi",
+      "object": "individual_insurance_charge_records",
+      "file": "train.csv",
+      "meaning": "Body mass index of the person.",
+      "unit": "kg/m^2"
+    },
+    {
+      "name": "children",
+      "object": "individual_insurance_charge_records",
+      "file": "train.csv",
+      "meaning": "Number of children or dependents associated with the insurance record.",
+      "unit": "children"
+    },
+    {
+      "name": "smoker",
+      "object": "individual_insurance_charge_records",
+      "file": "train.csv",
+      "meaning": "Whether the person is recorded as a smoker, encoded as yes or no.",
+      "unit": null
+    },
+    {
+      "name": "region",
+      "object": "individual_insurance_charge_records",
+      "file": "train.csv",
+      "meaning": "Broad region associated with the record, encoded as northeast, northwest, southeast, or southwest.",
+      "unit": null
+    },
+    {
+      "name": "charges",
+      "object": "individual_insurance_charge_records",
+      "file": "train.csv",
+      "meaning": "Recorded insurance-related charge amount for the individual record.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "individual_insurance_charge_records"
+      ],
+      "description": "Each row represents one individual insurance record; no source column is an explicit row identifier, and no semantic row ordering is declared."
+    },
+    {
+      "objects": [
+        "individual_insurance_charge_records"
+      ],
+      "description": "sex, smoker, and region are categorical fields, while age, bmi, children, and charges are numeric fields."
+    }
+  ],
+  "uncertainties": [
+    "The evidence does not establish the currency of charges or whether that amount is billed, allowed, paid, or otherwise defined.",
+    "The precise scope of children and the geographic system represented by region are not documented."
+  ],
+  "annotation_notes": [
+    "Semantics are grounded only in train.csv and its declared packet."
+  ]
+}

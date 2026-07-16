@@ -1,0 +1,29 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-3e0540386cf89b4f5e1d7f2760f9aa3885ea21119d3b12e9e5c07056caae7367",
+  "data_objects": [
+    {
+      "name": "genomic_interval_trees",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Genomic interval records with interval boundaries, SNP and sample-coverage measures, and a phylogenetic tree encoded as text."
+    }
+  ],
+  "variables": [
+    {"object": "genomic_interval_trees", "file": "train.csv", "name": "Unnamed: 0", "meaning": "Sequential row label introduced by a prior table index; it has no stated biological meaning.", "unit": null},
+    {"object": "genomic_interval_trees", "file": "train.csv", "name": "start", "meaning": "Start coordinate of the genomic interval.", "unit": null},
+    {"object": "genomic_interval_trees", "file": "train.csv", "name": "end", "meaning": "End coordinate of the genomic interval.", "unit": null},
+    {"object": "genomic_interval_trees", "file": "train.csv", "name": "nsnps", "meaning": "Number of SNPs associated with the interval.", "unit": "SNPs"},
+    {"object": "genomic_interval_trees", "file": "train.csv", "name": "nsamplecov", "meaning": "Numeric sample-coverage measure for the interval; the precise definition is not stated.", "unit": "samples"},
+    {"object": "genomic_interval_trees", "file": "train.csv", "name": "tree", "meaning": "Parenthesized phylogenetic tree representation with named tips, branch lengths, and numeric internal annotations.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row associates one start-to-end genomic interval with SNP, sample-coverage, and tree information.", "objects": ["genomic_interval_trees"]},
+    {"description": "The tree field uses a Newick-like parenthesized encoding with colon-delimited branch lengths and internal numeric labels.", "objects": ["genomic_interval_trees"]}
+  ],
+  "uncertainties": [
+    "The coordinate system, interval endpoint convention, reference sequence, branch-length unit, and interpretation of internal tree annotations are not specified.",
+    "The exact definition of nsamplecov is not supplied."
+  ],
+  "annotation_notes": ["Semantics are limited to the column labels and encodings visible in train.csv."]
+}

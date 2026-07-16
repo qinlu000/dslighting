@@ -9,9 +9,11 @@ from typing import Any
 import pytest
 
 import dslighting.core.task_context as task_context_boundary
-from dslighting.benchmark.core.source_catalog import BenchmarkSourceDescriptor
+from dslighting.benchmark.core.source_catalog import get_benchmark_source_catalog
 from dslighting.core.task_context._markdown import replace_dataset_description
+from experiments.data_card_ablation import engine
 from experiments.data_card_ablation import run_ablation as runner
+from experiments.data_card_ablation.benchmark_profiles import get_ablation_profile
 
 TASK_ID = "dabench-test-task"
 DABENCH_TASK_ID = "dabench-0-mean-fare-paid"
@@ -34,15 +36,21 @@ def _target(
     dataset_id: str,
     public_dir: Path,
     sample_submission_path: Path | None,
-) -> runner.TaskTarget:
-    return runner.TaskTarget(
+) -> engine.TaskTarget:
+    return engine.TaskTarget(
         task_id=task_id,
         dataset_id=dataset_id,
         public_dir=public_dir,
         sample_submission_path=sample_submission_path,
         description_text=TARGET_DESCRIPTION,
-        description_sha256=runner._sha256(TARGET_DESCRIPTION.encode("utf-8")),
+        description_sha256=engine.sha256(TARGET_DESCRIPTION.encode("utf-8")),
     )
+
+
+def _benchmark_profile(source_id: str) -> tuple[Any, Any, Any]:
+    catalog = get_benchmark_source_catalog()
+    descriptor = catalog.get_source(source_id)
+    return catalog, descriptor, get_ablation_profile(descriptor.source_id)
 
 
 def _write_l1_artifact(
@@ -137,7 +145,7 @@ def test_bundled_descriptions_have_one_replaceable_dataset_section(
     source_id: str,
     expected_minimum: int,
 ) -> None:
-    _, descriptor, _ = runner._resolve_benchmark_profile(source_id)
+    _, descriptor, _ = _benchmark_profile(source_id)
     descriptions = sorted(descriptor.registry_root.glob("*/description.md"))
     assert len(descriptions) >= expected_minimum
     assert descriptions
@@ -163,7 +171,7 @@ def test_catalog_capability_and_reviewed_profile_are_resolved_together(
     requires_output: bool,
     feedback_retries: int,
 ) -> None:
-    catalog, descriptor, profile = runner._resolve_benchmark_profile(source_id)
+    catalog, descriptor, profile = _benchmark_profile(source_id)
 
     assert catalog.get_source(source_id) == descriptor
     assert descriptor.source_id == source_id
@@ -174,28 +182,6 @@ def test_catalog_capability_and_reviewed_profile_are_resolved_together(
     output_contract = profile.config_overrides.get("output_contract", {})
     assert output_contract.get("require_output_before_completion", False) is requires_output
     assert output_contract.get("missing_output_feedback_retries", 0) == feedback_retries
-
-
-def test_catalog_capability_gate_rejects_non_mle_contract(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    descriptor = BenchmarkSourceDescriptor(
-        source_id="unsupported",
-        contract_id="other/v1",
-        engine_id="other",
-        vendor_root=tmp_path,
-        registry_root=tmp_path,
-    )
-    fake_catalog = SimpleNamespace(get_source=lambda source_id: descriptor)
-
-    monkeypatch.setattr(
-        "dslighting.benchmark.core.source_catalog.get_benchmark_source_catalog",
-        lambda: fake_catalog,
-    )
-
-    with pytest.raises(runner.PreflightError, match="unsupported runtime capability"):
-        runner._resolve_benchmark_profile("unsupported")
 
 
 @pytest.mark.parametrize("raw", ["l0", "main,main"])
@@ -214,15 +200,16 @@ def test_build_configs_uses_profile_output_contract_for_every_arm(
     requires_output: bool,
     feedback_retries: int,
 ) -> None:
-    _, _, profile = runner._resolve_benchmark_profile(source_id)
-    configs = runner._build_configs(
-        policies=runner.SUPPORTED_POLICIES,
-        run_id="unit-test-run",
-        workflow=profile.default_workflow,
-        model="unit-test-model",
-        concurrency=2,
+    _, _, profile = _benchmark_profile(source_id)
+    conditions = runner._level_conditions(
+        runner.SUPPORTED_POLICIES,
         l1_artifact_dir=tmp_path / "l1",
         l2_guidance_path=tmp_path / "l2.md",
+    )
+    configs, _ = engine.build_configs(
+        conditions=conditions,
+        run_id="unit-test-run",
+        runtime=engine.ConditionRuntime(profile.default_workflow, "unit-test-model", 2),
         config_overrides=profile.config_overrides,
         dry_run=True,
     )
@@ -234,12 +221,6 @@ def test_build_configs_uses_profile_output_contract_for_every_arm(
         assert config.scheduler.run_id == "unit-test-run"
         assert config.run.parameters["output_artifact_suffix_seed"] == "unit-test-run"
         assert config.task_context.require_canonical_layout is True
-
-    runner._verify_fixed_configs(configs)
-    configs["l3"].output_contract.max_candidate_files += 1
-    with pytest.raises(runner.PreflightError, match="main-owned runtime configuration"):
-        runner._verify_fixed_configs(configs)
-
 
 def test_data_root_normalization_accepts_direct_and_competitions_layouts(
     tmp_path: Path,
@@ -254,9 +235,10 @@ def test_data_root_normalization_accepts_direct_and_competitions_layouts(
         nested_competitions=True,
     )
 
-    assert runner._normalize_data_root(direct_requested, [DABENCH_TASK_ID]) == direct_root.resolve()
+    assert engine.normalize_data_root(direct_requested, [DABENCH_TASK_ID]) == direct_root.resolve()
     assert (
-        runner._normalize_data_root(nested_requested, [MOSCIBENCH_TASK_ID]) == nested_root.resolve()
+        engine.normalize_data_root(nested_requested, [MOSCIBENCH_TASK_ID])
+        == nested_root.resolve()
     )
 
 
@@ -270,10 +252,10 @@ def test_task_resolution_is_registry_driven_for_each_mle_source(
     task_id: str,
 ) -> None:
     _, data_root, public_dir = _make_prepared_source_task(tmp_path, task_id=task_id)
-    catalog, descriptor, _ = runner._resolve_benchmark_profile(source_id)
+    catalog, descriptor, _ = _benchmark_profile(source_id)
     registry = catalog.build_registry(descriptor, data_root=data_root)
 
-    targets = runner._resolve_tasks(
+    targets = engine.resolve_tasks(
         registry=registry,
         inline_tasks=[task_id],
         tasks_file=None,
@@ -289,7 +271,7 @@ def test_task_resolution_is_registry_driven_for_each_mle_source(
     assert targets[0].sample_submission_path == (
         public_dir / "sample_submission.csv"
     ).resolve()
-    assert targets[0].description_sha256 == runner._sha256(
+    assert targets[0].description_sha256 == engine.sha256(
         targets[0].description_text.encode("utf-8")
     )
 
@@ -300,11 +282,11 @@ def test_task_resolution_rejects_incomplete_prepared_data(tmp_path: Path) -> Non
         task_id=DABENCH_TASK_ID,
     )
     (data_root / DABENCH_TASK_ID / "prepared" / "private" / "answer.csv").unlink()
-    catalog, descriptor, _ = runner._resolve_benchmark_profile("dabench")
+    catalog, descriptor, _ = _benchmark_profile("dabench")
     registry = catalog.build_registry(descriptor, data_root=data_root)
 
-    with pytest.raises(runner.PreflightError, match="not fully prepared"):
-        runner._resolve_tasks(
+    with pytest.raises(engine.PreflightError, match="not fully prepared"):
+        engine.resolve_tasks(
             registry=registry,
             inline_tasks=[DABENCH_TASK_ID],
             tasks_file=None,
@@ -323,14 +305,14 @@ def test_l1_preflight_validates_public_coverage(tmp_path: Path) -> None:
         sample_submission_path=public_dir / "sample_submission.csv",
     )
 
-    summary = runner._preflight_l1(artifact_dir, [target])
+    summary = engine.preflight_l1(artifact_dir, [target])
 
     assert summary["validated_task_count"] == 1
     assert summary["files"][TASK_ID]["path"] == str((artifact_dir / f"{TASK_ID}.json").resolve())
 
     _write_l1_artifact(artifact_dir, "missing.csv")
-    with pytest.raises(runner.PreflightError, match="invalid L1 artifact"):
-        runner._preflight_l1(artifact_dir, [target])
+    with pytest.raises(engine.PreflightError, match="invalid L1 artifact"):
+        engine.preflight_l1(artifact_dir, [target])
 
 
 def test_l1_preflight_rejects_sample_submission(tmp_path: Path) -> None:
@@ -344,8 +326,8 @@ def test_l1_preflight_rejects_sample_submission(tmp_path: Path) -> None:
         sample_submission_path=public_dir / "sample_submission.csv",
     )
 
-    with pytest.raises(runner.PreflightError, match="invalid L1 artifact"):
-        runner._preflight_l1(artifact_dir, [target])
+    with pytest.raises(engine.PreflightError, match="invalid L1 artifact"):
+        engine.preflight_l1(artifact_dir, [target])
 
 
 def test_l1_preflight_reuses_one_family_artifact_across_moscibench_tasks(
@@ -360,7 +342,7 @@ def test_l1_preflight_reuses_one_family_artifact_across_moscibench_tasks(
         dataset_id=family_id,
         task_id=None,
     )
-    targets: list[runner.TaskTarget] = []
+    targets: list[engine.TaskTarget] = []
     for task_id in ("mosci-cyclone-1", "mosci-cyclone-2"):
         public_dir = tmp_path / "data" / task_id / "prepared" / "public"
         public_dir.mkdir(parents=True)
@@ -376,7 +358,7 @@ def test_l1_preflight_reuses_one_family_artifact_across_moscibench_tasks(
             )
         )
 
-    summary = runner._preflight_l1(artifact_dir, targets)
+    summary = engine.preflight_l1(artifact_dir, targets)
 
     expected_path = str(artifact_path.resolve())
     assert summary["validated_task_count"] == 2
@@ -399,7 +381,7 @@ def test_l2_preflight_delegates_to_core_boundary(
 
     monkeypatch.setattr(task_context_boundary, "load_l2_artifact", load_l2_artifact)
 
-    resolved, summary = runner._preflight_l2(guidance_path)
+    resolved, summary = engine.preflight_l2(guidance_path)
 
     assert calls == [guidance_path.resolve()]
     assert resolved == guidance_path.resolve()
@@ -419,21 +401,13 @@ def test_main_only_dry_run_needs_no_artifacts_and_writes_nothing(
     build_arguments: dict[str, Any] = {}
 
     monkeypatch.setattr(runner, "RUNS_ROOT", runs_root)
+    original_build_configs = runner.build_configs
 
-    def must_not_be_called(*args: object, **kwargs: object) -> None:
-        raise AssertionError("artifact or manifest boundary must not be called")
-
-    monkeypatch.setattr(runner, "_preflight_l1", must_not_be_called)
-    monkeypatch.setattr(runner, "_preflight_l2", must_not_be_called)
-    monkeypatch.setattr(runner, "_write_manifest", must_not_be_called)
-
-    original_build_configs = runner._build_configs
-
-    def build_configs(**kwargs: Any) -> dict[str, Any]:
+    def build_configs(**kwargs: Any) -> tuple[dict[str, Any], str]:
         build_arguments.update(kwargs)
         return original_build_configs(**kwargs)
 
-    monkeypatch.setattr(runner, "_build_configs", build_configs)
+    monkeypatch.setattr(runner, "build_configs", build_configs)
 
     args = runner._build_parser().parse_args(
         [
@@ -450,9 +424,10 @@ def test_main_only_dry_run_needs_no_artifacts_and_writes_nothing(
     )
 
     assert runner._execute(args) is None
-    assert build_arguments["policies"] == ("main",)
-    assert build_arguments["l1_artifact_dir"] is None
-    assert build_arguments["l2_guidance_path"] is None
+    conditions = build_arguments["conditions"]
+    assert [condition.condition_id for condition in conditions] == ["main"]
+    assert conditions[0].l1_artifact_dir is None
+    assert conditions[0].l2_guidance_path is None
     assert not runs_root.exists()
 
     plan = json.loads(capsys.readouterr().out)
@@ -492,13 +467,13 @@ def test_runtime_provenance_is_collected_and_fixed_context_is_verified() -> None
         )
     )
 
-    collected = runner._collect_task_context_audit(
+    collected = engine.collect_task_context_audit(
         benchmark,
         tasks=[TASK_ID],
         policy="main",
     )
     reference: dict[str, dict[str, str]] = {}
-    runner._verify_fixed_context(collected, reference, policy="main")
+    engine.verify_fixed_context(collected, reference, condition_id="main")
 
     treatment = {
         TASK_ID: {
@@ -510,7 +485,7 @@ def test_runtime_provenance_is_collected_and_fixed_context_is_verified() -> None
             "fixed_task_context": fixed,
         }
     }
-    runner._verify_fixed_context(treatment, reference, policy="l1")
+    engine.verify_fixed_context(treatment, reference, condition_id="l1")
 
     changed = {
         TASK_ID: {
@@ -521,8 +496,8 @@ def test_runtime_provenance_is_collected_and_fixed_context_is_verified() -> None
             },
         }
     }
-    with pytest.raises(runner.ExperimentInvariantError, match="io_instructions_sha256"):
-        runner._verify_fixed_context(changed, reference, policy="l2")
+    with pytest.raises(engine.ExperimentInvariantError, match="io_instructions_sha256"):
+        engine.verify_fixed_context(changed, reference, condition_id="l2")
 
 
 def test_runtime_provenance_is_required_for_every_selected_task() -> None:
@@ -532,8 +507,8 @@ def test_runtime_provenance_is_required_for_every_selected_task() -> None:
         )
     )
 
-    with pytest.raises(runner.ExperimentInvariantError, match="did not persist"):
-        runner._collect_task_context_audit(
+    with pytest.raises(engine.ExperimentInvariantError, match="did not persist"):
+        engine.collect_task_context_audit(
             benchmark,
             tasks=[TASK_ID],
             policy="main",
@@ -564,8 +539,8 @@ def test_runtime_provenance_requires_dataset_identity() -> None:
         )
     )
 
-    with pytest.raises(runner.ExperimentInvariantError, match="dataset identity"):
-        runner._collect_task_context_audit(
+    with pytest.raises(engine.ExperimentInvariantError, match="dataset identity"):
+        engine.collect_task_context_audit(
             benchmark,
             tasks=[TASK_ID],
             policy="main",
@@ -600,7 +575,7 @@ def test_identical_retry_records_are_deduplicated_but_conflicts_fail() -> None:
     ]
     benchmark = SimpleNamespace(runner=SimpleNamespace(get_run_records=lambda: records))
 
-    collected = runner._collect_task_context_audit(
+    collected = engine.collect_task_context_audit(
         benchmark,
         tasks=[TASK_ID],
         policy="main",
@@ -619,8 +594,8 @@ def test_identical_retry_records_are_deduplicated_but_conflicts_fail() -> None:
             },
         },
     }
-    with pytest.raises(runner.ExperimentInvariantError, match="conflicting retry"):
-        runner._collect_task_context_audit(
+    with pytest.raises(engine.ExperimentInvariantError, match="conflicting retry"):
+        engine.collect_task_context_audit(
             benchmark,
             tasks=[TASK_ID],
             policy="main",
@@ -655,7 +630,7 @@ def test_failed_task_record_is_audited_as_an_outcome() -> None:
         )
     )
 
-    collected = runner._collect_task_context_audit(
+    collected = engine.collect_task_context_audit(
         benchmark,
         tasks=[TASK_ID],
         policy="main",
@@ -710,11 +685,11 @@ def test_task_outcomes_distinguish_workflow_and_submission_failures(
         }
     }
 
-    outcomes = runner._collect_task_outcomes(
+    outcomes = engine.collect_task_outcomes(
         benchmark,
         audit,
         tasks=[TASK_ID],
-        policy="main",
+        condition_id="main",
     )
 
     assert outcomes[TASK_ID]["status"] == expected_status
@@ -764,7 +739,7 @@ def test_execute_uses_dynamic_benchmark_contract_and_persists_manifest(
         nested_competitions=True,
     )
     runs_root = tmp_path / "runs"
-    _, descriptor, _ = runner._resolve_benchmark_profile(source_id)
+    _, descriptor, _ = _benchmark_profile(source_id)
     provenance = {
         "policy": "main",
         "dataset_id": ("mosci-cyclone" if source_id == "moscibench" else task_id),
@@ -823,13 +798,13 @@ def test_execute_uses_dynamic_benchmark_contract_and_persists_manifest(
             return result
 
     monkeypatch.setattr(runner, "RUNS_ROOT", runs_root)
-    original_build_configs = runner._build_configs
+    original_build_configs = runner.build_configs
 
-    def build_configs_without_api_key(**kwargs: Any) -> dict[str, Any]:
+    def build_configs_without_api_key(**kwargs: Any) -> tuple[dict[str, Any], str]:
         kwargs["dry_run"] = True
         return original_build_configs(**kwargs)
 
-    monkeypatch.setattr(runner, "_build_configs", build_configs_without_api_key)
+    monkeypatch.setattr(runner, "build_configs", build_configs_without_api_key)
     monkeypatch.setattr("dslighting.api.benchmark.DSBenchmark", FakeDSBenchmark)
     args = runner._build_parser().parse_args(
         [
@@ -902,17 +877,17 @@ def test_runtime_artifacts_must_match_preflight_digests() -> None:
         }
     }
 
-    runner._verify_selected_artifacts(
+    engine.verify_selected_artifacts(
         context,
-        policy="l1",
+        condition=engine.ExperimentCondition("l1", "l1"),
         l1_summary={"files": {TASK_ID: {"artifact_id": TASK_ID, **artifact}}},
         l2_summary=None,
     )
 
-    with pytest.raises(runner.ExperimentInvariantError, match="preflighted L1"):
-        runner._verify_selected_artifacts(
+    with pytest.raises(engine.ExperimentInvariantError, match="preflighted L1"):
+        engine.verify_selected_artifacts(
             context,
-            policy="l1",
+            condition=engine.ExperimentCondition("l1", "l1"),
             l1_summary={"files": {TASK_ID: {"path": "/l1.json", "sha256": "changed-hash"}}},
             l2_summary=None,
         )

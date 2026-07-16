@@ -1,0 +1,101 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-b2d37e2153fa661b710170db1c9b2d62cef2baf2910535bd5600c32892f48a45",
+  "data_objects": [
+    {
+      "name": "county_vote_results",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "County-level election vote totals, party shares, margins, and geographic identifiers."
+    }
+  ],
+  "variables": [
+    {
+      "name": "votes_dem",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "Number of votes reported for the Democratic candidate or party.",
+      "unit": "votes"
+    },
+    {
+      "name": "votes_gop",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "Number of votes reported for the Republican or GOP candidate or party.",
+      "unit": "votes"
+    },
+    {
+      "name": "total_votes",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "Total votes reported for the county record.",
+      "unit": "votes"
+    },
+    {
+      "name": "per_dem",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "Democratic share of the reported total vote, stored as a decimal fraction.",
+      "unit": "fraction"
+    },
+    {
+      "name": "per_gop",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "Republican or GOP share of the reported total vote, stored as a decimal fraction.",
+      "unit": "fraction"
+    },
+    {
+      "name": "diff",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "Reported vote-count difference, stored as text with a thousands separator.",
+      "unit": "votes"
+    },
+    {
+      "name": "per_point_diff",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "Reported party-share difference, stored as percent-formatted text.",
+      "unit": "percentage points"
+    },
+    {
+      "name": "state_abbr",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "State abbreviation associated with the county record.",
+      "unit": null
+    },
+    {
+      "name": "county_name",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "County or county-equivalent name.",
+      "unit": null
+    },
+    {
+      "name": "combined_fips",
+      "file": "train.csv",
+      "object": "county_vote_results",
+      "meaning": "Combined state-and-county FIPS geographic identifier.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "county_vote_results"
+      ],
+      "description": "Each row is a county or county-equivalent election result identified by state_abbr, county_name, and combined_fips; shares are numeric fractions while margin fields use formatted text."
+    }
+  ],
+  "uncertainties": [
+    "The election year, office, candidates, and treatment of votes outside the two named party columns are not stated.",
+    "The table does not explicitly say whether diff and per_point_diff are signed or absolute margins, and leading-zero preservation for combined_fips is not documented."
+  ],
+  "annotation_notes": [
+    "Party and geography meanings follow explicit source labels; election context not present in train.csv is left unresolved."
+  ]
+}

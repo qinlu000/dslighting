@@ -1,0 +1,87 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-68a9ce2a7b5c249f01c716d92eb5f7429be1c6185f0160a6b73d6df89e425419",
+  "data_objects": [
+    {
+      "name": "coded_indicator_observations",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Long-form annual indicator observations identified by geography, indicator, subject, measure, and frequency codes."
+    }
+  ],
+  "variables": [
+    {
+      "name": "LOCATION",
+      "file": "train.csv",
+      "object": "coded_indicator_observations",
+      "meaning": "Code for the geography or aggregate associated with an observation.",
+      "unit": null
+    },
+    {
+      "name": "INDICATOR",
+      "file": "train.csv",
+      "object": "coded_indicator_observations",
+      "meaning": "Code identifying the reported indicator.",
+      "unit": null
+    },
+    {
+      "name": "SUBJECT",
+      "file": "train.csv",
+      "object": "coded_indicator_observations",
+      "meaning": "Code identifying the indicator subject or category.",
+      "unit": null
+    },
+    {
+      "name": "MEASURE",
+      "file": "train.csv",
+      "object": "coded_indicator_observations",
+      "meaning": "Code specifying the measurement basis for Value.",
+      "unit": null
+    },
+    {
+      "name": "FREQUENCY",
+      "file": "train.csv",
+      "object": "coded_indicator_observations",
+      "meaning": "Code specifying the reporting frequency.",
+      "unit": null
+    },
+    {
+      "name": "TIME",
+      "file": "train.csv",
+      "object": "coded_indicator_observations",
+      "meaning": "Reference year for the observation.",
+      "unit": "year"
+    },
+    {
+      "name": "Value",
+      "file": "train.csv",
+      "object": "coded_indicator_observations",
+      "meaning": "Observed indicator value whose measurement basis is identified by MEASURE.",
+      "unit": null
+    },
+    {
+      "name": "Flag Codes",
+      "file": "train.csv",
+      "object": "coded_indicator_observations",
+      "meaning": "Optional source flags or status codes attached to an observation.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "coded_indicator_observations"
+      ],
+      "description": "Each row is one observation at a LOCATION, INDICATOR, SUBJECT, MEASURE, FREQUENCY, and TIME combination; categorical dimensions use compact source codes."
+    }
+  ],
+  "uncertainties": [
+    "The code dictionaries for LOCATION, INDICATOR, SUBJECT, MEASURE, FREQUENCY, and Flag Codes are not included.",
+    "The unit of Value depends on MEASURE, whose code meaning is not explicitly expanded in the table."
+  ],
+  "annotation_notes": [
+    "Code meanings are not expanded beyond what the source headers establish."
+  ]
+}

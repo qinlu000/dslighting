@@ -23,7 +23,7 @@ from typing import Dict, List, Any
 
 DEFAULT_LLM_MODEL = "gpt-4o-mini"
 DEFAULT_TEMPERATURE = 0.7
-DEFAULT_MAX_RETRIES = 3
+DEFAULT_MAX_RETRIES = 10
 DEFAULT_API_BASE = "https://api.openai.com/v1"
 
 

@@ -1,0 +1,31 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-be19636b5bb50967a295060f62a26d7911a746527d6d946b0994165bbfade659",
+  "data_objects": [
+    {
+      "name": "encoded_passenger_features",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Passenger-level feature records in which travel class, demographic, fare, embarkation, title, and companionship attributes are represented primarily by numeric codes."
+    }
+  ],
+  "variables": [
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Pclass", "meaning": "Ordinal passenger travel-class code.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Sex", "meaning": "Numeric code for passenger sex; the code-to-category mapping is not stated.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Age", "meaning": "Numeric age category or transformed age feature rather than a plainly labeled raw age; category boundaries are not stated.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Fare", "meaning": "Numeric fare category or transformed fare feature; category boundaries and currency are not stated.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Embarked", "meaning": "Numeric code for embarkation location; the codebook is not stated.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Title", "meaning": "Numeric code for a passenger title category; the codebook is not stated.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "IsAlone", "meaning": "Binary-coded indicator of whether the passenger traveled alone; the code-to-status mapping is not stated.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Age*Pclass", "meaning": "Numeric combined feature labeled from Age and Pclass; its construction is not explicitly documented.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row represents one passenger-level collection of encoded attributes.", "objects": ["encoded_passenger_features"]},
+    {"description": "Sex, Age, Fare, Embarked, Title, and IsAlone use numeric representations whose category mappings are not contained in the table.", "objects": ["encoded_passenger_features"]}
+  ],
+  "uncertainties": [
+    "The categorical codebooks, bin boundaries, fare currency, and exact construction of Age*Pclass are not supplied.",
+    "No passenger identifier is present."
+  ],
+  "annotation_notes": ["Semantics are limited to the column labels and encoded values visible in train.csv."]
+}

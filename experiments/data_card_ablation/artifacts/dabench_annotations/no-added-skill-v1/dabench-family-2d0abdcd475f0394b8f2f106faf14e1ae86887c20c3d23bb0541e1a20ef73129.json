@@ -1,0 +1,35 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-2d0abdcd475f0394b8f2f106faf14e1ae86887c20c3d23bb0541e1a20ef73129",
+  "data_objects": [
+    {
+      "name": "tree_inventory_records",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Plot-based inventory records for individual trees, including species, dimensions, basal area, and plot expansion information.",
+      "notes": "Identifier and measurement expansions follow the explicit field labels; the CON code is not defined in the table."
+    }
+  ],
+  "variables": [
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "LIVE_ID", "meaning": "Identifier for the individual live-tree record.", "unit": null},
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "PLTID", "meaning": "Identifier of the inventory plot containing the tree.", "unit": null},
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "SPP_SYMBOL", "meaning": "Abbreviated species symbol associated with the tree.", "unit": null},
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "SCIENTIFIC_NAME", "meaning": "Scientific taxon name corresponding to the species symbol.", "unit": null},
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "CON", "meaning": "Numeric condition or category code labeled CON.", "unit": null},
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "DBH_CM", "meaning": "Tree diameter at breast height.", "unit": "centimeters"},
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "HT_M", "meaning": "Tree height.", "unit": "meters"},
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "BA_M2", "meaning": "Basal area associated with the tree record.", "unit": "square meters"},
+    {"object": "tree_inventory_records", "file": "train.csv", "name": "TPH_PLT", "meaning": "Plot-level trees-per-hectare expansion value associated with the tree.", "unit": "trees per hectare"}
+  ],
+  "structure": [
+    {"description": "Each row is an individual tree inventory record; LIVE_ID serves as the row identifier and PLTID groups trees within plots.", "objects": ["tree_inventory_records"]},
+    {"description": "SPP_SYMBOL and SCIENTIFIC_NAME are paired species encodings for the same tree.", "objects": ["tree_inventory_records"]}
+  ],
+  "uncertainties": [
+    "The meaning and codebook for CON are not supplied.",
+    "The table does not state the inventory date, location, or sampling protocol."
+  ],
+  "annotation_notes": [
+    "Meanings and units are limited to information conveyed by the source fields and train.csv values."
+  ]
+}

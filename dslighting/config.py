@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 from dslighting.core.visualization_policy import VisualizationPolicy
 from dslighting.utils.constants import DEFAULT_CACHE_MAX_ENTRIES
+from dslighting.utils.defaults import DEFAULT_MAX_RETRIES
 
 
 class LLMConfig(BaseModel):
@@ -26,7 +27,14 @@ class LLMConfig(BaseModel):
     provider: Optional[str] = Field(
         None, description="Optional LiteLLM provider alias, e.g. 'siliconflow'."
     )
-    max_retries: int = 3
+    thinking: Optional[bool] = Field(
+        None,
+        description=(
+            "Optional reasoning-mode switch for providers that support the OpenAI-compatible "
+            "thinking request body. None leaves the provider default unchanged."
+        ),
+    )
+    max_retries: int = DEFAULT_MAX_RETRIES
     max_concurrent_per_key: int = 20
 
     def get_api_keys(self) -> List[str]:
@@ -51,6 +59,9 @@ class SandboxConfig(BaseModel):
     backend: str = "local"  # Sandbox backend: local, e2b, ds_sandbox
     backend_type: str = "docker"  # Backend type for ds_sandbox: docker, local
     api_key: Optional[str] = None  # API key for e2b
+    local_isolation: Literal["process", "bubblewrap"] = "process"
+    environment_policy: Literal["inherit", "allowlist"] = "inherit"
+    network_policy: Literal["inherit", "disabled"] = "inherit"
 
 
 class DataAnalysisConfig(BaseModel):

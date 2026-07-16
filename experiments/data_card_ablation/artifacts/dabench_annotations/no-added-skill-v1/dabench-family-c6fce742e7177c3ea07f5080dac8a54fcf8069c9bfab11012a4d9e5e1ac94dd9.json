@@ -1,0 +1,101 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-c6fce742e7177c3ea07f5080dac8a54fcf8069c9bfab11012a4d9e5e1ac94dd9",
+  "data_objects": [
+    {
+      "name": "industry_worker_march_comparison",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "March 2019 and March 2020 labor measurements by industry or class-of-worker category, including total, men, and women fields."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Serial",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Source row serial or ordering value.",
+      "unit": null
+    },
+    {
+      "name": "Industry and class of worker",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Industry, worker-class, subtotal, or total category label.",
+      "unit": null
+    },
+    {
+      "name": "Mar.2019",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Aggregate quantity reported for the category in March 2019.",
+      "unit": null
+    },
+    {
+      "name": "Mar.2020",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Aggregate quantity reported for the category in March 2020.",
+      "unit": null
+    },
+    {
+      "name": "Total Mar.2019",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Total-population rate or measure reported for March 2019.",
+      "unit": null
+    },
+    {
+      "name": "Total Mar.2020",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Total-population rate or measure reported for March 2020.",
+      "unit": null
+    },
+    {
+      "name": "Men Mar.2019",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Men-specific rate or measure reported for March 2019.",
+      "unit": null
+    },
+    {
+      "name": "Men Mar.2020",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Men-specific rate or measure reported for March 2020.",
+      "unit": null
+    },
+    {
+      "name": "Women Mar.2019",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Women-specific rate or measure reported for March 2019.",
+      "unit": null
+    },
+    {
+      "name": "Women Mar.2020",
+      "file": "train.csv",
+      "object": "industry_worker_march_comparison",
+      "meaning": "Women-specific rate or measure reported for March 2020.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "industry_worker_march_comparison"
+      ],
+      "description": "Rows are source-ordered industry, worker-class, subtotal, or total categories with parallel March-period measurements; hyphens and blank cells encode unavailable or absent entries."
+    }
+  ],
+  "uncertainties": [
+    "The table does not name the underlying labor statistic or the units of the aggregate and subgroup fields.",
+    "It is not explicit whether the Total, Men, and Women fields are percentages, rates on another scale, or another measure."
+  ],
+  "annotation_notes": [
+    "The March and subgroup columns are described conservatively because the table lacks a title or unit legend."
+  ]
+}

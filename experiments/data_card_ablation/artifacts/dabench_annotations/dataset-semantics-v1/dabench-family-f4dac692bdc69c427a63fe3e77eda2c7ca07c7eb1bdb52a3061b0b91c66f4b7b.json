@@ -1,0 +1,114 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-f4dac692bdc69c427a63fe3e77eda2c7ca07c7eb1bdb52a3061b0b91c66f4b7b",
+  "data_objects": [
+    {
+      "name": "regional_monthly_housing",
+      "kind": "table",
+      "meaning": "Monthly median sold-price-per-square-foot observations for named geographic regions, with repeated location labels and a region size rank.",
+      "files": [
+        "train.csv"
+      ],
+      "notes": "The region labels indicate Washington, DC postal areas, but the source system and pricing currency are not declared."
+    }
+  ],
+  "variables": [
+    {
+      "name": "RegionID",
+      "meaning": "Numeric identifier assigned to a geographic region by the source system.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    },
+    {
+      "name": "RegionName",
+      "meaning": "Region label; the observed labels have the form of postal ZIP codes within Washington, DC.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    },
+    {
+      "name": "City",
+      "meaning": "City name associated with the region.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    },
+    {
+      "name": "State",
+      "meaning": "State or district abbreviation associated with the region.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    },
+    {
+      "name": "Metro",
+      "meaning": "Metropolitan-area name associated with the region.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    },
+    {
+      "name": "CountyName",
+      "meaning": "County-equivalent name associated with the region.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    },
+    {
+      "name": "SizeRank",
+      "meaning": "Ordinal size rank assigned to the region by an unspecified source-system size measure.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    },
+    {
+      "name": "Month",
+      "meaning": "Calendar month in YYYY-MM notation for the housing observation.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    },
+    {
+      "name": "MedianSoldPricePerSqft",
+      "meaning": "Median sold price per square foot for the region and month; the currency is not declared.",
+      "unit": null,
+      "object": "regional_monthly_housing",
+      "file": "train.csv"
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "regional_monthly_housing"
+      ],
+      "description": "Each row represents one geographic region in one calendar month. The pair of RegionID and Month is a candidate row key."
+    },
+    {
+      "objects": [
+        "regional_monthly_housing"
+      ],
+      "description": "Rows are grouped by RegionID and ordered by ascending Month within each region."
+    },
+    {
+      "objects": [
+        "regional_monthly_housing"
+      ],
+      "description": "RegionName, City, State, Metro, CountyName, and SizeRank are repeated region-level attributes across the monthly observations for a RegionID."
+    },
+    {
+      "objects": [
+        "regional_monthly_housing"
+      ],
+      "description": "Empty CSV cells encode an unavailable MedianSoldPricePerSqft observation for a region-month."
+    }
+  ],
+  "uncertainties": [
+    "The RegionID namespace, the definition used to create SizeRank, and the exact geographic semantics of RegionName are not documented.",
+    "The pricing currency is not stated even though the measurement basis is per square foot.",
+    "The table does not define how the monthly median is aggregated or which property transactions are included."
+  ],
+  "annotation_notes": [
+    "Semantics are grounded only in the declared train.csv evidence."
+  ]
+}

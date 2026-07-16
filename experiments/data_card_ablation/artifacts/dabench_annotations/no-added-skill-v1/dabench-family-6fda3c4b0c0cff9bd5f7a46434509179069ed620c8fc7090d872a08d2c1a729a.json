@@ -1,0 +1,35 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-6fda3c4b0c0cff9bd5f7a46434509179069ed620c8fc7090d872a08d2c1a729a",
+  "data_objects": [
+    {
+      "name": "abalone_measurements",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Individual abalone records containing a sex or life-stage code, shell dimensions, body-component weights, and ring count.",
+      "notes": "Physical measurement units and the codebook for Sex are not provided in the table."
+    }
+  ],
+  "variables": [
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Sex", "meaning": "Categorical sex or life-stage code for the individual.", "unit": null},
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Length", "meaning": "Length measurement of the abalone shell or body.", "unit": null},
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Diameter", "meaning": "Diameter measurement of the abalone shell or body.", "unit": null},
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Height", "meaning": "Height measurement of the abalone shell or body.", "unit": null},
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Whole weight", "meaning": "Weight of the whole abalone.", "unit": null},
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Shucked weight", "meaning": "Weight of the shucked edible body.", "unit": null},
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Viscera weight", "meaning": "Weight of the viscera component.", "unit": null},
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Shell weight", "meaning": "Weight of the shell component.", "unit": null},
+    {"object": "abalone_measurements", "file": "train.csv", "name": "Rings", "meaning": "Count of growth rings recorded for the individual.", "unit": "rings"}
+  ],
+  "structure": [
+    {"description": "Each row represents one measured abalone; no explicit individual identifier is included.", "objects": ["abalone_measurements"]},
+    {"description": "Whole weight is accompanied by separate shucked, viscera, and shell component-weight fields.", "objects": ["abalone_measurements"]}
+  ],
+  "uncertainties": [
+    "The meanings of the Sex category codes are not declared by train.csv.",
+    "Length and weight units, collection setting, and measurement procedures are unspecified."
+  ],
+  "annotation_notes": [
+    "No physical units or category expansions are assigned where they are not established by train.csv."
+  ]
+}

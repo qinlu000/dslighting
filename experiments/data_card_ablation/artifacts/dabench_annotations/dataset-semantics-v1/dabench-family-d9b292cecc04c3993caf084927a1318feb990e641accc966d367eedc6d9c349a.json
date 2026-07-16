@@ -1,0 +1,37 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-d9b292cecc04c3993caf084927a1318feb990e641accc966d367eedc6d9c349a",
+  "data_objects": [
+    {
+      "name": "basketball_play_by_play_events",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Basketball game play-by-play events with event codes, period and clock fields, team-oriented narrative descriptions, and score state.",
+      "notes": "Blank description and score cells mean that the corresponding event has no text or score update in that field."
+    }
+  ],
+  "variables": [
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "GAME_ID", "meaning": "Identifier of the basketball game containing the event.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "EVENTNUM", "meaning": "Event number within GAME_ID, used as an event-level identifier and approximate sequence field.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "EVENTMSGTYPE", "meaning": "Integer-coded broad event-message type; the codebook is not supplied.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "EVENTMSGACTIONTYPE", "meaning": "Integer-coded event action subtype; the codebook is not supplied.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "PERIOD", "meaning": "Ordinal game period containing the event.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "WCTIMESTRING", "meaning": "Wall-clock display time associated with the event.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "PCTIMESTRING", "meaning": "Period countdown clock at the event, formatted as minutes and seconds remaining.", "unit": "minutes:seconds"},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "HOMEDESCRIPTION", "meaning": "Play-by-play narrative attached to the home team side of an event.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "NEUTRALDESCRIPTION", "meaning": "Play-by-play narrative field for events not assigned to either team side.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "VISITORDESCRIPTION", "meaning": "Play-by-play narrative attached to the visiting team side of an event.", "unit": null},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "SCORE", "meaning": "Two-team score state encoded as a hyphen-separated pair; side ordering is not labeled in the CSV.", "unit": "points"},
+    {"object": "basketball_play_by_play_events", "file": "train.csv", "name": "SCOREMARGIN", "meaning": "Signed score-margin text in points, with tied states encoded as TIE.", "unit": "points"}
+  ],
+  "structure": [
+    {"description": "Each row is one game event. GAME_ID and EVENTNUM together form the event-level candidate key.", "objects": ["basketball_play_by_play_events"]},
+    {"description": "PERIOD and PCTIMESTRING express game chronology. EVENTNUM is sequence-like, but physical row order contains local event-number reversals and should not be treated as strictly increasing.", "objects": ["basketball_play_by_play_events"]},
+    {"description": "Home, neutral, and visitor description fields are parallel narrative slots for the same event; SCORE and SCOREMARGIN carry state only when supplied on that event row.", "objects": ["basketball_play_by_play_events"]}
+  ],
+  "uncertainties": [
+    "The EVENTMSGTYPE and EVENTMSGACTIONTYPE code dictionaries are not included.",
+    "The team ordering in SCORE, sign convention in SCOREMARGIN, wall-clock timezone, and calendar date are not explicitly documented."
+  ],
+  "annotation_notes": ["Only the declared train.csv and its neutral packet were used as evidence."]
+}

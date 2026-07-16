@@ -1,0 +1,35 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-323831969f08919961b36bb8f6b06f06493b25b01a5cf4fb649f7b39224df7de",
+  "data_objects": [
+    {
+      "name": "weather_observations",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Timestamped city weather observations containing temperature, humidity, pressure, a textual condition, wind measurements, and a distance-like attribute.",
+      "notes": "Two timestamp representations are provided for each observation, together with an exported row index."
+    }
+  ],
+  "variables": [
+    {"name": "Unnamed: 0", "object": "weather_observations", "file": "train.csv", "unit": "dimensionless", "meaning": "Sequential exported row index."},
+    {"name": "temp", "object": "weather_observations", "file": "train.csv", "unit": null, "meaning": "Air-temperature measurement; the scale is not stated."},
+    {"name": "humidity", "object": "weather_observations", "file": "train.csv", "unit": null, "meaning": "Humidity measurement, likely relative humidity."},
+    {"name": "pressure", "object": "weather_observations", "file": "train.csv", "unit": null, "meaning": "Atmospheric-pressure measurement."},
+    {"name": "description", "object": "weather_observations", "file": "train.csv", "unit": null, "meaning": "Categorical natural-language description of weather conditions."},
+    {"name": "dt", "object": "weather_observations", "file": "train.csv", "unit": "seconds since Unix epoch", "meaning": "Unix-like numeric timestamp for the observation."},
+    {"name": "wind_speed", "object": "weather_observations", "file": "train.csv", "unit": null, "meaning": "Wind-speed measurement."},
+    {"name": "wind_deg", "object": "weather_observations", "file": "train.csv", "unit": "degrees", "meaning": "Wind direction expressed as an angular bearing."},
+    {"name": "city", "object": "weather_observations", "file": "train.csv", "unit": null, "meaning": "City associated with the weather observation."},
+    {"name": "day", "object": "weather_observations", "file": "train.csv", "unit": null, "meaning": "Human-readable local-looking date and time paired with dt."},
+    {"name": "dist", "object": "weather_observations", "file": "train.csv", "unit": null, "meaning": "Distance-like numeric attribute; its reference location and unit are not defined."}
+  ],
+  "structure": [
+    {"objects": ["weather_observations"], "description": "Each row is one city-time weather observation; city together with dt is the natural candidate key, while the exported index preserves source order."},
+    {"objects": ["weather_observations"], "description": "dt and day are aligned timestamp representations but use different apparent time conventions; rows are ordered chronologically."}
+  ],
+  "uncertainties": [
+    "Temperature scale, humidity convention, pressure unit, wind-speed unit, and the meaning and unit of dist are not declared.",
+    "The timezone relationship between dt and day is not documented."
+  ],
+  "annotation_notes": ["Only the declared neutral train.csv was used; uncertain measurement metadata is not guessed."]
+}

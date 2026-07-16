@@ -1,0 +1,45 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-ffcf9e1931e1fa882782df55c638d8f698a0487c7048126bfcefe088f22e4cf7",
+  "data_objects": [
+    {
+      "name": "baseball_player_records",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Baseball player salary, batting performance, fielding error, and labor-status eligibility records.",
+      "notes": "No player identifier or explicit performance-season field is present."
+    }
+  ],
+  "variables": [
+    {"name": "salary_in_thousands_of_dollars", "object": "baseball_player_records", "file": "train.csv", "meaning": "Player salary expressed in thousands of dollars.", "unit": "thousands of dollars"},
+    {"name": "batting_average", "object": "baseball_player_records", "file": "train.csv", "meaning": "Batting average, represented as a unitless proportion.", "unit": null},
+    {"name": "on_base_percentage", "object": "baseball_player_records", "file": "train.csv", "meaning": "On-base percentage, represented as a unitless proportion.", "unit": null},
+    {"name": "number_of_runs", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of runs scored in the represented performance period.", "unit": "runs"},
+    {"name": "number_of_hits", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of hits in the represented performance period.", "unit": "hits"},
+    {"name": "number_of_doubles", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of doubles in the represented performance period.", "unit": "doubles"},
+    {"name": "number_of_triples", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of triples in the represented performance period.", "unit": "triples"},
+    {"name": "number_of_home_runs", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of home runs in the represented performance period.", "unit": "home runs"},
+    {"name": "number_of_runs_batted_in", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of runs batted in during the represented performance period.", "unit": "runs batted in"},
+    {"name": "number_of_walks", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of walks in the represented performance period.", "unit": "walks"},
+    {"name": "number_of_strike_outs", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of strikeouts in the represented performance period.", "unit": "strikeouts"},
+    {"name": "number_of_stolen_bases", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of stolen bases in the represented performance period.", "unit": "stolen bases"},
+    {"name": "number_of_errors", "object": "baseball_player_records", "file": "train.csv", "meaning": "Number of fielding errors in the represented performance period.", "unit": "errors"},
+    {"name": "indicator_of_free_agency_eligibility", "object": "baseball_player_records", "file": "train.csv", "meaning": "Binary indicator of free-agency eligibility.", "unit": null},
+    {"name": "indicator_of_free_agent_in_1991_1992", "object": "baseball_player_records", "file": "train.csv", "meaning": "Binary indicator that the player was a free agent in the 1991-1992 period.", "unit": null},
+    {"name": "indicator_of_arbitration_eligibility", "object": "baseball_player_records", "file": "train.csv", "meaning": "Binary indicator of salary-arbitration eligibility.", "unit": null},
+    {"name": "indicator_of_arbitration_in_1991_1992", "object": "baseball_player_records", "file": "train.csv", "meaning": "Binary indicator that the player was in salary arbitration in the 1991-1992 period.", "unit": null}
+  ],
+  "structure": [
+    {"objects": ["baseball_player_records"], "description": "Each row represents one player record, but no source player key is available in the table."},
+    {"objects": ["baseball_player_records"], "description": "Batting average and on-base percentage are rate fields, named number_of_* fields are event counts, and labor-status fields are binary 0/1 indicators."},
+    {"objects": ["baseball_player_records"], "description": "Empty CSV cells encode unavailable values in some performance and eligibility fields."}
+  ],
+  "uncertainties": [
+    "The player population, league, team, and performance period for the batting and fielding statistics are not stated.",
+    "The salary reference period and whether dollar amounts are nominal or adjusted are not provided.",
+    "The reason for unavailable performance or eligibility values is not encoded."
+  ],
+  "annotation_notes": [
+    "The semantic map is grounded only in the declared train.csv header and values."
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-c985ca12445770b8559667f3a4c8d18166571b114f2d1c4dc2ac1b3a56c94b39",
+  "data_objects": [
+    {
+      "name": "offense_age_year_counts",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Year-, offense-, and age-specific counts accompanied by offense category, severity type, disqualifying-offense status, and expungibility status.",
+      "notes": "The table supplies grouped counts rather than individual offense records."
+    }
+  ],
+  "variables": [
+    {"object": "offense_age_year_counts", "file": "train.csv", "name": "Date", "meaning": "Calendar year of the grouped offense count.", "unit": "year"},
+    {"object": "offense_age_year_counts", "file": "train.csv", "name": "Offense", "meaning": "Named offense classification for the grouped record.", "unit": null},
+    {"object": "offense_age_year_counts", "file": "train.csv", "name": "Age", "meaning": "Age associated with the grouped count.", "unit": "years"},
+    {"object": "offense_age_year_counts", "file": "train.csv", "name": "Count", "meaning": "Number reported for the year, offense, and age combination; the counted population is not defined in the CSV.", "unit": null},
+    {"object": "offense_age_year_counts", "file": "train.csv", "name": "Category", "meaning": "Broad offense category, such as an offense against persons, property, or society.", "unit": null},
+    {"object": "offense_age_year_counts", "file": "train.csv", "name": "Disqualifying_Offense", "meaning": "Textual True/False classification of whether the grouped offense is treated as disqualifying.", "unit": null},
+    {"object": "offense_age_year_counts", "file": "train.csv", "name": "Offense_Type", "meaning": "Legal severity category recorded as misdemeanor or felony.", "unit": null},
+    {"object": "offense_age_year_counts", "file": "train.csv", "name": "Expungible", "meaning": "Textual True/False classification of whether the grouped offense is treated as expungible.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is one grouped observation at the Date, Offense, and Age granularity; that tuple is the table's candidate key.", "objects": ["offense_age_year_counts"]},
+    {"description": "Rows are ordered primarily by ascending Date, with repeated offense and age groups within years; the classification fields describe the same grouped observation as Count.", "objects": ["offense_age_year_counts"]}
+  ],
+  "uncertainties": [
+    "The CSV does not identify what population or event type Count enumerates, nor the jurisdiction represented.",
+    "The legal authority, effective-date rules, and criteria behind Disqualifying_Offense and Expungible are not documented."
+  ],
+  "annotation_notes": ["Only the declared train.csv and its neutral packet were used as evidence."]
+}

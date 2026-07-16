@@ -1,0 +1,135 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-55770473647050ba8f11d46108aac81f38df600e8261b105321fffd5c5a6ecec",
+  "data_objects": [
+    {
+      "name": "security_trading_records",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Dated exchange-trading records for a security symbol and series."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Symbol",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Exchange symbol identifying the traded security.",
+      "unit": null
+    },
+    {
+      "name": "Series",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Exchange series or instrument-category code.",
+      "unit": null
+    },
+    {
+      "name": "Date",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Trading date.",
+      "unit": null
+    },
+    {
+      "name": "Prev Close",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Previous closing price.",
+      "unit": null
+    },
+    {
+      "name": "Open Price",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Opening price for the trading date.",
+      "unit": null
+    },
+    {
+      "name": "High Price",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Highest reported price for the trading date.",
+      "unit": null
+    },
+    {
+      "name": "Low Price",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Lowest reported price for the trading date.",
+      "unit": null
+    },
+    {
+      "name": "Last Price",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Last reported traded price for the trading date.",
+      "unit": null
+    },
+    {
+      "name": "Close Price",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Closing price for the trading date.",
+      "unit": null
+    },
+    {
+      "name": "Average Price",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Average traded price reported for the trading date.",
+      "unit": null
+    },
+    {
+      "name": "Total Traded Quantity",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Total quantity traded on the date.",
+      "unit": null
+    },
+    {
+      "name": "Turnover",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Total traded value or turnover for the date.",
+      "unit": null
+    },
+    {
+      "name": "No. of Trades",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Number of trades recorded on the date.",
+      "unit": "trades"
+    },
+    {
+      "name": "Deliverable Qty",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Quantity identified as deliverable.",
+      "unit": null
+    },
+    {
+      "name": "% Dly Qt to Traded Qty",
+      "file": "train.csv",
+      "object": "security_trading_records",
+      "meaning": "Deliverable quantity as a percentage of total traded quantity.",
+      "unit": "percent"
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "security_trading_records"
+      ],
+      "description": "Each row is a daily trading record identified by Symbol, Series, and Date, with price, activity, and delivery fields."
+    }
+  ],
+  "uncertainties": [
+    "The price and turnover currency, the unit of traded quantities, and any price-adjustment convention are not stated."
+  ],
+  "annotation_notes": [
+    "Trading-field meanings follow the source headers; undocumented market conventions are left unspecified."
+  ]
+}

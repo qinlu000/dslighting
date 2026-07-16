@@ -1,0 +1,178 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-dba6fb21faf1fd88e99f8e55770de819d7cb6db213780d13a42e2f8b3289dbca",
+  "data_objects": [
+    {
+      "name": "respondent_wage_characteristics",
+      "kind": "table",
+      "meaning": "Individual-level wage records with experience, education, appearance rating, health, demographic, geographic, union, marital, and occupation indicators.",
+      "files": [
+        "train.csv"
+      ],
+      "notes": "No respondent identifier, survey context, reference period, or measurement-unit metadata is supplied."
+    }
+  ],
+  "variables": [
+    {
+      "name": "wage",
+      "meaning": "Reported wage value for the individual; the currency and pay period are not declared.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "lwage",
+      "meaning": "Natural-log transform of wage.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "belavg",
+      "meaning": "Binary below-average-appearance indicator: 1 for looks codes below the middle code and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "abvavg",
+      "meaning": "Binary above-average-appearance indicator: 1 for looks codes above the middle code and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "exper",
+      "meaning": "Reported quantity of work experience.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "looks",
+      "meaning": "Ordinal appearance-rating code whose middle code is treated as average by the related indicators.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "union",
+      "meaning": "Binary union-membership indicator, encoded 1 for membership and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "goodhlth",
+      "meaning": "Binary indicator named for good health, encoded 1 when the named condition applies and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "black",
+      "meaning": "Binary racial-category indicator named Black, encoded 1 for that category and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "female",
+      "meaning": "Binary sex or gender category indicator named female, encoded 1 for that category and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "married",
+      "meaning": "Binary marital-status indicator, encoded 1 for married and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "south",
+      "meaning": "Binary geographic indicator named South, encoded 1 when the named region applies and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "bigcity",
+      "meaning": "Binary residence indicator named big city, encoded 1 when that category applies and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "smllcity",
+      "meaning": "Binary residence indicator named small city, encoded 1 when that category applies and 0 otherwise.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "service",
+      "meaning": "Binary service-occupation indicator, encoded 1 for service and 0 for non-service.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "expersq",
+      "meaning": "Square of the exper value.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "educ",
+      "meaning": "Reported quantity of education.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "Nservice",
+      "meaning": "Binary non-service-occupation indicator, encoded as the complement of service.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    },
+    {
+      "name": "Slooks",
+      "meaning": "Service-gated appearance value: it equals looks for service records and zero for non-service records.",
+      "unit": null,
+      "object": "respondent_wage_characteristics",
+      "file": "train.csv"
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "respondent_wage_characteristics"
+      ],
+      "description": "Each row represents one individual record. No source column is an explicit row identifier, and row order has no declared semantic meaning."
+    },
+    {
+      "objects": [
+        "respondent_wage_characteristics"
+      ],
+      "description": "lwage is a logarithmic counterpart of wage, and expersq is a squared counterpart of exper."
+    },
+    {
+      "objects": [
+        "respondent_wage_characteristics"
+      ],
+      "description": "belavg and abvavg partition non-middle looks ratings below and above the middle category; Nservice complements service, and Slooks combines service status with looks."
+    }
+  ],
+  "uncertainties": [
+    "The currency and pay period of wage, and the units of exper and educ, are not declared.",
+    "The survey population, sampling frame, reference period, and exact questionnaire definitions are absent.",
+    "The binary field names support their positive-category interpretations, but no separate codebook defines the underlying demographic, geographic, health, or occupation categories."
+  ],
+  "annotation_notes": [
+    "Semantics are grounded only in the declared train.csv evidence."
+  ]
+}

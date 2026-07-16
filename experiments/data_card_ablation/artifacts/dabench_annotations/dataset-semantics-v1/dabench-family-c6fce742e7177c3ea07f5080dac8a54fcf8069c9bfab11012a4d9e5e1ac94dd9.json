@@ -1,0 +1,115 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-c6fce742e7177c3ea07f5080dac8a54fcf8069c9bfab11012a4d9e5e1ac94dd9",
+  "data_objects": [
+    {
+      "name": "industry_unemployment_comparison",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Wide comparison of March 2019 and March 2020 unemployment levels and total, men, and women rates by industry or class of worker.",
+      "notes": "The source header appears to flatten a grouped table and does not state the scale of the unqualified March level columns."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Serial",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Source sequence identifier that preserves the presented row order.",
+      "unit": null
+    },
+    {
+      "name": "Industry and class of worker",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Label for an overall population, industry grouping, detailed industry, or class-of-worker category.",
+      "unit": null
+    },
+    {
+      "name": "Mar.2019",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Unemployment level for the row category in March 2019; the header does not declare its scale.",
+      "unit": null
+    },
+    {
+      "name": "Mar.2020",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Unemployment level for the row category in March 2020; the header does not declare its scale.",
+      "unit": null
+    },
+    {
+      "name": "Total Mar.2019",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Unemployment rate for the total population in the row category in March 2019.",
+      "unit": "percent"
+    },
+    {
+      "name": "Total Mar.2020",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Unemployment rate for the total population in the row category in March 2020.",
+      "unit": "percent"
+    },
+    {
+      "name": "Men Mar.2019",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Unemployment rate for men in the row category in March 2019.",
+      "unit": "percent"
+    },
+    {
+      "name": "Men Mar.2020",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Unemployment rate for men in the row category in March 2020.",
+      "unit": "percent"
+    },
+    {
+      "name": "Women Mar.2019",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Unemployment rate for women in the row category in March 2019.",
+      "unit": "percent"
+    },
+    {
+      "name": "Women Mar.2020",
+      "object": "industry_unemployment_comparison",
+      "file": "train.csv",
+      "meaning": "Unemployment rate for women in the row category in March 2020.",
+      "unit": "percent"
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "industry_unemployment_comparison"
+      ],
+      "description": "Each substantive row is one industry or worker-class category, but the categories mix overall totals, broad groups, and detailed subgroups and therefore are not a flat set of mutually exclusive observations."
+    },
+    {
+      "objects": [
+        "industry_unemployment_comparison"
+      ],
+      "description": "Time is encoded across paired March 2019 and March 2020 columns; the rate columns additionally encode total, men, and women population groups across the same time axis."
+    },
+    {
+      "objects": [
+        "industry_unemployment_comparison"
+      ],
+      "description": "Serial preserves the source's hierarchical presentation order and contains gaps. A dash marks an unavailable or inapplicable rate-like value, while a terminal record with only Serial populated acts as an empty placeholder."
+    }
+  ],
+  "uncertainties": [
+    "The scale of Mar.2019 and Mar.2020 is not stated; they are count-like unemployment levels but the evidence does not establish whether they represent persons, thousands of persons, or another scale.",
+    "The percent interpretation of the Total, Men, and Women columns is inferred from their rate-like values and layout because the flattened headers do not explicitly include a percent symbol.",
+    "The evidence does not distinguish whether a dash means unavailable, inapplicable, suppressed, or another nonnumeric status."
+  ],
+  "annotation_notes": [
+    "Semantics are grounded only in train.csv and its declared packet."
+  ]
+}

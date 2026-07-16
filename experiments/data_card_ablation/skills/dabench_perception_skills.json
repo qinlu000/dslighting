@@ -1,0 +1,15 @@
+{
+  "schema_version": "perception_skills_v1",
+  "perception_skills": [
+    {
+      "perception_skill_id": "no-added-skill-v1",
+      "skill_entrypoints": []
+    },
+    {
+      "perception_skill_id": "dataset-semantics-v1",
+      "skill_entrypoints": [
+        "perceive-dataset-semantics/SKILL.md"
+      ]
+    }
+  ]
+}

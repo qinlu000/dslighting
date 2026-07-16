@@ -1,0 +1,35 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-34919769cf48ec84fc6358cc1c2f27b56a4e624af293f3ffcd7531f00bcc1d8a",
+  "data_objects": [
+    {
+      "name": "hourly_weather_observations",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Timestamped surface-weather measurements including wind, air temperature, pressure, humidity, and visibility fields.",
+      "notes": "Blank CSV cells represent unavailable measurements."
+    }
+  ],
+  "variables": [
+    {"name": "DATE TIME", "object": "hourly_weather_observations", "file": "train.csv", "meaning": "Date and clock time of the weather observation.", "unit": null},
+    {"name": " WINDSPEED", "object": "hourly_weather_observations", "file": "train.csv", "meaning": "Measured wind speed.", "unit": null},
+    {"name": " DIR", "object": "hourly_weather_observations", "file": "train.csv", "meaning": "Wind direction encoded as a numeric azimuth.", "unit": "degrees"},
+    {"name": " GUSTS", "object": "hourly_weather_observations", "file": "train.csv", "meaning": "Wind-gust speed.", "unit": null},
+    {"name": " AT", "object": "hourly_weather_observations", "file": "train.csv", "meaning": "Air-temperature measurement.", "unit": null},
+    {"name": " BARO", "object": "hourly_weather_observations", "file": "train.csv", "meaning": "Barometric-pressure measurement.", "unit": null},
+    {"name": " RELHUM", "object": "hourly_weather_observations", "file": "train.csv", "meaning": "Relative-humidity field.", "unit": null},
+    {"name": " VIS", "object": "hourly_weather_observations", "file": "train.csv", "meaning": "Visibility field.", "unit": null}
+  ],
+  "structure": [
+    {"objects": ["hourly_weather_observations"], "description": "Each row is a timestamped weather observation; the DATE TIME values are ordered chronologically at hourly cadence."},
+    {"objects": ["hourly_weather_observations"], "description": "Empty CSV fields are the observed missing-value encoding for measurement columns."}
+  ],
+  "uncertainties": [
+    "The station or location, time zone, and observation convention are not identified.",
+    "The units of wind speed, gust speed, air temperature, barometric pressure, relative humidity, and visibility are not stated; numeric values alone do not resolve them.",
+    "The distinction between sustained WINDSPEED and GUSTS sampling intervals is not supplied."
+  ],
+  "annotation_notes": [
+    "Only train.csv was declared as evidence; leading spaces in source column names are preserved exactly."
+  ]
+}

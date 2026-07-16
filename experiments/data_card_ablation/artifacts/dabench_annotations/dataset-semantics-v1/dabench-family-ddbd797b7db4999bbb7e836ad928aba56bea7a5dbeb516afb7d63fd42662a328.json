@@ -1,0 +1,33 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-ddbd797b7db4999bbb7e836ad928aba56bea7a5dbeb516afb7d63fd42662a328",
+  "data_objects": [
+    {
+      "name": "daily_adjusted_ohlcv_bars",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Daily open-high-low-close prices, adjusted close, and trading volume for one unidentified traded asset.",
+      "notes": "Rows are chronological and blank CSV cells encode unavailable market fields."
+    }
+  ],
+  "variables": [
+    {"name": "Date", "object": "daily_adjusted_ohlcv_bars", "file": "train.csv", "meaning": "Calendar date of the market bar.", "unit": null},
+    {"name": "Open", "object": "daily_adjusted_ohlcv_bars", "file": "train.csv", "meaning": "Opening price for the date.", "unit": null},
+    {"name": "High", "object": "daily_adjusted_ohlcv_bars", "file": "train.csv", "meaning": "Highest price for the date.", "unit": null},
+    {"name": "Low", "object": "daily_adjusted_ohlcv_bars", "file": "train.csv", "meaning": "Lowest price for the date.", "unit": null},
+    {"name": "Close", "object": "daily_adjusted_ohlcv_bars", "file": "train.csv", "meaning": "Unadjusted closing price for the date.", "unit": null},
+    {"name": "Adj Close", "object": "daily_adjusted_ohlcv_bars", "file": "train.csv", "meaning": "Closing price after the source's adjustment convention.", "unit": null},
+    {"name": "Volume", "object": "daily_adjusted_ohlcv_bars", "file": "train.csv", "meaning": "Traded volume associated with the date.", "unit": null}
+  ],
+  "structure": [
+    {"objects": ["daily_adjusted_ohlcv_bars"], "description": "Each row is one daily OHLCV bar; Date is the temporal identifier and rows are ordered chronologically."},
+    {"objects": ["daily_adjusted_ohlcv_bars"], "description": "Close and Adj Close are parallel raw and adjusted closing-price representations; empty fields encode unavailable values."}
+  ],
+  "uncertainties": [
+    "The asset, venue, market calendar, and time-zone convention are not identified.",
+    "The price currency, the adjustment rule behind Adj Close, and the units represented by Volume are not supplied."
+  ],
+  "annotation_notes": [
+    "Only the declared train.csv table was used as evidence."
+  ]
+}

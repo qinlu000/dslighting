@@ -1,0 +1,48 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-86e7e9f8c381c36441f72800f20c011497351541e1e9a9d3f532844922c447ae",
+  "data_objects": [
+    {
+      "name": "solar_magnetic_time_series",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "A time series of solar active-region magnetic-field summary parameters and related area and energy proxies.",
+      "notes": "The source uses conventional abbreviated magnetic-parameter names and a literal MISSING token in one measurement field."
+    }
+  ],
+  "variables": [
+    {"name": "TRUE_TIME", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Observation timestamp explicitly labeled in International Atomic Time (TAI).", "unit": null},
+    {"name": "TIME", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Numeric time coordinate associated with TRUE_TIME.", "unit": null},
+    {"name": "USFLUX", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Total unsigned magnetic flux.", "unit": "Mx"},
+    {"name": "MEANGAM", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Mean inclination angle of the vector magnetic field.", "unit": "degrees"},
+    {"name": "MEANGBT", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Mean gradient magnitude of the total magnetic field.", "unit": "G/Mm"},
+    {"name": "MEANGBZ", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Mean gradient magnitude of the vertical magnetic field.", "unit": "G/Mm"},
+    {"name": "MEANGBH", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Mean gradient magnitude of the horizontal magnetic field.", "unit": "G/Mm"},
+    {"name": "MEANJZD", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Mean vertical electric-current density.", "unit": "mA/m^2"},
+    {"name": "TOTUSJZ", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Total unsigned vertical electric current.", "unit": "A"},
+    {"name": "MEANJZH", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Mean current-helicity proxy.", "unit": "G^2/m"},
+    {"name": "TOTUSJH", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Total unsigned current-helicity proxy.", "unit": "G^2/m"},
+    {"name": "ABSNJZH", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Absolute net current-helicity proxy.", "unit": "G^2/m"},
+    {"name": "SAVNCPP", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Sum of the absolute net electric current by magnetic polarity.", "unit": "A"},
+    {"name": "MEANPOT", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Mean photospheric excess magnetic-energy density proxy.", "unit": "erg/cm^3"},
+    {"name": "TOTPOT", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Total photospheric magnetic free-energy proxy integrated over area.", "unit": "erg/cm"},
+    {"name": "MEANSHR", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Mean shear angle between observed and potential magnetic fields.", "unit": "degrees"},
+    {"name": "SHRGT45", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Area fraction or percentage whose shear angle exceeds 45 degrees.", "unit": null},
+    {"name": "R_VALUE", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "R-value measure of unsigned magnetic flux near strong-gradient polarity-inversion lines.", "unit": "Mx"},
+    {"name": "AREA_ACR", "object": "solar_magnetic_time_series", "file": "train.csv", "meaning": "Area of the represented solar active region.", "unit": "microhemispheres"}
+  ],
+  "structure": [
+    {"objects": ["solar_magnetic_time_series"], "description": "Each row is a time-indexed magnetic summary for one unnamed solar sequence; TRUE_TIME is chronological and typically advances at a regular minute cadence with gaps."},
+    {"objects": ["solar_magnetic_time_series"], "description": "TRUE_TIME supplies the absolute TAI axis, while TIME supplies a numeric relative or auxiliary time coordinate."},
+    {"objects": ["solar_magnetic_time_series"], "description": "The literal string MISSING is used as an unavailable-value encoding in MEANSHR."
+    }
+  ],
+  "uncertainties": [
+    "The active-region identifier, observing instrument, spatial mask, calibration, and exact averaging definitions are not present.",
+    "The origin and unit of TIME are not stated.",
+    "Long-form parameter definitions and units follow conventional interpretations of the source abbreviations but are not accompanied by an embedded data dictionary; SHRGT45 does not clarify whether values are stored as percentages or fractions."
+  ],
+  "annotation_notes": [
+    "Only the declared train.csv content was used; scientific expansions are domain inferences from the complete set of source column names and encodings."
+  ]
+}

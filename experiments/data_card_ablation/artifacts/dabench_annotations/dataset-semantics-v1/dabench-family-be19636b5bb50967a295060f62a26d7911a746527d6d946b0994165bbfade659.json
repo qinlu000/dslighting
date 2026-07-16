@@ -1,0 +1,32 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-be19636b5bb50967a295060f62a26d7911a746527d6d946b0994165bbfade659",
+  "data_objects": [
+    {
+      "name": "encoded_passenger_features",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Passenger-level feature records in which class, sex, age, fare, embarkation, title, and traveling-alone status are represented by compact integer encodings.",
+      "notes": "The table has no passenger identifier, and several fields are encoded categories or bins rather than raw measurements."
+    }
+  ],
+  "variables": [
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Pclass", "meaning": "Ordinal passenger-class code.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Sex", "meaning": "Binary integer code for passenger sex; code-to-label mapping is absent.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Age", "meaning": "Ordinal age-band code rather than age in years; bin boundaries are not supplied.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Fare", "meaning": "Ordinal fare-band code rather than a monetary fare amount; bin boundaries are not supplied.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Embarked", "meaning": "Integer-coded embarkation category; port mapping is absent.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Title", "meaning": "Integer-coded passenger-title category; title grouping and mapping are absent.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "IsAlone", "meaning": "Binary integer indicator of whether the passenger is traveling alone.", "unit": null},
+    {"object": "encoded_passenger_features", "file": "train.csv", "name": "Age*Pclass", "meaning": "Interaction value equal to the encoded Age band multiplied by Pclass.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is an encoded passenger feature vector, but no source identifier is available to establish a row key or link to another table.", "objects": ["encoded_passenger_features"]},
+    {"description": "Age*Pclass is a deterministic interaction of two existing encoded fields; Age and Fare remain category codes, not continuous measurements.", "objects": ["encoded_passenger_features"]}
+  ],
+  "uncertainties": [
+    "Code-to-label mappings for Sex, Embarked, Title, and IsAlone are not documented.",
+    "Age and Fare bin edges and the ordering or grouping rules for Title are not supplied."
+  ],
+  "annotation_notes": ["Only the declared train.csv and its neutral packet were used as evidence."]
+}

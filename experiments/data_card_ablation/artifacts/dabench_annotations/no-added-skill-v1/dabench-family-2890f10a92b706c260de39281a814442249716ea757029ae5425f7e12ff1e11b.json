@@ -1,0 +1,73 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-2890f10a92b706c260de39281a814442249716ea757029ae5425f7e12ff1e11b",
+  "data_objects": [
+    {
+      "name": "indexed_sector_series",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "An indexed sequence of numeric measurements for sector-labeled series and a series labeled Full."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Unnamed: 0",
+      "file": "train.csv",
+      "object": "indexed_sector_series",
+      "meaning": "Exported row-position index.",
+      "unit": null
+    },
+    {
+      "name": "MedInd",
+      "file": "train.csv",
+      "object": "indexed_sector_series",
+      "meaning": "Numeric series labeled MedInd, apparently referring to a medium-industrial category.",
+      "unit": null
+    },
+    {
+      "name": "LarInd",
+      "file": "train.csv",
+      "object": "indexed_sector_series",
+      "meaning": "Numeric series labeled LarInd, apparently referring to a large-industrial category.",
+      "unit": null
+    },
+    {
+      "name": "Agri",
+      "file": "train.csv",
+      "object": "indexed_sector_series",
+      "meaning": "Numeric series for the category labeled Agri.",
+      "unit": null
+    },
+    {
+      "name": "Residential",
+      "file": "train.csv",
+      "object": "indexed_sector_series",
+      "meaning": "Numeric series for the residential category.",
+      "unit": null
+    },
+    {
+      "name": "Full",
+      "file": "train.csv",
+      "object": "indexed_sector_series",
+      "meaning": "Numeric series labeled Full.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "indexed_sector_series"
+      ],
+      "description": "Each row is one sequence position identified by Unnamed: 0, with parallel values for all named series."
+    }
+  ],
+  "uncertainties": [
+    "The measured phenomenon, time or sampling basis, and units are not stated.",
+    "The expansions of MedInd and LarInd and the relationship of Full to the sector-labeled series are not explicitly defined."
+  ],
+  "annotation_notes": [
+    "The annotation preserves the source labels where their domain semantics are ambiguous."
+  ]
+}

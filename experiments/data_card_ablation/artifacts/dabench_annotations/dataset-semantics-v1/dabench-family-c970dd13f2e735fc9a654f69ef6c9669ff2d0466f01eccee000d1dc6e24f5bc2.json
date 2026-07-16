@@ -1,0 +1,33 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-c970dd13f2e735fc9a654f69ef6c9669ff2d0466f01eccee000d1dc6e24f5bc2",
+  "data_objects": [
+    {
+      "name": "daily_asset_market_bars",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Daily open-high-low-close market data with trading volume and market capitalization for one unidentified asset.",
+      "notes": "Volume and market capitalization use comma-grouped numeric text, and rows are ordered from later to earlier dates."
+    }
+  ],
+  "variables": [
+    {"name": "Date", "object": "daily_asset_market_bars", "file": "train.csv", "meaning": "Calendar date of the daily market bar.", "unit": null},
+    {"name": "Open", "object": "daily_asset_market_bars", "file": "train.csv", "meaning": "Opening price for the date.", "unit": null},
+    {"name": "High", "object": "daily_asset_market_bars", "file": "train.csv", "meaning": "Highest price for the date.", "unit": null},
+    {"name": "Low", "object": "daily_asset_market_bars", "file": "train.csv", "meaning": "Lowest price for the date.", "unit": null},
+    {"name": "Close", "object": "daily_asset_market_bars", "file": "train.csv", "meaning": "Closing price for the date.", "unit": null},
+    {"name": "Volume", "object": "daily_asset_market_bars", "file": "train.csv", "meaning": "Trading volume for the date, encoded with comma thousands separators.", "unit": null},
+    {"name": "Market Cap", "object": "daily_asset_market_bars", "file": "train.csv", "meaning": "Market capitalization for the date, encoded with comma thousands separators.", "unit": null}
+  ],
+  "structure": [
+    {"objects": ["daily_asset_market_bars"], "description": "Each row is a daily OHLC bar with volume and market capitalization; Date serves as the temporal identifier."},
+    {"objects": ["daily_asset_market_bars"], "description": "Rows are in reverse chronological order, while Volume and Market Cap are numeric quantities stored as comma-formatted text."}
+  ],
+  "uncertainties": [
+    "The asset, venue, market calendar, and time-zone convention are not identified.",
+    "The price and market-capitalization currency and the basis of trading volume are not stated."
+  ],
+  "annotation_notes": [
+    "Only the declared train.csv table was used as evidence."
+  ]
+}

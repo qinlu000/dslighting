@@ -1,0 +1,42 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-4f3a2a6a6b15fcddddde55bb48a9a3d78cd9557e0538e83d8c972c0b953da5b0",
+  "data_objects": [
+    {
+      "name": "annual_discipline_percentages",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Annual percentage-like series for academic fields, apparently describing the share of degree recipients who are women in each field.",
+      "notes": "The field names identify disciplines, but the measured population and geography are not stated in the CSV."
+    }
+  ],
+  "variables": [
+    {"name": "Year", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "calendar year", "meaning": "Calendar year for the annual observations."},
+    {"name": "Agriculture", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the Agriculture academic field."},
+    {"name": "Architecture", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the Architecture academic field."},
+    {"name": "Art and Performance", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with Art and Performance fields."},
+    {"name": "Biology", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the Biology academic field."},
+    {"name": "Business", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the Business academic field."},
+    {"name": "Communications and Journalism", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with Communications and Journalism fields."},
+    {"name": "Computer Science", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the Computer Science academic field."},
+    {"name": "Education", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the Education academic field."},
+    {"name": "Engineering", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the Engineering academic field."},
+    {"name": "English", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the English academic field."},
+    {"name": "Foreign Languages", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with Foreign Languages fields."},
+    {"name": "Health Professions", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with Health Professions fields."},
+    {"name": "Math and Statistics", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with Mathematics and Statistics fields."},
+    {"name": "Physical Sciences", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with Physical Sciences fields."},
+    {"name": "Psychology", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with the Psychology academic field."},
+    {"name": "Public Administration", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with Public Administration fields."},
+    {"name": "Social Sciences and History", "object": "annual_discipline_percentages", "file": "train.csv", "unit": "percent", "meaning": "Annual percentage associated with Social Sciences and History fields."}
+  ],
+  "structure": [
+    {"objects": ["annual_discipline_percentages"], "description": "Each row is one calendar year, Year is the candidate key, and rows are in chronological order."},
+    {"objects": ["annual_discipline_percentages"], "description": "The discipline columns form aligned annual series on a common percentage-like scale."}
+  ],
+  "uncertainties": [
+    "The interpretation as women's share of degree recipients and the percent unit are inferred from the discipline labels and value form rather than an embedded data dictionary.",
+    "The degree level, population coverage, and geography represented are not identified."
+  ],
+  "annotation_notes": ["The annotation uses only the declared neutral train.csv and marks unsupported context as uncertain."]
+}

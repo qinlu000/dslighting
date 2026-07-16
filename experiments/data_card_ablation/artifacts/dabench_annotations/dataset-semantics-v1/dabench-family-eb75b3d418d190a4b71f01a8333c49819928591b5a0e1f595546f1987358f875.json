@@ -1,0 +1,39 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-eb75b3d418d190a4b71f01a8333c49819928591b5a0e1f595546f1987358f875",
+  "data_objects": [
+    {
+      "name": "consumer_credit_records",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Individual consumer credit records combining financial, demographic, and account attributes.",
+      "notes": "A serialized row index is present, but no source business identifier is included."
+    }
+  ],
+  "variables": [
+    {"name": "Unnamed: 0", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Serialized record index from an earlier table representation.", "unit": null},
+    {"name": "Income", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Income amount associated with the consumer record.", "unit": null},
+    {"name": "Limit", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Credit limit associated with the account or consumer.", "unit": null},
+    {"name": "Rating", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Numeric credit rating or score.", "unit": null},
+    {"name": "Cards", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Number of credit cards associated with the consumer.", "unit": "cards"},
+    {"name": "Age", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Age of the consumer.", "unit": "years"},
+    {"name": "Education", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Amount of education encoded as a numeric duration.", "unit": "years"},
+    {"name": "Gender", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Recorded gender category.", "unit": null},
+    {"name": "Student", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Yes/No indicator of student status.", "unit": null},
+    {"name": "Married", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Yes/No indicator of marital status.", "unit": null},
+    {"name": "Ethnicity", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Recorded ethnicity category.", "unit": null},
+    {"name": "Balance", "object": "consumer_credit_records", "file": "train.csv", "meaning": "Credit-account balance associated with the record.", "unit": null}
+  ],
+  "structure": [
+    {"objects": ["consumer_credit_records"], "description": "Each row represents one consumer or credit-account record; Unnamed: 0 functions as a row index rather than a domain identifier."},
+    {"objects": ["consumer_credit_records"], "description": "Gender and Ethnicity are categorical labels, Student and Married are Yes/No encodings, and Cards, Age, and Education are count or duration fields."}
+  ],
+  "uncertainties": [
+    "The currency and scale of Income, Limit, and Balance are not stated, and the time basis of Income is unspecified.",
+    "The credit-rating scale and whether a row represents a person, account, or application snapshot are not defined.",
+    "The source definitions and collection conventions for demographic categories are not supplied."
+  ],
+  "annotation_notes": [
+    "Only the declared train.csv table was used as evidence."
+  ]
+}

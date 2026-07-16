@@ -1,0 +1,41 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-eb38b5933c1dafbd884a9042c23afc5181bedf6c434d941115444284ea215fcc",
+  "data_objects": [
+    {
+      "name": "jurisdiction_vaccination_timeseries",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Daily jurisdiction-level COVID-19 vaccination totals, person counts, population-normalized rates, vaccine products, and source attribution.",
+      "notes": "Blank cells represent measures not reported or not available for that jurisdiction-date observation."
+    }
+  ],
+  "variables": [
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "country", "meaning": "Country or named jurisdiction represented by the time series.", "unit": null},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "iso_code", "meaning": "ISO-style jurisdiction code when available; some subnational jurisdictions have no code in this field.", "unit": null},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "date", "meaning": "Calendar date of the vaccination observation in ISO date format.", "unit": null},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "total_vaccinations", "meaning": "Cumulative vaccine doses administered by the observation date.", "unit": "doses"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "people_vaccinated", "meaning": "Cumulative people who have received at least one vaccine dose by the observation date.", "unit": "people"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "people_fully_vaccinated", "meaning": "Cumulative people reported as fully vaccinated by the observation date.", "unit": "people"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "daily_vaccinations_raw", "meaning": "Raw reported number of vaccine doses administered for the date.", "unit": "doses per day"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "daily_vaccinations", "meaning": "Processed daily vaccination count distinct from the raw report; the processing method is not supplied.", "unit": "doses per day"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "total_vaccinations_per_hundred", "meaning": "Cumulative vaccine doses administered per hundred people.", "unit": "doses per 100 people"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "people_vaccinated_per_hundred", "meaning": "People receiving at least one dose per hundred people.", "unit": "people per 100 people"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "people_fully_vaccinated_per_hundred", "meaning": "People reported fully vaccinated per hundred people.", "unit": "people per 100 people"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "daily_vaccinations_per_million", "meaning": "Processed daily vaccine doses administered per million people.", "unit": "doses per million people per day"},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "vaccines", "meaning": "Comma-separated set of vaccine products reported as in use for the jurisdiction.", "unit": null},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "source_name", "meaning": "Name of the reporting organization or source.", "unit": null},
+    {"object": "jurisdiction_vaccination_timeseries", "file": "train.csv", "name": "source_website", "meaning": "Web address identifying the reported data source.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is a jurisdiction-date observation, and country together with date is the natural candidate key; rows form repeated daily time series by jurisdiction.", "objects": ["jurisdiction_vaccination_timeseries"]},
+    {"description": "Total fields are cumulative states, daily fields are date-level flows, and per-hundred or per-million fields are population-normalized forms aligned to the same observation.", "objects": ["jurisdiction_vaccination_timeseries"]},
+    {"description": "vaccines is a multi-valued categorical field, while source_name and source_website provide provenance that can repeat across dates.", "objects": ["jurisdiction_vaccination_timeseries"]}
+  ],
+  "uncertainties": [
+    "The processing or smoothing method used for daily_vaccinations is not documented.",
+    "The criteria for full vaccination, population denominators, reporting cutoffs, and treatment of multi-dose regimens are not supplied.",
+    "The country field includes some subnational jurisdictions without iso_code values, so iso_code alone is not a complete grouping key."
+  ],
+  "annotation_notes": ["Only the declared train.csv and its neutral packet were used as evidence."]
+}

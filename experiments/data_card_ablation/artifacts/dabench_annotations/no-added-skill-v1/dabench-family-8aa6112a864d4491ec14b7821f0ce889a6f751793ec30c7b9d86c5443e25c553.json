@@ -1,0 +1,31 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-8aa6112a864d4491ec14b7821f0ce889a6f751793ec30c7b9d86c5443e25c553",
+  "data_objects": [
+    {
+      "name": "mass_spectrometry_features",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Mass-spectrometry feature records with identifiers, mass-to-charge and retention-time coordinates, optional library identification text, an identification-level field, and an importance score."
+    }
+  ],
+  "variables": [
+    {"object": "mass_spectrometry_features", "file": "train.csv", "name": "#featureID", "meaning": "Text identifier for a detected feature, formatted from mass-to-charge and retention-time values.", "unit": null},
+    {"object": "mass_spectrometry_features", "file": "train.csv", "name": "row ID", "meaning": "Numeric row identifier assigned to the feature.", "unit": null},
+    {"object": "mass_spectrometry_features", "file": "train.csv", "name": "row m/z", "meaning": "Mass-to-charge coordinate of the feature.", "unit": null},
+    {"object": "mass_spectrometry_features", "file": "train.csv", "name": "row retention time", "meaning": "Chromatographic retention-time coordinate of the feature; the time unit is not stated.", "unit": null},
+    {"object": "mass_spectrometry_features", "file": "train.csv", "name": "LibraryID", "meaning": "Optional text describing a spectral-library match or library identification.", "unit": null},
+    {"object": "mass_spectrometry_features", "file": "train.csv", "name": "standard_indentification_level_1", "meaning": "Field labeled for a level-one standard identification; its coding and criteria are not stated.", "unit": null},
+    {"object": "mass_spectrometry_features", "file": "train.csv", "name": "_feature_id", "meaning": "Second feature identifier using the same mass-to-charge and retention-time text pattern as #featureID.", "unit": null},
+    {"object": "mass_spectrometry_features", "file": "train.csv", "name": "importance.score", "meaning": "Numeric importance score assigned to the feature; its method and scale are not stated.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row represents one detected mass-spectrometry feature positioned by mass-to-charge and retention time.", "objects": ["mass_spectrometry_features"]},
+    {"description": "#featureID and _feature_id encode the feature's mass-to-charge and retention-time coordinates as underscore-separated text.", "objects": ["mass_spectrometry_features"]}
+  ],
+  "uncertainties": [
+    "The retention-time unit, instrument context, importance-score definition, and identification-level codebook are not supplied.",
+    "The relationship between row ID and the two feature-ID columns is not documented beyond their visible formats."
+  ],
+  "annotation_notes": ["Semantics are limited to the column labels and field encodings visible in train.csv."]
+}

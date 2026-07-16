@@ -1,0 +1,115 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-d79be64d11b4e36159242055e028e29ee6b4c3da6838e62d7a925bdde26eab5d",
+  "data_objects": [
+    {
+      "name": "country_happiness_records",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Country-level happiness rankings and scores with regional labels, score uncertainty, and named component measures."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Country",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Country name associated with the record.",
+      "unit": null
+    },
+    {
+      "name": "Region",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Broad geographic region assigned to the country.",
+      "unit": null
+    },
+    {
+      "name": "Happiness Rank",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Ordinal rank based on the reported happiness score.",
+      "unit": "rank"
+    },
+    {
+      "name": "Happiness Score",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Reported country happiness score.",
+      "unit": null
+    },
+    {
+      "name": "Standard Error",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Standard error associated with the happiness score.",
+      "unit": null
+    },
+    {
+      "name": "Economy (GDP per Capita)",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Economy-related component labeled GDP per capita.",
+      "unit": null
+    },
+    {
+      "name": "Family",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Family-related component of the reported happiness record.",
+      "unit": null
+    },
+    {
+      "name": "Health (Life Expectancy)",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Health-related component labeled life expectancy.",
+      "unit": null
+    },
+    {
+      "name": "Freedom",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Freedom-related component of the reported happiness record.",
+      "unit": null
+    },
+    {
+      "name": "Trust (Government Corruption)",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Trust-related component labeled government corruption.",
+      "unit": null
+    },
+    {
+      "name": "Generosity",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Generosity-related component of the reported happiness record.",
+      "unit": null
+    },
+    {
+      "name": "Dystopia Residual",
+      "file": "train.csv",
+      "object": "country_happiness_records",
+      "meaning": "Residual component labeled Dystopia Residual.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "country_happiness_records"
+      ],
+      "description": "Each row represents one country, with Country as the geographic identifier, Region as a grouping, and rank, score, uncertainty, and component fields stored in wide form."
+    }
+  ],
+  "uncertainties": [
+    "The reference year or survey period is absent from the table.",
+    "The scoring methodology, component scaling, and whether component values are levels or contributions are not documented."
+  ],
+  "annotation_notes": [
+    "Component meanings remain close to their source labels because no methodology is included."
+  ]
+}

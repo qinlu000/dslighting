@@ -1,0 +1,41 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-506726b8aa93fd36bdb626a4c5fa702295a2207e6b2536e82f738d9cc2522050",
+  "data_objects": [
+    {
+      "name": "news_items",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "News-item metadata and text accompanied by record-level sentiment scores.",
+      "notes": "Blank cells occur in optional attribution and image-link fields."
+    }
+  ],
+  "variables": [
+    {"name": "Unnamed: 0", "object": "news_items", "file": "train.csv", "meaning": "Serialized row index from an earlier table representation, not a content identifier.", "unit": null},
+    {"name": "author", "object": "news_items", "file": "train.csv", "meaning": "Author or byline attribution for the news item.", "unit": null},
+    {"name": "description", "object": "news_items", "file": "train.csv", "meaning": "Short description or summary of the news item.", "unit": null},
+    {"name": "publishedAt", "object": "news_items", "file": "train.csv", "meaning": "Publication date and clock time.", "unit": null},
+    {"name": "source", "object": "news_items", "file": "train.csv", "meaning": "Publisher or source identifier encoded as a text slug.", "unit": null},
+    {"name": "title", "object": "news_items", "file": "train.csv", "meaning": "Headline or title of the news item.", "unit": null},
+    {"name": "url", "object": "news_items", "file": "train.csv", "meaning": "Web locator for the news item.", "unit": null},
+    {"name": "urlToImage", "object": "news_items", "file": "train.csv", "meaning": "Web locator for an associated image.", "unit": null},
+    {"name": "text", "object": "news_items", "file": "train.csv", "meaning": "Article, transcript, or other main textual content associated with the item.", "unit": null},
+    {"name": "neg", "object": "news_items", "file": "train.csv", "meaning": "Negative sentiment component score supplied for the record.", "unit": null},
+    {"name": "neu", "object": "news_items", "file": "train.csv", "meaning": "Neutral sentiment component score supplied for the record.", "unit": null},
+    {"name": "pos", "object": "news_items", "file": "train.csv", "meaning": "Positive sentiment component score supplied for the record.", "unit": null},
+    {"name": "compound", "object": "news_items", "file": "train.csv", "meaning": "Aggregate sentiment score supplied for the record.", "unit": null}
+  ],
+  "structure": [
+    {"objects": ["news_items"], "description": "Each row represents one news item and combines publisher, publication, link, text, and sentiment fields."},
+    {"objects": ["news_items"], "description": "Unnamed: 0 is an integer-like row index; url is the item-level web locator, while source groups items by publisher."},
+    {"objects": ["news_items"], "description": "Empty CSV fields encode unavailable optional metadata such as author or image URL."}
+  ],
+  "uncertainties": [
+    "The publication time zone is not included.",
+    "The sentiment method, score scales, and which text field was scored are not specified.",
+    "The relationship between a byline string and a canonical person identity is not defined."
+  ],
+  "annotation_notes": [
+    "Only the declared train.csv table was used as evidence."
+  ]
+}

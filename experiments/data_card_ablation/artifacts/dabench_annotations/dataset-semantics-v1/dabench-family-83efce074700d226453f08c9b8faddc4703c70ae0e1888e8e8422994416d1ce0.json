@@ -1,0 +1,122 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-83efce074700d226453f08c9b8faddc4703c70ae0e1888e8e8422994416d1ce0",
+  "data_objects": [
+    {
+      "name": "storm_event_records",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Historical named or unnumbered storm-system records with activity dates, intensity attributes, affected areas, damage, deaths, and year.",
+      "notes": "Storm names are not reliable identifiers because names and the UNNUMBERED label can recur."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Unnamed: 0",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Sequential source-row index used to distinguish and order records.",
+      "unit": null
+    },
+    {
+      "name": "name",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Storm or system name, including generic labels for unnamed systems.",
+      "unit": null
+    },
+    {
+      "name": "dates_active",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Human-readable month-and-day interval during which the system was active; the year is stored separately.",
+      "unit": null
+    },
+    {
+      "name": "max_storm_cat",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Ordinal code for the maximum storm category attained by the system.",
+      "unit": null
+    },
+    {
+      "name": "max_sust_wind",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Maximum sustained wind speed recorded for the system.",
+      "unit": null
+    },
+    {
+      "name": "min_p",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Minimum pressure recorded for the system.",
+      "unit": null
+    },
+    {
+      "name": "areas_affected",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Comma-separated free-text list of countries, regions, islands, or other places affected by the system.",
+      "unit": null
+    },
+    {
+      "name": "damage_USD",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Recorded monetary damage attributed to the system.",
+      "unit": "USD"
+    },
+    {
+      "name": "deaths",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Recorded deaths attributed to the system.",
+      "unit": "people"
+    },
+    {
+      "name": "year",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Calendar year associated with the storm record and dates_active interval.",
+      "unit": "year"
+    },
+    {
+      "name": "damage_imputed",
+      "object": "storm_event_records",
+      "file": "train.csv",
+      "meaning": "Binary indicator for whether damage_USD was imputed, encoded as 0 or 1.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "storm_event_records"
+      ],
+      "description": "Each row represents one storm-system occurrence. Unnamed systems can repeat within a year, so the sequential source-row index is the table-level candidate key."
+    },
+    {
+      "objects": [
+        "storm_event_records"
+      ],
+      "description": "The indexed source order is nonincreasing by year and generally follows the activity-date sequence within a year."
+    },
+    {
+      "objects": [
+        "storm_event_records"
+      ],
+      "description": "Blank cells are used for unavailable max_sust_wind, min_p, or areas_affected values; areas_affected stores multiple places in a single text cell."
+    }
+  ],
+  "uncertainties": [
+    "The units of max_sust_wind and min_p and the category scale behind max_storm_cat are not declared.",
+    "A blank areas_affected cell does not distinguish no reported affected area from unavailable reporting, and no formal blank-value legend is supplied.",
+    "The evidence does not define whether deaths are direct, indirect, or combined fatalities."
+  ],
+  "annotation_notes": [
+    "Semantics are grounded only in train.csv and its declared packet."
+  ]
+}

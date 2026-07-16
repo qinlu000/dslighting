@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import time
@@ -127,6 +128,53 @@ def extract_response_content(response: Any) -> str:
     except (IndexError, AttributeError) as exc:
         raise ValueError(f"Invalid response structure: {exc}") from exc
     return "" if content is None else str(content)
+
+
+def summarize_empty_response(response: Any) -> dict[str, Any]:
+    """Return safe structural metadata for a response with no text content.
+
+    The summary deliberately excludes message text, prompts, credentials, and
+    arbitrary provider payloads.  It is suitable for warning logs and debug
+    events that need to distinguish provider-side blanks from adapter-field
+    mismatches.
+    """
+
+    choices = _field(response, "choices")
+    if isinstance(choices, (list, tuple)):
+        choice_items = list(choices)
+    else:
+        choice_items = []
+    first_choice = choice_items[0] if choice_items else None
+    message = _field(first_choice, "message")
+    content = _field(message, "content")
+    reasoning_content = _field(message, "reasoning_content")
+    tool_calls = _field(message, "tool_calls")
+
+    if content is None:
+        content_state = "none"
+        content_length = 0
+    else:
+        rendered_content = str(content)
+        content_state = "blank" if not rendered_content.strip() else "non_empty"
+        content_length = len(rendered_content)
+
+    reasoning_length = len(str(reasoning_content)) if reasoning_content is not None else 0
+    tool_call_count = len(tool_calls) if isinstance(tool_calls, (list, tuple)) else 0
+    usage = extract_usage(response)
+
+    return {
+        "response_type": type(response).__name__ if response is not None else "NoneType",
+        "response_id": _field(response, "id"),
+        "response_model": _field(response, "model"),
+        "choice_count": len(choice_items),
+        "finish_reason": _field(first_choice, "finish_reason"),
+        "content_state": content_state,
+        "content_length": content_length,
+        "reasoning_content_present": reasoning_content is not None,
+        "reasoning_content_length": reasoning_length,
+        "tool_call_count": tool_call_count,
+        "usage": usage or None,
+    }
 
 
 def attach_debug_metadata(*, kwargs: dict[str, Any], llm_context: LLMCallContext) -> None:
@@ -544,6 +592,20 @@ def _safe_int(value: Any) -> int | None:
         return None
 
 
+def _field(value: Any, name: str) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, Mapping):
+        return value.get(name)
+    direct = getattr(value, name, None)
+    if direct is not None:
+        return direct
+    model_extra = getattr(value, "model_extra", None)
+    if isinstance(model_extra, Mapping):
+        return model_extra.get(name)
+    return None
+
+
 __all__ = [
     "ObservedCompletionResult",
     "acompletion_with_observability",
@@ -556,4 +618,5 @@ __all__ = [
     "extract_usage",
     "sanitize_messages_for_debug",
     "serialize_response_for_debug",
+    "summarize_empty_response",
 ]

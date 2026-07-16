@@ -1,0 +1,29 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-753bcb0a243256986b0b663666d0bbf5dd273f0de753ad0705be1c9cbacf8f83",
+  "data_objects": [
+    {
+      "name": "ephemeris_records",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Time-indexed ephemeris-like records containing a Julian-date value, a TDB calendar-date rendering, and three Cartesian coordinate components."
+    }
+  ],
+  "variables": [
+    {"object": "ephemeris_records", "file": "train.csv", "name": "JDTDB", "meaning": "Julian Date expressed on the TDB time scale.", "unit": "days"},
+    {"object": "ephemeris_records", "file": "train.csv", "name": "Calendar Date (TDB)", "meaning": "Calendar-date and time representation of the ephemeris instant on the TDB time scale.", "unit": null},
+    {"object": "ephemeris_records", "file": "train.csv", "name": "X", "meaning": "X component of a Cartesian position vector; reference frame, origin, and distance unit are not stated.", "unit": null},
+    {"object": "ephemeris_records", "file": "train.csv", "name": "Y", "meaning": "Y component of a Cartesian position vector; reference frame, origin, and distance unit are not stated.", "unit": null},
+    {"object": "ephemeris_records", "file": "train.csv", "name": "Z", "meaning": "Z component of a Cartesian position vector; reference frame, origin, and distance unit are not stated.", "unit": null},
+    {"object": "ephemeris_records", "file": "train.csv", "name": "Unnamed: 5", "meaning": "Unlabeled trailing field with no stated semantic role.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row represents one ephemeris instant; JDTDB and Calendar Date (TDB) are two time representations for that instant, while X, Y, and Z form a position vector.", "objects": ["ephemeris_records"]},
+    {"description": "Records are ordered by increasing ephemeris time.", "objects": ["ephemeris_records"]}
+  ],
+  "uncertainties": [
+    "The observed body, coordinate origin, coordinate frame, and distance unit are not specified.",
+    "The unlabeled trailing column has no documented interpretation."
+  ],
+  "annotation_notes": ["Semantics are limited to the time labels, coordinate labels, and formatting visible in train.csv."]
+}

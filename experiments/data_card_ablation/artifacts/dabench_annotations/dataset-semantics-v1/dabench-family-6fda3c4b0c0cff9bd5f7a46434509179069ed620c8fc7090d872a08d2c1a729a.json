@@ -1,0 +1,36 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-6fda3c4b0c0cff9bd5f7a46434509179069ed620c8fc7090d872a08d2c1a729a",
+  "data_objects": [
+    {
+      "name": "shellfish_specimens",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Individual shellfish specimen measurements covering body dimensions, component weights, sex or development code, and shell-ring count.",
+      "notes": "No explicit specimen identifier is present."
+    }
+  ],
+  "variables": [
+    {"name": "Sex", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Sex or developmental category encoded with the labels M, F, and I.", "unit": null},
+    {"name": "Length", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Overall shell-length measurement.", "unit": null},
+    {"name": "Diameter", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Shell-diameter measurement.", "unit": null},
+    {"name": "Height", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Specimen or shell-height measurement.", "unit": null},
+    {"name": "Whole weight", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Weight of the whole specimen.", "unit": null},
+    {"name": "Shucked weight", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Weight of the shucked edible or body portion.", "unit": null},
+    {"name": "Viscera weight", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Weight of the viscera portion.", "unit": null},
+    {"name": "Shell weight", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Weight of the shell portion.", "unit": null},
+    {"name": "Rings", "object": "shellfish_specimens", "file": "train.csv", "meaning": "Count of growth rings observed on the shell.", "unit": "rings"}
+  ],
+  "structure": [
+    {"objects": ["shellfish_specimens"], "description": "Each row represents one specimen; the table has no source identifier or temporal ordering field."},
+    {"objects": ["shellfish_specimens"], "description": "Sex is a categorical code, dimensions are continuous measurements, component weights partition aspects of specimen mass, and Rings is an integer count."}
+  ],
+  "uncertainties": [
+    "The organism name is not explicitly supplied; the shellfish interpretation is inferred from the joint measurement vocabulary.",
+    "The definitions of M, F, and I are not provided, so I cannot be conclusively expanded beyond sex or developmental categories.",
+    "Units and any normalization of the dimension and weight fields are not stated."
+  ],
+  "annotation_notes": [
+    "The semantic map is based only on train.csv and leaves measurement units null where the source provides none."
+  ]
+}

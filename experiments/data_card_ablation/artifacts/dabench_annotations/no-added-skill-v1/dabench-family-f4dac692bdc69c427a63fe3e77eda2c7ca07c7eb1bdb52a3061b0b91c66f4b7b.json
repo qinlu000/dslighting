@@ -1,0 +1,94 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-f4dac692bdc69c427a63fe3e77eda2c7ca07c7eb1bdb52a3061b0b91c66f4b7b",
+  "data_objects": [
+    {
+      "name": "regional_monthly_home_prices",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Monthly regional real-estate records with geographic identifiers, place labels, size rank, and median sold price per square foot."
+    }
+  ],
+  "variables": [
+    {
+      "name": "RegionID",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "Source identifier for the geographic region.",
+      "unit": null
+    },
+    {
+      "name": "RegionName",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "Source display label or code for the region.",
+      "unit": null
+    },
+    {
+      "name": "City",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "City containing the region.",
+      "unit": null
+    },
+    {
+      "name": "State",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "State abbreviation associated with the region.",
+      "unit": null
+    },
+    {
+      "name": "Metro",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "Metropolitan-area label associated with the region.",
+      "unit": null
+    },
+    {
+      "name": "CountyName",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "County or county-equivalent name associated with the region.",
+      "unit": null
+    },
+    {
+      "name": "SizeRank",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "Source rank of the region by an unspecified size measure.",
+      "unit": "rank"
+    },
+    {
+      "name": "Month",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "Reference month encoded as year and month.",
+      "unit": null
+    },
+    {
+      "name": "MedianSoldPricePerSqft",
+      "file": "train.csv",
+      "object": "regional_monthly_home_prices",
+      "meaning": "Median sold-property price per square foot for the region and month.",
+      "unit": "currency per square foot"
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "regional_monthly_home_prices"
+      ],
+      "description": "Each row represents one RegionID and Month combination, with repeated geographic labels and a monthly median sold-price-per-area field."
+    }
+  ],
+  "uncertainties": [
+    "The geographic type represented by RegionName, the basis of SizeRank, and the price currency are not stated.",
+    "The property population and transaction inclusion rules behind the median price are not documented."
+  ],
+  "annotation_notes": [
+    "The per-square-foot basis is explicit in the source name; its currency remains unspecified."
+  ]
+}

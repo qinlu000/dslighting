@@ -1,0 +1,35 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-17da5edda18a5a5c2168f5f06a0a90604efef810cac0d17492723ddad2685753",
+  "data_objects": [
+    {
+      "name": "call_center_intervals",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Time-interval records of call handling activity and agent staffing at a call center.",
+      "notes": "Count and average fields describe the interval identified by timestamp; the precise operational definitions are not supplied."
+    }
+  ],
+  "variables": [
+    {"object": "call_center_intervals", "file": "train.csv", "name": "timestamp", "meaning": "Start or label time of the reporting interval.", "unit": null},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "num. busy overflows", "meaning": "Number of calls recorded as busy overflows during the interval.", "unit": "calls"},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "num. calls answered", "meaning": "Number of calls answered during the interval.", "unit": "calls"},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "num. calls abandoned ", "meaning": "Number of calls abandoned during the interval.", "unit": "calls"},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "num. calls transferred ", "meaning": "Number of calls transferred during the interval.", "unit": "calls"},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "num. calls timed out ", "meaning": "Number of calls that timed out during the interval.", "unit": "calls"},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "avg. num. agents talking ", "meaning": "Average number of agents engaged in calls during the interval.", "unit": "agents"},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "avg. num. agents staffed ", "meaning": "Average number of staffed agents during the interval.", "unit": "agents"},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "avg. wait time ", "meaning": "Average caller wait duration for the interval, encoded as HH:MM:SS.", "unit": "HH:MM:SS duration"},
+    {"object": "call_center_intervals", "file": "train.csv", "name": "avg. abandonment time", "meaning": "Average elapsed duration before abandonment for the interval, encoded as HH:MM:SS.", "unit": "HH:MM:SS duration"}
+  ],
+  "structure": [
+    {"description": "Each row represents an apparent 15-minute reporting interval, identified and chronologically ordered by timestamp.", "objects": ["call_center_intervals"]}
+  ],
+  "uncertainties": [
+    "The table does not define whether timestamp marks the start or end of an interval.",
+    "The population of calls and agents covered by the report is not identified."
+  ],
+  "annotation_notes": [
+    "Meanings are based only on the source column names, values, and encodings visible in train.csv."
+  ]
+}

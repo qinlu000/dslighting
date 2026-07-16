@@ -1,0 +1,29 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-6d0f08343d42a5ad45d1eb2275a99416aa8a0b26be03fe5e74538cff31352292",
+  "data_objects": [
+    {
+      "name": "market_price_history",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Dated market observations with open, high, low, and close prices and traded volume for an unspecified instrument."
+    }
+  ],
+  "variables": [
+    {"object": "market_price_history", "file": "train.csv", "name": "Unnamed: 0", "meaning": "Sequential row label introduced by a prior table index; it has no stated market meaning.", "unit": null},
+    {"object": "market_price_history", "file": "train.csv", "name": "Date", "meaning": "Calendar date of the market observation.", "unit": null},
+    {"object": "market_price_history", "file": "train.csv", "name": "Open", "meaning": "Opening price for the dated observation.", "unit": null},
+    {"object": "market_price_history", "file": "train.csv", "name": "High", "meaning": "Highest quoted or traded price for the dated observation.", "unit": null},
+    {"object": "market_price_history", "file": "train.csv", "name": "Low", "meaning": "Lowest quoted or traded price for the dated observation.", "unit": null},
+    {"object": "market_price_history", "file": "train.csv", "name": "Close", "meaning": "Closing price for the dated observation.", "unit": null},
+    {"object": "market_price_history", "file": "train.csv", "name": "Volume", "meaning": "Traded volume associated with the dated observation; the instrument unit is not stated.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row represents one dated trading-period observation containing OHLC prices and volume.", "objects": ["market_price_history"]},
+    {"description": "Date provides the temporal key; Unnamed: 0 is a separate sequential table index.", "objects": ["market_price_history"]}
+  ],
+  "uncertainties": [
+    "The financial instrument, exchange, price currency, trading-period convention, and volume unit are not identified."
+  ],
+  "annotation_notes": ["Semantics are limited to the column labels and date/value formatting visible in train.csv."]
+}

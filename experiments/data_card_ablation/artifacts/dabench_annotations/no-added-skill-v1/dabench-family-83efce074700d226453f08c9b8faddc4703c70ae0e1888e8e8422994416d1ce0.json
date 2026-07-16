@@ -1,0 +1,108 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-83efce074700d226453f08c9b8faddc4703c70ae0e1888e8e8422994416d1ce0",
+  "data_objects": [
+    {
+      "name": "storm_records",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Named storm-event records with activity dates, intensity fields, affected areas, damage, deaths, and year."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Unnamed: 0",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Exported row-position index.",
+      "unit": null
+    },
+    {
+      "name": "name",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Storm name or source event label.",
+      "unit": null
+    },
+    {
+      "name": "dates_active",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Text date span during which the storm was active.",
+      "unit": null
+    },
+    {
+      "name": "max_storm_cat",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Maximum recorded storm-category code.",
+      "unit": null
+    },
+    {
+      "name": "max_sust_wind",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Maximum sustained-wind measurement.",
+      "unit": null
+    },
+    {
+      "name": "min_p",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Minimum recorded pressure measurement.",
+      "unit": null
+    },
+    {
+      "name": "areas_affected",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Comma-delimited text listing places affected by the storm.",
+      "unit": null
+    },
+    {
+      "name": "damage_USD",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Estimated storm damage amount denominated in United States dollars.",
+      "unit": "USD"
+    },
+    {
+      "name": "deaths",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Recorded number of deaths associated with the storm.",
+      "unit": "people"
+    },
+    {
+      "name": "year",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Calendar year associated with the storm record.",
+      "unit": "year"
+    },
+    {
+      "name": "damage_imputed",
+      "file": "train.csv",
+      "object": "storm_records",
+      "meaning": "Binary flag indicating whether the damage value was imputed.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "storm_records"
+      ],
+      "description": "Each ordinary row represents one storm event; name, year, and dates_active provide event-identifying context, while areas_affected stores multiple places in one text cell."
+    }
+  ],
+  "uncertainties": [
+    "The category scale, wind-speed unit, and pressure unit are not specified.",
+    "The valuation basis and reference-year convention for damage_USD are not documented."
+  ],
+  "annotation_notes": [
+    "Damage currency is explicit in the source name; other physical units remain unresolved."
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-4a437fde05fe5264e1701a7387ac6fb75393772ba38bb2c9c566405af5af4bd7",
+  "data_objects": [
+    {
+      "name": "passenger_manifest",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Passenger-level manifest records containing travel class, identity, family-companion counts, ticketing, cabin, embarkation, fare, age, sex, and a survival indicator.",
+      "notes": "Blank cells represent unavailable age, cabin, embarkation, or other manifest attributes."
+    }
+  ],
+  "variables": [
+    {"object": "passenger_manifest", "file": "train.csv", "name": "PassengerId", "meaning": "Sequential passenger-record identifier.", "unit": null},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Survived", "meaning": "Binary 0/1 survival-status indicator.", "unit": null},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Pclass", "meaning": "Ordinal passenger-class code, with class numbers encoded as integers.", "unit": null},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Name", "meaning": "Passenger name, often including title and parenthetical alternate or spouse-related name text.", "unit": null},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Sex", "meaning": "Passenger sex category recorded as text.", "unit": null},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Age", "meaning": "Passenger age; fractional values can represent ages below or between whole years.", "unit": "years"},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "SibSp", "meaning": "Number of siblings and spouses accompanying the passenger.", "unit": "people"},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Parch", "meaning": "Number of parents and children accompanying the passenger.", "unit": "people"},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Ticket", "meaning": "Ticket identifier or ticket-code string; it can be shared by multiple passengers.", "unit": null},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Fare", "meaning": "Passenger fare amount in an unspecified currency.", "unit": null},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Cabin", "meaning": "Cabin assignment text; a cell can contain more than one cabin code.", "unit": null},
+    {"object": "passenger_manifest", "file": "train.csv", "name": "Embarked", "meaning": "Embarkation-port category encoded by a one-letter code.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row represents one passenger, and PassengerId is the passenger-record key and ascending row-order field.", "objects": ["passenger_manifest"]},
+    {"description": "Ticket and Cabin can group or relate passengers but are not passenger identifiers; Pclass is ordinal and Survived is a binary categorical indicator.", "objects": ["passenger_manifest"]}
+  ],
+  "uncertainties": [
+    "The CSV does not explicitly map the Survived codes to named outcomes or the Embarked letters to port names.",
+    "The fare currency and any rules governing shared ticket fares or multiple-cabin strings are not documented."
+  ],
+  "annotation_notes": ["Only the declared train.csv and its neutral packet were used as evidence."]
+}

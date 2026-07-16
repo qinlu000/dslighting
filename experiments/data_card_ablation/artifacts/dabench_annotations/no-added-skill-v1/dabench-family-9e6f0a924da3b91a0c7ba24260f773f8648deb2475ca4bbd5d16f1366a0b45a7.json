@@ -1,0 +1,32 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-9e6f0a924da3b91a0c7ba24260f773f8648deb2475ca4bbd5d16f1366a0b45a7",
+  "data_objects": [
+    {
+      "name": "country_year_indicators",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Country-year demographic and economic indicators with continent labels.",
+      "notes": "The GDP-per-capita currency basis and price-year convention are not stated."
+    }
+  ],
+  "variables": [
+    {"object": "country_year_indicators", "file": "train.csv", "name": "year", "meaning": "Calendar year of the country observation.", "unit": "year"},
+    {"object": "country_year_indicators", "file": "train.csv", "name": "pop", "meaning": "Population associated with the country and year.", "unit": "people"},
+    {"object": "country_year_indicators", "file": "train.csv", "name": "lifeexp", "meaning": "Life expectancy associated with the country and year.", "unit": "years"},
+    {"object": "country_year_indicators", "file": "train.csv", "name": "gdppercap", "meaning": "Gross domestic product per person for the country and year.", "unit": null},
+    {"object": "country_year_indicators", "file": "train.csv", "name": "country", "meaning": "Country name in lowercase text.", "unit": null},
+    {"object": "country_year_indicators", "file": "train.csv", "name": "continent", "meaning": "Continent category associated with the country.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row represents one country-year observation, with country and year forming the natural composite key.", "objects": ["country_year_indicators"]},
+    {"description": "continent is a higher-level geographic grouping for country.", "objects": ["country_year_indicators"]}
+  ],
+  "uncertainties": [
+    "The source, collection methodology, population reference date, and life-expectancy definition are not supplied.",
+    "The monetary unit, purchasing-power treatment, and inflation basis for gdppercap are unspecified."
+  ],
+  "annotation_notes": [
+    "Economic units are left null because train.csv does not state a currency or valuation basis."
+  ]
+}

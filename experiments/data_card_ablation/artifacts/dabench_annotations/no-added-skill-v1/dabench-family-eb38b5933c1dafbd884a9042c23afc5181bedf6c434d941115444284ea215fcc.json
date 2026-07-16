@@ -1,0 +1,38 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-eb38b5933c1dafbd884a9042c23afc5181bedf6c434d941115444284ea215fcc",
+  "data_objects": [
+    {
+      "name": "country_vaccination_history",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Country-date vaccination records containing cumulative and daily vaccination measures, population-normalized measures, vaccine product labels, and source attribution."
+    }
+  ],
+  "variables": [
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "country", "meaning": "Country name for the vaccination record.", "unit": null},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "iso_code", "meaning": "Country ISO code.", "unit": null},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "date", "meaning": "Calendar date of the vaccination record.", "unit": null},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "total_vaccinations", "meaning": "Cumulative number of vaccine doses administered by the date.", "unit": "doses"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "people_vaccinated", "meaning": "Cumulative number of people who have received at least one vaccination by the date.", "unit": "people"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "people_fully_vaccinated", "meaning": "Cumulative number of people recorded as fully vaccinated by the date.", "unit": "people"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "daily_vaccinations_raw", "meaning": "Raw daily number of vaccine doses administered.", "unit": "doses per day"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "daily_vaccinations", "meaning": "Daily vaccination measure distinct from the raw field; the adjustment or smoothing method is not stated.", "unit": "doses per day"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "total_vaccinations_per_hundred", "meaning": "Cumulative vaccine doses administered per hundred people.", "unit": "doses per 100 people"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "people_vaccinated_per_hundred", "meaning": "People receiving at least one vaccination per hundred people.", "unit": "people per 100 people"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "people_fully_vaccinated_per_hundred", "meaning": "People recorded as fully vaccinated per hundred people.", "unit": "people per 100 people"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "daily_vaccinations_per_million", "meaning": "Daily vaccine doses administered per million people.", "unit": "doses per day per million people"},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "vaccines", "meaning": "Vaccine product or product combination used in the country record.", "unit": null},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "source_name", "meaning": "Name of the organization or publication source for the record.", "unit": null},
+    {"object": "country_vaccination_history", "file": "train.csv", "name": "source_website", "meaning": "Website URL identifying the record's source.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row represents vaccination measures for one country on one calendar date, with country and date providing the natural record context.", "objects": ["country_vaccination_history"]},
+    {"description": "The table stores cumulative, daily, and population-normalized forms of vaccination measures alongside the vaccine and source fields.", "objects": ["country_vaccination_history"]}
+  ],
+  "uncertainties": [
+    "The method distinguishing daily_vaccinations from daily_vaccinations_raw is not stated.",
+    "Blank cells do not distinguish unavailable reporting from measures that are not applicable."
+  ],
+  "annotation_notes": ["Semantics are limited to the column labels, date values, and source fields visible in train.csv."]
+}

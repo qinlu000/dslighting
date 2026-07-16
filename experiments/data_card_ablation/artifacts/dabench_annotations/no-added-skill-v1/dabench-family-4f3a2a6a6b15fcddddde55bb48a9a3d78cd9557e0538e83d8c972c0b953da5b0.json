@@ -1,0 +1,156 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-4f3a2a6a6b15fcddddde55bb48a9a3d78cd9557e0538e83d8c972c0b953da5b0",
+  "data_objects": [
+    {
+      "name": "annual_academic_field_measurements",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Annual numeric measurements reported separately for named academic fields."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Year",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Calendar year of the reported measurements.",
+      "unit": "year"
+    },
+    {
+      "name": "Agriculture",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Agriculture field.",
+      "unit": null
+    },
+    {
+      "name": "Architecture",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Architecture field.",
+      "unit": null
+    },
+    {
+      "name": "Art and Performance",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Art and Performance field.",
+      "unit": null
+    },
+    {
+      "name": "Biology",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Biology field.",
+      "unit": null
+    },
+    {
+      "name": "Business",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Business field.",
+      "unit": null
+    },
+    {
+      "name": "Communications and Journalism",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Communications and Journalism field.",
+      "unit": null
+    },
+    {
+      "name": "Computer Science",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Computer Science field.",
+      "unit": null
+    },
+    {
+      "name": "Education",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Education field.",
+      "unit": null
+    },
+    {
+      "name": "Engineering",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Engineering field.",
+      "unit": null
+    },
+    {
+      "name": "English",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the English field.",
+      "unit": null
+    },
+    {
+      "name": "Foreign Languages",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Foreign Languages field.",
+      "unit": null
+    },
+    {
+      "name": "Health Professions",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Health Professions field.",
+      "unit": null
+    },
+    {
+      "name": "Math and Statistics",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Math and Statistics field.",
+      "unit": null
+    },
+    {
+      "name": "Physical Sciences",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Physical Sciences field.",
+      "unit": null
+    },
+    {
+      "name": "Psychology",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Psychology field.",
+      "unit": null
+    },
+    {
+      "name": "Public Administration",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Public Administration field.",
+      "unit": null
+    },
+    {
+      "name": "Social Sciences and History",
+      "file": "train.csv",
+      "object": "annual_academic_field_measurements",
+      "meaning": "Annual value reported for the Social Sciences and History field.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "annual_academic_field_measurements"
+      ],
+      "description": "Each row contains parallel academic-field measurements for one Year, and rows are chronologically ordered."
+    }
+  ],
+  "uncertainties": [
+    "The measured statistic, population, and unit for the academic-field columns are not stated in the table."
+  ],
+  "annotation_notes": [
+    "Field-specific values are described literally because train.csv does not identify the underlying measure."
+  ]
+}

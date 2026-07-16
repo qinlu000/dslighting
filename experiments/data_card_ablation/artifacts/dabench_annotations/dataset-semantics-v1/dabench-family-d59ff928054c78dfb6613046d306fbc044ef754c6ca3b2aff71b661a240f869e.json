@@ -1,0 +1,37 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-d59ff928054c78dfb6613046d306fbc044ef754c6ca3b2aff71b661a240f869e",
+  "data_objects": [
+    {
+      "name": "country_gdp_per_capita_series",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Wide-format country records containing repeated GDP-per-capita observations at labeled calendar years.",
+      "notes": "The monetary currency, price basis, and purchasing-power convention are not declared."
+    }
+  ],
+  "variables": [
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "country", "meaning": "Country or territory name identifying the row.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1952", "meaning": "GDP per capita for calendar year 1952.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1957", "meaning": "GDP per capita for calendar year 1957.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1962", "meaning": "GDP per capita for calendar year 1962.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1967", "meaning": "GDP per capita for calendar year 1967.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1972", "meaning": "GDP per capita for calendar year 1972.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1977", "meaning": "GDP per capita for calendar year 1977.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1982", "meaning": "GDP per capita for calendar year 1982.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1987", "meaning": "GDP per capita for calendar year 1987.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1992", "meaning": "GDP per capita for calendar year 1992.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_1997", "meaning": "GDP per capita for calendar year 1997.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_2002", "meaning": "GDP per capita for calendar year 2002.", "unit": null},
+    {"object": "country_gdp_per_capita_series", "file": "train.csv", "name": "gdpPercap_2007", "meaning": "GDP per capita for calendar year 2007.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is one country or territory, and country is the candidate row key.", "objects": ["country_gdp_per_capita_series"]},
+    {"description": "The gdpPercap_YEAR columns are a wide repeated-measure time axis at regular five-year intervals and share one undocumented monetary basis.", "objects": ["country_gdp_per_capita_series"]}
+  ],
+  "uncertainties": [
+    "The GDP currency, nominal-versus-real price basis, reference year, and purchasing-power adjustment are not specified.",
+    "The geographic treatment of country and territory labels is not documented."
+  ],
+  "annotation_notes": ["Only the declared train.csv and its neutral packet were used as evidence."]
+}

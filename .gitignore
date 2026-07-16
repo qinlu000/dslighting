@@ -160,6 +160,12 @@ logs/
 temp/
 *.tmp
 
+# Local experiment state and caches (all intentionally kept below /data)
+/data/.uv/
+/data/cache/
+/data/runtime/
+/data/experiments/
+
 /competitions/
 runs/
 

@@ -82,6 +82,9 @@ def _create_sandbox_service(workspace: WorkspaceService, config: Any) -> Sandbox
 
     backend_config = SandboxBackendConfig(
         timeout=config.sandbox.timeout,
+        isolation=getattr(config.sandbox, "local_isolation", "process"),
+        environment_policy=getattr(config.sandbox, "environment_policy", "inherit"),
+        network_policy=getattr(config.sandbox, "network_policy", "inherit"),
         env_vars=dict(env_overrides),
     )
 

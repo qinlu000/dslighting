@@ -1,0 +1,99 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-68a9ce2a7b5c249f01c716d92eb5f7429be1c6185f0160a6b73d6df89e425419",
+  "data_objects": [
+    {
+      "name": "annual_education_expenditure_observations",
+      "kind": "table",
+      "files": [
+        "train.csv"
+      ],
+      "meaning": "Coded annual education-expenditure observations by reporting location, education subject category, and calendar year.",
+      "notes": "The table uses compact statistical codes and includes both location-level observations and an aggregate-location code."
+    }
+  ],
+  "variables": [
+    {
+      "name": "LOCATION",
+      "object": "annual_education_expenditure_observations",
+      "file": "train.csv",
+      "meaning": "Code for the reporting country, economy, or aggregate geography.",
+      "unit": null
+    },
+    {
+      "name": "INDICATOR",
+      "object": "annual_education_expenditure_observations",
+      "file": "train.csv",
+      "meaning": "Code identifying the education-expenditure indicator.",
+      "unit": null
+    },
+    {
+      "name": "SUBJECT",
+      "object": "annual_education_expenditure_observations",
+      "file": "train.csv",
+      "meaning": "Code for the education-level or subject grouping to which the observation applies.",
+      "unit": null
+    },
+    {
+      "name": "MEASURE",
+      "object": "annual_education_expenditure_observations",
+      "file": "train.csv",
+      "meaning": "Code for the measurement basis; PC_GDP denotes a percentage-of-GDP basis.",
+      "unit": null
+    },
+    {
+      "name": "FREQUENCY",
+      "object": "annual_education_expenditure_observations",
+      "file": "train.csv",
+      "meaning": "Observation-frequency code; A denotes annual observations.",
+      "unit": null
+    },
+    {
+      "name": "TIME",
+      "object": "annual_education_expenditure_observations",
+      "file": "train.csv",
+      "meaning": "Calendar year of the observation.",
+      "unit": "year"
+    },
+    {
+      "name": "Value",
+      "object": "annual_education_expenditure_observations",
+      "file": "train.csv",
+      "meaning": "Education-expenditure value on the basis specified by MEASURE.",
+      "unit": "percent of GDP"
+    },
+    {
+      "name": "Flag Codes",
+      "object": "annual_education_expenditure_observations",
+      "file": "train.csv",
+      "meaning": "Optional status flag associated with Value; M is used alongside blank values.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "annual_education_expenditure_observations"
+      ],
+      "description": "Each row is one observation for a LOCATION, INDICATOR, SUBJECT, MEASURE, FREQUENCY, and TIME tuple; that dimensional tuple is the natural candidate key."
+    },
+    {
+      "objects": [
+        "annual_education_expenditure_observations"
+      ],
+      "description": "Rows are grouped by LOCATION and SUBJECT, with TIME progressing within those groups; aggregate-location rows are retained in the same object as geographic rows."
+    },
+    {
+      "objects": [
+        "annual_education_expenditure_observations"
+      ],
+      "description": "A blank Value represents an unavailable observation in the visible encoding and is paired with M in Flag Codes."
+    }
+  ],
+  "uncertainties": [
+    "No codebook is supplied for LOCATION, INDICATOR, SUBJECT, MEASURE, FREQUENCY, or Flag Codes, so precise code expansions beyond text-supported interpretations remain uncertain."
+  ],
+  "annotation_notes": [
+    "Semantics are grounded only in train.csv and its declared packet."
+  ]
+}

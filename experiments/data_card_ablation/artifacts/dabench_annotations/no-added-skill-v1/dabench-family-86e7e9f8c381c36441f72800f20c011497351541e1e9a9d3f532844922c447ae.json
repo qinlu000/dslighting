@@ -1,0 +1,46 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-86e7e9f8c381c36441f72800f20c011497351541e1e9a9d3f532844922c447ae",
+  "data_objects": [
+    {
+      "name": "solar_magnetic_region_series",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Time series of summarized solar magnetic-region measurements, including flux, field-gradient, electric-current, helicity, energy, shear, and area metrics.",
+      "notes": "Most measurement names are abbreviated and their exact definitions and units are not supplied in train.csv."
+    }
+  ],
+  "variables": [
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "TRUE_TIME", "meaning": "Absolute observation timestamp encoded with a TAI suffix.", "unit": "TAI timestamp"},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "TIME", "meaning": "Elapsed time coordinate aligned with TRUE_TIME.", "unit": "hours"},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "USFLUX", "meaning": "Unsigned magnetic-flux summary metric labeled USFLUX.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "MEANGAM", "meaning": "Mean magnetic-field inclination metric labeled MEANGAM.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "MEANGBT", "meaning": "Mean gradient metric for the total magnetic field.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "MEANGBZ", "meaning": "Mean gradient metric for the vertical magnetic-field component.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "MEANGBH", "meaning": "Mean gradient metric for the horizontal magnetic-field component.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "MEANJZD", "meaning": "Mean vertical electric-current-density metric.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "TOTUSJZ", "meaning": "Total unsigned vertical electric-current metric.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "MEANJZH", "meaning": "Mean current-helicity metric.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "TOTUSJH", "meaning": "Total unsigned current-helicity metric.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "ABSNJZH", "meaning": "Absolute net current-helicity metric.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "SAVNCPP", "meaning": "Sum-of-absolute-net-current-per-polarity metric labeled SAVNCPP.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "MEANPOT", "meaning": "Mean magnetic-energy-related metric labeled MEANPOT.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "TOTPOT", "meaning": "Total magnetic-energy-related metric labeled TOTPOT.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "MEANSHR", "meaning": "Mean magnetic shear metric.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "SHRGT45", "meaning": "Share of the measured region associated with shear above the threshold encoded in the field name.", "unit": "fraction"},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "R_VALUE", "meaning": "Magnetic-region summary metric labeled R_VALUE.", "unit": null},
+    {"object": "solar_magnetic_region_series", "file": "train.csv", "name": "AREA_ACR", "meaning": "Area metric for the active measured region.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row represents one successive observation time; TRUE_TIME is the absolute temporal key and TIME is its elapsed-hours coordinate.", "objects": ["solar_magnetic_region_series"]},
+    {"description": "All magnetic and area fields are summaries for the same observed region at the row timestamp.", "objects": ["solar_magnetic_region_series"]}
+  ],
+  "uncertainties": [
+    "The observed solar region, instrument, spatial mask, and measurement procedures are not identified.",
+    "The precise expansions, formulas, sign conventions, and physical units of the abbreviated metrics are not established by train.csv.",
+    "The reference origin of TIME is not supplied."
+  ],
+  "annotation_notes": [
+    "Opaque parameters retain their source labels and null units rather than receiving unsupported formula or unit definitions."
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-753bcb0a243256986b0b663666d0bbf5dd273f0de753ad0705be1c9cbacf8f83",
+  "data_objects": [
+    {
+      "name": "ephemeris_positions",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Time-indexed Cartesian ephemeris positions represented with both Julian-date and calendar-date forms on the TDB time scale.",
+      "notes": "The final source column is an empty trailing field."
+    }
+  ],
+  "variables": [
+    {"object": "ephemeris_positions", "file": "train.csv", "name": "JDTDB", "meaning": "Julian Date on the Barycentric Dynamical Time scale.", "unit": "days"},
+    {"object": "ephemeris_positions", "file": "train.csv", "name": "Calendar Date (TDB)", "meaning": "Calendar rendering of the same ephemeris epoch on the TDB time scale.", "unit": null},
+    {"object": "ephemeris_positions", "file": "train.csv", "name": "X", "meaning": "Cartesian X position coordinate in an unspecified reference frame and distance unit.", "unit": null},
+    {"object": "ephemeris_positions", "file": "train.csv", "name": "Y", "meaning": "Cartesian Y position coordinate in an unspecified reference frame and distance unit.", "unit": null},
+    {"object": "ephemeris_positions", "file": "train.csv", "name": "Z", "meaning": "Cartesian Z position coordinate in an unspecified reference frame and distance unit.", "unit": null},
+    {"object": "ephemeris_positions", "file": "train.csv", "name": "Unnamed: 5", "meaning": "Empty trailing CSV field with no supplied semantic content.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is one ephemeris epoch; JDTDB and Calendar Date (TDB) are dual representations of that epoch, not separate observations.", "objects": ["ephemeris_positions"]},
+    {"description": "Rows are ordered by increasing epoch at regular daily intervals, with X, Y, and Z aligned to each epoch.", "objects": ["ephemeris_positions"]}
+  ],
+  "uncertainties": [
+    "The observed body, coordinate origin, reference frame, and X/Y/Z distance unit are not declared.",
+    "No semantics are supplied for the empty trailing column."
+  ],
+  "annotation_notes": ["Only the declared train.csv and its neutral packet were used as evidence."]
+}

@@ -1,0 +1,129 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-d79be64d11b4e36159242055e028e29ee6b4c3da6838e62d7a925bdde26eab5d",
+  "data_objects": [
+    {
+      "name": "country_happiness_summary",
+      "kind": "table",
+      "meaning": "Country-level happiness scores, ranks, regional groupings, uncertainty estimates, and named score components.",
+      "files": [
+        "train.csv"
+      ],
+      "notes": "The table does not state its reference period or document how the scores and components were constructed."
+    }
+  ],
+  "variables": [
+    {
+      "name": "Country",
+      "meaning": "Country name identifying the country summarized by the row.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Region",
+      "meaning": "Broad geographic region category assigned to the country.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Happiness Rank",
+      "meaning": "Ordinal rank of the country by Happiness Score, with smaller rank numbers corresponding to higher scores.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Happiness Score",
+      "meaning": "Composite numeric happiness score reported for the country.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Standard Error",
+      "meaning": "Standard-error estimate associated with the reported Happiness Score.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Economy (GDP per Capita)",
+      "meaning": "Numeric happiness-score component associated with the economy and GDP per capita; it is not a raw GDP-per-capita amount.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Family",
+      "meaning": "Numeric happiness-score component labeled Family.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Health (Life Expectancy)",
+      "meaning": "Numeric happiness-score component associated with health and life expectancy; it is not a raw life-expectancy duration.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Freedom",
+      "meaning": "Numeric happiness-score component associated with freedom.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Trust (Government Corruption)",
+      "meaning": "Numeric happiness-score component associated with trust and government corruption.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Generosity",
+      "meaning": "Numeric happiness-score component associated with generosity.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    },
+    {
+      "name": "Dystopia Residual",
+      "meaning": "Residual numeric component labeled Dystopia Residual in the happiness-score representation.",
+      "unit": null,
+      "object": "country_happiness_summary",
+      "file": "train.csv"
+    }
+  ],
+  "structure": [
+    {
+      "objects": [
+        "country_happiness_summary"
+      ],
+      "description": "Each row summarizes one country. Country is a candidate row identifier, while Region groups multiple countries."
+    },
+    {
+      "objects": [
+        "country_happiness_summary"
+      ],
+      "description": "Rows are ordered by ascending Happiness Rank and correspondingly descending Happiness Score."
+    },
+    {
+      "objects": [
+        "country_happiness_summary"
+      ],
+      "description": "The economy, family, health, freedom, trust, generosity, and residual fields form a family of named score components, while Standard Error describes score uncertainty."
+    }
+  ],
+  "uncertainties": [
+    "The reference year or survey period is not declared in the table.",
+    "The score scale, normalization, weighting, and precise construction of each component are not documented by the evidence.",
+    "The Family label does not specify whether it denotes household family, perceived social support, or another construct."
+  ],
+  "annotation_notes": [
+    "Semantics are grounded only in the declared train.csv evidence."
+  ]
+}

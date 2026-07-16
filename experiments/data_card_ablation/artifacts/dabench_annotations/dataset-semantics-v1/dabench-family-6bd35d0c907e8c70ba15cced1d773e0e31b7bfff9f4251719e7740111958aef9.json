@@ -1,0 +1,33 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-6bd35d0c907e8c70ba15cced1d773e0e31b7bfff9f4251719e7740111958aef9",
+  "data_objects": [
+    {
+      "name": "station_daily_max_temperatures",
+      "kind": "table",
+      "files": ["train.csv"],
+      "meaning": "Station-and-date maximum-temperature observations with duplicate date formats and Celsius/Fahrenheit representations.",
+      "notes": "Rows are keyed by station and date rather than by physical row order."
+    }
+  ],
+  "variables": [
+    {"name": "station", "object": "station_daily_max_temperatures", "file": "train.csv", "meaning": "Weather-station identifier.", "unit": null},
+    {"name": "datetime", "object": "station_daily_max_temperatures", "file": "train.csv", "meaning": "Observation date encoded compactly as YYYYMMDD.", "unit": null},
+    {"name": "obs_type", "object": "station_daily_max_temperatures", "file": "train.csv", "meaning": "Observation-type code; TMAX denotes maximum temperature.", "unit": null},
+    {"name": "obs_value", "object": "station_daily_max_temperatures", "file": "train.csv", "meaning": "Maximum-temperature observation in Celsius.", "unit": "degrees Celsius"},
+    {"name": "TMAX_F", "object": "station_daily_max_temperatures", "file": "train.csv", "meaning": "The same maximum-temperature observation represented in Fahrenheit.", "unit": "degrees Fahrenheit"},
+    {"name": "datetime_dt", "object": "station_daily_max_temperatures", "file": "train.csv", "meaning": "Observation date encoded in ISO YYYY-MM-DD form.", "unit": null}
+  ],
+  "structure": [
+    {"objects": ["station_daily_max_temperatures"], "description": "Each row is a maximum-temperature observation for a station-date pair; station plus datetime acts as the candidate key."},
+    {"objects": ["station_daily_max_temperatures"], "description": "datetime and datetime_dt are equivalent date encodings, while obs_value and TMAX_F are Celsius and Fahrenheit encodings of the same measurement."},
+    {"objects": ["station_daily_max_temperatures"], "description": "Physical row order is not chronological; station and date fields provide the grouping and temporal axes."}
+  ],
+  "uncertainties": [
+    "Station locations, station-network conventions, and the daily observation-window definition are not included.",
+    "The table does not state whether the date is local to each station or based on a common time standard."
+  ],
+  "annotation_notes": [
+    "Only train.csv was used; the temperature and date equivalences are grounded in the paired source values."
+  ]
+}

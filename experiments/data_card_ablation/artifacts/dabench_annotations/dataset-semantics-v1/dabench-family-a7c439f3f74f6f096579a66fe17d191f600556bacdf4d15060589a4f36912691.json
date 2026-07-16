@@ -1,0 +1,33 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-a7c439f3f74f6f096579a66fe17d191f600556bacdf4d15060589a4f36912691",
+  "data_objects": [
+    {
+      "name": "trajectory_poi_visits",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "User trajectory records at point-of-interest visit granularity, with visit times, photo counts, trajectory length, and visit duration.",
+      "notes": "Rows belonging to the same trajID form a repeated sequence for one user, but physical row order within every trajectory is not guaranteed to be chronological."
+    }
+  ],
+  "variables": [
+    {"object": "trajectory_poi_visits", "file": "train.csv", "name": "userID", "meaning": "User account identifier associated with the trajectory.", "unit": null},
+    {"object": "trajectory_poi_visits", "file": "train.csv", "name": "trajID", "meaning": "Trajectory identifier grouping point-of-interest visits for one user.", "unit": null},
+    {"object": "trajectory_poi_visits", "file": "train.csv", "name": "poiID", "meaning": "Point-of-interest identifier for the visit.", "unit": null},
+    {"object": "trajectory_poi_visits", "file": "train.csv", "name": "startTime", "meaning": "Visit start timestamp encoded as Unix-style epoch seconds.", "unit": "seconds since Unix epoch"},
+    {"object": "trajectory_poi_visits", "file": "train.csv", "name": "endTime", "meaning": "Visit end timestamp encoded in the same epoch convention as startTime.", "unit": "seconds since Unix epoch"},
+    {"object": "trajectory_poi_visits", "file": "train.csv", "name": "#photo", "meaning": "Number of photos associated with the point-of-interest visit.", "unit": "photos"},
+    {"object": "trajectory_poi_visits", "file": "train.csv", "name": "trajLen", "meaning": "Number of point-of-interest visit rows in the trajectory, repeated across its rows.", "unit": "visits"},
+    {"object": "trajectory_poi_visits", "file": "train.csv", "name": "poiDuration", "meaning": "Elapsed visit duration represented by endTime minus startTime.", "unit": "seconds"}
+  ],
+  "structure": [
+    {"description": "Each row is one point-of-interest visit. trajID groups visits into a trajectory associated with one userID, and trajLen matches the number of rows in that group.", "objects": ["trajectory_poi_visits"]},
+    {"description": "The tuple of trajID, poiID, startTime, and endTime distinguishes visit rows; timestamps rather than physical row position express within-trajectory chronology.", "objects": ["trajectory_poi_visits"]},
+    {"description": "poiDuration is the interval from startTime through endTime, expressed in seconds.", "objects": ["trajectory_poi_visits"]}
+  ],
+  "uncertainties": [
+    "The timestamp timezone and the semantic criteria used to delimit trajectories and point-of-interest visits are not documented.",
+    "The geographic identities represented by poiID are not included."
+  ],
+  "annotation_notes": ["Only the declared train.csv and its neutral packet were used as evidence."]
+}

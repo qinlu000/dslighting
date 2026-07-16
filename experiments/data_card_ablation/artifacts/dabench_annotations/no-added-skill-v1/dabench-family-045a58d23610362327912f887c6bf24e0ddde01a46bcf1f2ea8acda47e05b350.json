@@ -1,0 +1,95 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "dabench-family-045a58d23610362327912f887c6bf24e0ddde01a46bcf1f2ea8acda47e05b350",
+  "data_objects": [
+    {
+      "name": "debate_team_records",
+      "files": ["train.csv"],
+      "kind": "table",
+      "meaning": "Spreadsheet-derived records for debate teams associated with a James Logan event, including wins, team naming, school affiliation, and standardization fields.",
+      "notes": "The physical CSV header is not the semantic header: the first data row supplies labels for most columns, and two separator columns have no visible content."
+    }
+  ],
+  "variables": [
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "JAMES LOGAN",
+      "meaning": "Column labeled as Wins in the embedded first row; subsequent team rows use it for a win total.",
+      "unit": "wins"
+    },
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "Unnamed: 1",
+      "meaning": "Column labeled as Name in the embedded first row; it contains paired participant names for a team.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "Unnamed: 2",
+      "meaning": "Column labeled as Code in the embedded first row; it contains a school-and-team code.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "Unnamed: 3",
+      "meaning": "Column labeled as School in the embedded first row; it contains the team's school name.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "Unnamed: 4",
+      "meaning": "Unlabeled separator column with no stated semantic role.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "Unnamed: 5",
+      "meaning": "Unlabeled separator column with no stated semantic role.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "Unnamed: 6",
+      "meaning": "Column labeled STANDARD TEAM NAME in the embedded first row; it contains a normalized team label.",
+      "unit": null
+    },
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "Unnamed: 7",
+      "meaning": "Column labeled NUM ROUNDS in the embedded first row; it represents a number of debate rounds.",
+      "unit": "rounds"
+    },
+    {
+      "object": "debate_team_records",
+      "file": "train.csv",
+      "name": "Unnamed: 8",
+      "meaning": "Column labeled WEIGHTING in the embedded first row; the definition and scope of the numeric weighting are not stated.",
+      "unit": null
+    }
+  ],
+  "structure": [
+    {
+      "description": "After the embedded label row, each populated record represents one debate team; participant names, the team code, school, and standard team name describe that team.",
+      "objects": ["debate_team_records"]
+    },
+    {
+      "description": "The first data row acts as a secondary header for the spreadsheet-derived columns rather than as a team record.",
+      "objects": ["debate_team_records"]
+    }
+  ],
+  "uncertainties": [
+    "The event title does not identify a date, competition division, or season.",
+    "The scope of NUM ROUNDS and WEIGHTING is unclear because the spreadsheet-derived layout does not repeat those values across team rows."
+  ],
+  "annotation_notes": [
+    "Semantics are limited to the labels, values, and layout visible in train.csv."
+  ]
+}

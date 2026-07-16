@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Dict, Optional
 
 from dslighting.utils.typing import ExecutionResult
 
@@ -15,13 +15,18 @@ class SandboxBackendConfig:
         timeout: Timeout for code execution in seconds.
         memory_mb: Memory limit in megabytes.
         cpu_cores: Number of CPU cores to allocate.
-        network_policy: Network policy ("disabled", "whitelist", "proxy").
+        isolation: Local process isolation mode ("process" or "bubblewrap").
+        environment_policy: Child environment policy ("inherit" or "allowlist").
+        network_policy: Network policy ("inherit" or "disabled").
         env_vars: Environment variables to set in the sandbox.
     """
+
     timeout: int = 600
     memory_mb: int = 4096
     cpu_cores: float = 2.0
-    network_policy: str = "disabled"
+    isolation: str = "process"
+    environment_policy: str = "inherit"
+    network_policy: str = "inherit"
     env_vars: Dict[str, str] = field(default_factory=dict)
 
 
