@@ -20,7 +20,6 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from experiments.data_card_ablation.engine import (  # noqa: E402
-    FIXED_CONTEXT_FIELDS,
     ConditionExperimentEngine,
     ConditionRuntime,
     EngineRun,
@@ -114,9 +113,7 @@ def _execute(args: argparse.Namespace) -> Path | None:
     l2_summary = None
     l2_path = None
     if any(policy in {"l2", "l3"} for policy in policies):
-        l2_path, l2_summary = preflight_l2(
-            args.l2_guidance_path or profile.l2_guidance_path
-        )
+        l2_path, l2_summary = preflight_l2(args.l2_guidance_path or profile.l2_guidance_path)
     conditions = _level_conditions(
         policies,
         l1_artifact_dir=l1_dir,
@@ -128,7 +125,7 @@ def _execute(args: argparse.Namespace) -> Path | None:
         model=args.model,
         task_concurrency=args.concurrency,
     )
-    configs, fixed_config_sha256 = build_configs(
+    configs = build_configs(
         conditions=conditions,
         run_id=run_id,
         runtime=runtime,
@@ -148,7 +145,6 @@ def _execute(args: argparse.Namespace) -> Path | None:
             "workflow": runtime.workflow,
             "model": runtime.model,
             "concurrency": runtime.task_concurrency,
-            "fixed_config_sha256": fixed_config_sha256,
             "output_contract": configs[conditions[0].condition_id].output_contract.model_dump(
                 mode="json"
             ),
@@ -159,11 +155,6 @@ def _execute(args: argparse.Namespace) -> Path | None:
             key: value
             for key, value in (("l1", l1_summary), ("l2", l2_summary))
             if value is not None
-        },
-        "context_audit": {
-            "fixed_fields": list(FIXED_CONTEXT_FIELDS),
-            "status": "not_run" if args.dry_run else "pending",
-            "reference_by_repetition": {},
         },
         "runs": [],
     }
@@ -180,16 +171,6 @@ def _execute(args: argparse.Namespace) -> Path | None:
         repetition=1,
         run_id=run_id,
         configs=configs,
-        l1_summaries={
-            condition.condition_id: l1_summary
-            for condition in conditions
-            if condition.task_context_policy in {"l1", "l3"} and l1_summary is not None
-        },
-        l2_summaries={
-            condition.condition_id: l2_summary
-            for condition in conditions
-            if condition.task_context_policy in {"l2", "l3"} and l2_summary is not None
-        },
     )
     return ConditionExperimentEngine(run_root).execute(
         manifest=manifest,

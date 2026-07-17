@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import subprocess
 from dataclasses import replace
@@ -11,10 +10,8 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from experiments.data_card_ablation.engine import (
-    FIXED_CONTEXT_FIELDS,
     ConditionExperimentEngine,
     ConditionRuntime,
-    EngineHooks,
     EngineRun,
     ExperimentCondition,
     ManifestStore,
@@ -33,7 +30,6 @@ from experiments.data_card_ablation.engine import (
 from .adapters import BenchmarkAdapter, adapter_for
 from .dabench_adapter import DABenchAdapter, DABenchFamilyInputs
 from .profile import (
-    EXPERIMENT_ROOT,
     PROJECT_ROOT,
     ExperimentRequest,
     PerceptionSkillCondition,
@@ -127,9 +123,7 @@ def load_perception_skills(
         for relative in raw_entrypoints:
             candidate = Path(relative)
             if candidate.is_absolute():
-                raise PreflightError(
-                    f"perception skill {skill_id!r} entrypoint must be relative"
-                )
+                raise PreflightError(f"perception skill {skill_id!r} entrypoint must be relative")
             entrypoint = _resolve_child(
                 skills_root / candidate,
                 skills_root,
@@ -173,23 +167,6 @@ def load_perception_skills(
             for skill in selected
         ],
     }
-
-
-def source_fingerprint() -> str:
-    digest = hashlib.sha256()
-    files = list((PROJECT_ROOT / "dslighting").rglob("*.py"))
-    files.extend(EXPERIMENT_ROOT.glob("*.py"))
-    files.extend((EXPERIMENT_ROOT / "perception_skills").glob("*.py"))
-    files.extend((EXPERIMENT_ROOT / "skills").rglob("*.json"))
-    files.extend((EXPERIMENT_ROOT / "skills").rglob("*.md"))
-    for path in sorted({path.resolve() for path in files if path.is_file()}):
-        relative = path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8")
-        payload = path.read_bytes()
-        digest.update(len(relative).to_bytes(8, "big"))
-        digest.update(relative)
-        digest.update(len(payload).to_bytes(8, "big"))
-        digest.update(payload)
-    return digest.hexdigest()
 
 
 def git_head() -> str | None:
@@ -245,12 +222,6 @@ def _conditions(
     )
 
 
-def _fixed_inputs(document: Mapping[str, Any]) -> str:
-    return sha256(
-        json.dumps(document, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    )
-
-
 class PerceptionSkillsRunner:
     """Validate and execute one profile with a single experiment manifest."""
 
@@ -273,7 +244,6 @@ class PerceptionSkillsRunner:
         preflight = self.adapter.preflight()
         batch_id = request.resume_run_id or self._batch_id(profile, dry_run=not request.execute)
         self.runtime_environment.activate(batch_id)
-        fingerprint = source_fingerprint()
         benchmark_profile, prepared = prepare_benchmark(
             profile.benchmark,
             profile.data_root,
@@ -314,58 +284,34 @@ class PerceptionSkillsRunner:
             family_inputs=family_inputs,
         )
         conditions = _conditions(runtime_skills)
+        if existing is not None:
+            self._validate_resume_manifest(
+                existing,
+                profile=profile,
+                prepared=prepared,
+                conditions=conditions,
+                repetitions=request.repetitions,
+            )
         runtime = _runtime(profile)
         engine_runs: list[EngineRun] = []
-        fixed_config_sha256: str | None = None
         for repetition in range(1, request.repetitions + 1):
             repetition_id = f"{batch_id}-r{repetition:02d}"
-            configs, config_sha = build_configs(
+            configs = build_configs(
                 conditions=conditions,
                 run_id=repetition_id,
                 runtime=runtime,
                 config_overrides=benchmark_profile.config_overrides,
                 dry_run=not request.execute,
             )
-            if fixed_config_sha256 is None:
-                fixed_config_sha256 = config_sha
-            elif config_sha != fixed_config_sha256:
-                raise PreflightError("repetitions changed fixed runtime configuration")
             engine_runs.append(
                 EngineRun(
                     repetition=repetition,
                     run_id=repetition_id,
                     configs=configs,
-                    l1_summaries={
-                        condition.condition_id: l1_summaries[condition.condition_id]
-                        for condition in conditions
-                        if condition.condition_id in l1_summaries
-                    },
                 )
             )
-        assert fixed_config_sha256 is not None
         first_config = engine_runs[0].configs[conditions[0].condition_id]
-        fixed_document = {
-            "profile": profile.as_manifest(),
-            "profile_sha256": profile.sha256,
-            "protocol_classification": "canonical" if canonical else "noncanonical",
-            "benchmark": benchmark_manifest(prepared),
-            "selection": selection_manifest(prepared),
-            "perception_skills": skills_summary,
-            "canonical_l1_annotations": (
-                family_inputs.canonical_l1_summaries if family_inputs is not None else l1_summaries
-            ),
-            "runtime_l1_annotations": l1_summaries,
-            "dataset_family_manifest": (
-                family_inputs.manifest_summary if family_inputs is not None else None
-            ),
-            "fixed_config_sha256": fixed_config_sha256,
-            "repetitions": request.repetitions,
-        }
-        fixed_sha = _fixed_inputs(fixed_document)
         if existing is not None:
-            fixed = existing.get("fixed_inputs")
-            if not isinstance(fixed, Mapping) or fixed.get("sha256") != fixed_sha:
-                raise ExperimentConfigurationError("resume fixed input fingerprint mismatch")
             manifest = existing
             manifest["resume_count"] = int(manifest.get("resume_count", 0)) + 1
             manifest["last_resumed_at_utc"] = utc_now()
@@ -376,12 +322,9 @@ class PerceptionSkillsRunner:
                 profile=profile,
                 canonical=canonical,
                 preflight=preflight,
-                fingerprint=fingerprint,
                 prepared=prepared,
                 conditions=conditions,
                 first_config=first_config,
-                fixed_config_sha256=fixed_config_sha256,
-                fixed_sha=fixed_sha,
                 skills_summary=skills_summary,
                 l1_summaries=l1_summaries,
                 family_inputs=family_inputs,
@@ -401,32 +344,12 @@ class PerceptionSkillsRunner:
             print(json.dumps(manifest, indent=2, sort_keys=True))
             return None
 
-        expected_fingerprint = fingerprint
-
-        def guard() -> None:
-            if source_fingerprint() != expected_fingerprint:
-                raise ExperimentConfigurationError(
-                    "experiment source changed during the batch"
-                )
-
-        scoring = None
-        if dabench is not None and family_inputs is not None:
-            def scoring(
-                phase: str,
-                condition_id: str,
-            ) -> Mapping[str, Any] | None:
-                return dabench.verify_scoring_inputs(
-                    family_inputs.manifest_summary,
-                    phase=phase,
-                    condition_id=condition_id,
-                )
         return ConditionExperimentEngine(run_root).execute(
             manifest=manifest,
             prepared=prepared,
             conditions=conditions,
             runs=engine_runs,
             resume=existing is not None,
-            hooks=EngineHooks(scoring_inputs=scoring, source_guard=guard),
         )
 
     def _family_inputs(
@@ -444,7 +367,6 @@ class PerceptionSkillsRunner:
             manifest_path=profile.dataset_family_manifest,
             targets=prepared.targets,
             data_root=prepared.data_root,
-            vendor_root=prepared.vendor_dir,
             perception_skills=skills,
         )
 
@@ -496,18 +418,15 @@ class PerceptionSkillsRunner:
         profile: PerceptionSkillsExperimentProfile,
         canonical: bool,
         preflight: Mapping[str, Any],
-        fingerprint: str,
         prepared: Any,
         conditions: Sequence[ExperimentCondition],
         first_config: Any,
-        fixed_config_sha256: str,
-        fixed_sha: str,
         skills_summary: Mapping[str, Any],
         l1_summaries: Mapping[str, Any],
         family_inputs: DABenchFamilyInputs | None,
     ) -> dict[str, Any]:
         return {
-            "schema_version": "perception_skills_experiment_v2",
+            "schema_version": "perception_skills_experiment_v3",
             "experiment": "perception_skills_downstream_ablation",
             "batch_id": batch_id,
             "run_id": batch_id,
@@ -518,10 +437,8 @@ class PerceptionSkillsRunner:
             "profile": profile.as_manifest(),
             "profile_sha256": profile.sha256,
             "protocol_classification": "canonical" if canonical else "noncanonical",
-            "source_fingerprint_sha256": fingerprint,
             "git_head": git_head(),
             "repetitions": request.repetitions,
-            "fixed_inputs": {"schema_version": 1, "sha256": fixed_sha},
             "preflight": dict(preflight),
             "benchmark": benchmark_manifest(prepared),
             "selection": selection_manifest(prepared),
@@ -535,7 +452,6 @@ class PerceptionSkillsRunner:
                 "llm_thinking": profile.runtime.llm_thinking,
                 "gpu_policy": profile.runtime.device_admission,
                 "checkpoint_resume_enabled": profile.runtime.checkpoint_resume_enabled,
-                "fixed_config_sha256": fixed_config_sha256,
                 "output_contract": first_config.output_contract.model_dump(mode="json"),
                 "sandbox": first_config.sandbox.model_dump(mode="json"),
             },
@@ -555,13 +471,39 @@ class PerceptionSkillsRunner:
                 if family_inputs is not None
                 else None
             ),
-            "context_audit": {
-                "fixed_fields": list(FIXED_CONTEXT_FIELDS),
-                "status": "not_run" if not request.execute else "pending",
-                "reference_by_repetition": {},
-            },
             "runs": [],
         }
+
+    @staticmethod
+    def _validate_resume_manifest(
+        manifest: Mapping[str, Any],
+        *,
+        profile: PerceptionSkillsExperimentProfile,
+        prepared: Any,
+        conditions: Sequence[ExperimentCondition],
+        repetitions: int,
+    ) -> None:
+        benchmark = manifest.get("benchmark")
+        selection = manifest.get("selection")
+        recorded_conditions = manifest.get("conditions")
+        compatible = (
+            isinstance(benchmark, Mapping)
+            and benchmark.get("source_id") == profile.benchmark
+            and isinstance(selection, Mapping)
+            and selection.get("tasks") == list(prepared.tasks)
+            and isinstance(recorded_conditions, list)
+            and [
+                item.get("condition_id")
+                for item in recorded_conditions
+                if isinstance(item, Mapping)
+            ]
+            == [condition.condition_id for condition in conditions]
+            and manifest.get("repetitions") == repetitions
+        )
+        if not compatible:
+            raise ExperimentConfigurationError(
+                "resume batch does not match benchmark, tasks, conditions, or repetitions"
+            )
 
     def _validate_request(self, request: ExperimentRequest) -> None:
         if request.repetitions < 1:
@@ -591,8 +533,7 @@ class PerceptionSkillsRunner:
             model=request.overrides.model or self.base_profile.runtime.model,
             workflow=request.overrides.workflow or self.base_profile.runtime.workflow,
             task_concurrency=(
-                request.overrides.task_concurrency
-                or self.base_profile.runtime.task_concurrency
+                request.overrides.task_concurrency or self.base_profile.runtime.task_concurrency
             ),
         )
         return replace(self.base_profile, runtime=runtime), False
@@ -603,8 +544,6 @@ class PerceptionSkillsRunner:
         *,
         dry_run: bool,
     ) -> str:
-        suffix = "dry-run" if dry_run else datetime.now(timezone.utc).strftime(
-            "%Y%m%dT%H%M%S%fZ"
-        )
+        suffix = "dry-run" if dry_run else datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
         version = profile.profile_id.rsplit("-", 1)[-1]
         return f"{profile.benchmark}-perception-skills-{version}-{suffix}"

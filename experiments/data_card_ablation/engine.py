@@ -6,18 +6,11 @@ import argparse
 import hashlib
 import json
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
-FIXED_CONTEXT_FIELDS = (
-    "main_data_report_sha256",
-    "io_instructions_sha256",
-    "output_artifact_name",
-    "submission_contract_sha256",
-    "evaluation_contract_ref_sha256",
-)
 COMPLETED_STATUSES = frozenset({"completed", "completed_with_task_failures"})
 
 
@@ -102,22 +95,12 @@ class PreparedBenchmark:
 
 
 @dataclass(frozen=True)
-class EngineHooks:
-    """Optional benchmark-specific attestations around each condition."""
-
-    scoring_inputs: Callable[[str, str], Mapping[str, Any] | None] | None = None
-    source_guard: Callable[[], None] | None = None
-
-
-@dataclass(frozen=True)
 class EngineRun:
     """One repetition's immutable configs and condition inputs."""
 
     repetition: int
     run_id: str
     configs: Mapping[str, Any]
-    l1_summaries: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
-    l2_summaries: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
 
 
 class ManifestStore:
@@ -133,72 +116,30 @@ class ManifestStore:
     @staticmethod
     def write_path(path: Path, manifest: Mapping[str, Any]) -> None:
         resolved = path.expanduser().resolve()
-        if resolved.is_symlink():
-            raise ManifestStoreError(f"manifest path must not be a symlink: {resolved}")
         resolved.parent.mkdir(parents=True, exist_ok=True)
         temporary = resolved.with_name(f".{resolved.name}.{os.getpid()}.tmp")
-        payload = (json.dumps(dict(manifest), indent=2, sort_keys=True) + "\n").encode("utf-8")
-        descriptor: int | None = None
         try:
-            descriptor = os.open(
-                temporary,
-                os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
-                0o600,
+            temporary.write_text(
+                json.dumps(dict(manifest), indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
             )
-            with os.fdopen(descriptor, "wb") as stream:
-                descriptor = None
-                stream.write(payload)
-                stream.flush()
-                os.fsync(stream.fileno())
             os.replace(temporary, resolved)
-            parent_descriptor = os.open(resolved.parent, os.O_RDONLY)
-            try:
-                os.fsync(parent_descriptor)
-            finally:
-                os.close(parent_descriptor)
-        except OSError as error:
+        except (OSError, UnicodeError) as error:
             raise ManifestStoreError(f"cannot commit manifest {resolved}: {error}") from error
         finally:
-            if descriptor is not None:
-                os.close(descriptor)
             temporary.unlink(missing_ok=True)
 
     def read(self) -> dict[str, Any]:
-        if not self.path.is_file() or self.path.is_symlink():
-            raise ManifestStoreError(f"manifest is missing or unsafe: {self.path}")
+        if not self.path.is_file():
+            raise ManifestStoreError(f"manifest is missing: {self.path}")
         try:
             with self.path.open("r", encoding="utf-8") as stream:
-                value = json.load(stream, object_pairs_hook=self._reject_duplicate_keys)
-        except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
+                value = json.load(stream)
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
             raise ManifestStoreError(f"invalid manifest {self.path}: {error}") from error
         if not isinstance(value, dict):
             raise ManifestStoreError(f"manifest must be a JSON object: {self.path}")
         return value
-
-    def archive_log(self, log_path: Path, record_id: str) -> str | None:
-        if not log_path.exists():
-            return None
-        if log_path.is_symlink():
-            raise ManifestStoreError(f"condition log path must not be a symlink: {log_path}")
-        archive_root = self.run_root / "resume_attempts" / record_id
-        if archive_root.is_symlink():
-            raise ManifestStoreError(f"condition archive must not be a symlink: {archive_root}")
-        destination = archive_root / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-        try:
-            archive_root.mkdir(parents=True, exist_ok=True)
-            os.replace(log_path, destination)
-        except OSError as error:
-            raise ManifestStoreError(f"cannot archive prior log {log_path}: {error}") from error
-        return str(destination.resolve())
-
-    @staticmethod
-    def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-        result: dict[str, Any] = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError(f"duplicate JSON key {key!r}")
-            result[key] = value
-        return result
 
 
 def positive_int(raw: str) -> int:
@@ -323,7 +264,9 @@ def resolve_tasks(
         try:
             competition = registry.get_competition(task)
         except Exception as error:
-            raise PreflightError(f"cannot resolve registry contract for {task!r}: {error}") from error
+            raise PreflightError(
+                f"cannot resolve registry contract for {task!r}: {error}"
+            ) from error
         if not is_dataset_prepared(competition, grading_only=False):
             raise PreflightError(
                 f"selected task {task!r} is not fully prepared under the benchmark data root"
@@ -406,12 +349,17 @@ def resolve_benchmark(source_id: str, data_root: Path) -> tuple[Any, Any, Any, P
         ) from error
     normalized = normalize_data_root(probe_root, available)
     vendor_dir = resolve_directory(descriptor.registry_root, "benchmark registry")
-    return catalog, descriptor, profile, PreparedBenchmark(
-        descriptor=descriptor,
-        data_root=normalized,
-        vendor_dir=vendor_dir,
-        targets=(),
-        source_public_attestations={},
+    return (
+        catalog,
+        descriptor,
+        profile,
+        PreparedBenchmark(
+            descriptor=descriptor,
+            data_root=normalized,
+            vendor_dir=vendor_dir,
+            targets=(),
+            source_public_attestations={},
+        ),
     )
 
 
@@ -471,9 +419,7 @@ def preflight_l1(
                 expected_task_id=target.task_id,
             )
             excluded = (
-                [target.sample_submission_path]
-                if target.sample_submission_path is not None
-                else []
+                [target.sample_submission_path] if target.sample_submission_path is not None else []
             )
             public_attestation = validate_l1_public_coverage(
                 artifact,
@@ -524,19 +470,6 @@ def preflight_l2(path: Path) -> tuple[Path, dict[str, Any]]:
     return resolved, {"path": str(resolved), "sha256": sha256(payload)}
 
 
-def fixed_config_fingerprint(config: Any) -> str:
-    payload = config.model_dump(mode="json")
-    run = payload.get("run")
-    if isinstance(run, dict):
-        run.pop("run_name", None)
-    task_context = payload.get("task_context")
-    if isinstance(task_context, dict):
-        for field_name in ("policy", "l1_artifact_dir", "l2_guidance_path"):
-            task_context.pop(field_name, None)
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    return sha256(canonical)
-
-
 def build_configs(
     *,
     conditions: Sequence[ExperimentCondition],
@@ -544,11 +477,10 @@ def build_configs(
     runtime: ConditionRuntime,
     config_overrides: Mapping[str, Mapping[str, Any]] | None,
     dry_run: bool,
-) -> tuple[dict[str, Any], str]:
+) -> dict[str, Any]:
     from dslighting.core.config.builder import ConfigBuilder
 
     configs: dict[str, Any] = {}
-    fingerprints: dict[str, str] = {}
     for condition in conditions:
         build_kwargs = {key: dict(value) for key, value in (config_overrides or {}).items()}
         if runtime.sandbox_timeout_seconds is not None:
@@ -608,15 +540,9 @@ def build_configs(
                 "LLM_MODEL_CONFIGS before a non-dry run"
             )
         configs[condition.condition_id] = config
-        fingerprints[condition.condition_id] = fixed_config_fingerprint(config)
     if not configs:
         raise PreflightError("experiment condition selection is empty")
-    if len(set(fingerprints.values())) != 1:
-        raise PreflightError(
-            "conditions changed fixed runtime configuration: "
-            + ", ".join(f"{key}={value}" for key, value in fingerprints.items())
-        )
-    return configs, next(iter(fingerprints.values()))
+    return configs
 
 
 def result_count(result: Any) -> int | None:
@@ -634,7 +560,7 @@ def result_path(result: Any, field_name: str) -> str | None:
     return str(value) if value is not None else None
 
 
-def collect_task_context_audit(
+def collect_treatment_usage(
     benchmark: Any,
     *,
     tasks: Sequence[str],
@@ -645,8 +571,7 @@ def collect_task_context_audit(
     if not callable(get_records):
         raise ExperimentInvariantError(f"condition {policy!r} did not expose task run records")
     expected = set(tasks)
-    audits: dict[str, dict[str, Any]] = {}
-    summaries: dict[str, dict[str, Any]] = {}
+    usage: dict[str, dict[str, Any]] = {}
     attempts: dict[str, int] = {}
     for record in get_records():
         if not isinstance(record, Mapping):
@@ -660,13 +585,11 @@ def collect_task_context_audit(
                 f"condition {policy!r} task {task_id!r} has no boolean run outcome"
             )
         attempts[task_id] = attempts.get(task_id, 0) + 1
-        summaries[task_id] = {"success": summary["success"], "result": summary.get("result")}
         runtime_audit = record.get("task_context_audit")
         provenance = runtime_audit.get("provenance") if isinstance(runtime_audit, Mapping) else None
-        fixed = runtime_audit.get("fixed_context") if isinstance(runtime_audit, Mapping) else None
-        if not isinstance(provenance, Mapping) or not isinstance(fixed, Mapping):
+        if not isinstance(provenance, Mapping):
             raise ExperimentInvariantError(
-                f"condition {policy!r} task {task_id!r} did not persist task-context audit"
+                f"condition {policy!r} task {task_id!r} did not persist treatment provenance"
             )
         if provenance.get("policy") != policy:
             raise ExperimentInvariantError(
@@ -678,41 +601,33 @@ def collect_task_context_audit(
             raise ExperimentInvariantError(
                 f"condition {policy!r} task {task_id!r} recorded no dataset identity"
             )
-        expects_l1 = policy in {"l1", "l3"}
-        expects_l2 = policy in {"l2", "l3"}
-        if (provenance.get("l1") is not None) != expects_l1 or (
-            provenance.get("l2") is not None
-        ) != expects_l2:
+        l1 = provenance.get("l1")
+        l2 = provenance.get("l2")
+        if (isinstance(l1, Mapping)) != (policy in {"l1", "l3"}) or (isinstance(l2, Mapping)) != (
+            policy in {"l2", "l3"}
+        ):
             raise ExperimentInvariantError(
                 f"condition {policy!r} task {task_id!r} violates its L1/L2 treatment"
             )
-        context = {
-            "task_context_provenance": dict(provenance),
-            "fixed_task_context": dict(fixed),
+        usage[task_id] = {
+            "policy": policy,
+            "dataset_id": dataset_id,
+            "l1_sha256": l1.get("sha256") if isinstance(l1, Mapping) else None,
+            "l2_sha256": l2.get("sha256") if isinstance(l2, Mapping) else None,
+            "workflow_success": summary["success"],
+            "attempt_count": attempts[task_id],
         }
-        previous = audits.get(task_id)
-        if previous is not None and previous != context:
-            raise ExperimentInvariantError(
-                f"condition {policy!r} produced conflicting retry records for {task_id!r}"
-            )
-        audits[task_id] = context
-    missing = sorted(expected - audits.keys())
+    missing = sorted(expected - usage.keys())
     if missing:
         raise ExperimentInvariantError(
-            f"condition {policy!r} has no auditable context for: {', '.join(missing)}"
+            f"condition {policy!r} has no treatment usage for: {', '.join(missing)}"
         )
-    return {
-        task: {
-            **audits[task],
-            "run_summary": {**summaries[task], "attempt_count": attempts[task]},
-        }
-        for task in tasks
-    }
+    return {task: usage[task] for task in tasks}
 
 
 def collect_task_outcomes(
     benchmark: Any,
-    audit_by_task: Mapping[str, Mapping[str, Any]],
+    treatment_by_task: Mapping[str, Mapping[str, Any]],
     *,
     tasks: Sequence[str],
     condition_id: str,
@@ -756,14 +671,11 @@ def collect_task_outcomes(
             raise ExperimentInvariantError(
                 f"condition {condition_id!r} task {task_id!r} has invalid submission status"
             )
-        run_summary = audit_by_task[task_id].get("run_summary")
-        if not isinstance(run_summary, Mapping) or not isinstance(
-            run_summary.get("success"), bool
-        ):
+        workflow_success = treatment_by_task[task_id].get("workflow_success")
+        if not isinstance(workflow_success, bool):
             raise ExperimentInvariantError(
                 f"condition {condition_id!r} task {task_id!r} has no workflow outcome"
             )
-        workflow_success = run_summary["success"]
         status = (
             "workflow_failed"
             if not workflow_success
@@ -785,90 +697,6 @@ def collect_task_outcomes(
             f"condition {condition_id!r} has no outcome for: {', '.join(missing)}"
         )
     return {task: outcomes[task] for task in tasks}
-
-
-def verify_fixed_context(
-    audit_by_task: Mapping[str, Mapping[str, Any]],
-    reference: dict[str, dict[str, str]],
-    *,
-    condition_id: str,
-) -> None:
-    for task_id, context_record in audit_by_task.items():
-        provenance = context_record.get("task_context_provenance")
-        fixed = context_record.get("fixed_task_context")
-        if not isinstance(provenance, Mapping) or not isinstance(fixed, Mapping):
-            raise ExperimentInvariantError(
-                f"condition {condition_id!r} task {task_id!r} has malformed audit data"
-            )
-        values = {
-            "main_data_report_sha256": provenance.get("main_data_report_sha256"),
-            "io_instructions_sha256": fixed.get("io_instructions_sha256"),
-            "output_artifact_name": fixed.get("output_artifact_name"),
-            "submission_contract_sha256": fixed.get("submission_contract_sha256"),
-            "evaluation_contract_ref_sha256": fixed.get("evaluation_contract_ref_sha256"),
-        }
-        fingerprint: dict[str, str] = {}
-        for field_name in FIXED_CONTEXT_FIELDS:
-            value = values[field_name]
-            if not isinstance(value, str) or not value:
-                raise ExperimentInvariantError(
-                    f"condition {condition_id!r} task {task_id!r} has no {field_name}"
-                )
-            fingerprint[field_name] = value
-        expected = reference.setdefault(task_id, fingerprint)
-        if fingerprint != expected:
-            changed = [
-                field_name
-                for field_name in FIXED_CONTEXT_FIELDS
-                if fingerprint[field_name] != expected[field_name]
-            ]
-            raise ExperimentInvariantError(
-                f"condition {condition_id!r} changed fixed context for {task_id!r}: "
-                + ", ".join(changed)
-            )
-
-
-def verify_selected_artifacts(
-    audit_by_task: Mapping[str, Mapping[str, Any]],
-    *,
-    condition: ExperimentCondition,
-    l1_summary: Mapping[str, Any] | None,
-    l2_summary: Mapping[str, Any] | None,
-) -> None:
-    for task_id, context_record in audit_by_task.items():
-        provenance = context_record.get("task_context_provenance")
-        if not isinstance(provenance, Mapping):
-            raise ExperimentInvariantError(
-                f"condition {condition.condition_id!r} task {task_id!r} has no provenance"
-            )
-        if condition.task_context_policy in {"l1", "l3"}:
-            files = l1_summary.get("files") if isinstance(l1_summary, Mapping) else None
-            expected = files.get(task_id) if isinstance(files, Mapping) else None
-            expected_provenance = (
-                {"path": expected.get("path"), "sha256": expected.get("sha256")}
-                if isinstance(expected, Mapping)
-                else None
-            )
-            if (
-                expected_provenance is None
-                or provenance.get("l1") != expected_provenance
-                or provenance.get("dataset_id") != expected.get("artifact_id")
-            ):
-                raise ExperimentInvariantError(
-                    f"condition {condition.condition_id!r} task {task_id!r} "
-                    "did not use the preflighted L1 artifact"
-                )
-        if condition.task_context_policy in {"l2", "l3"}:
-            expected = (
-                {"path": l2_summary.get("path"), "sha256": l2_summary.get("sha256")}
-                if isinstance(l2_summary, Mapping)
-                else None
-            )
-            if expected is None or provenance.get("l2") != expected:
-                raise ExperimentInvariantError(
-                    f"condition {condition.condition_id!r} task {task_id!r} "
-                    "did not use the preflighted L2 artifact"
-                )
 
 
 def benchmark_manifest(prepared: PreparedBenchmark) -> dict[str, Any]:
@@ -894,12 +722,8 @@ def selection_manifest(prepared: PreparedBenchmark) -> dict[str, Any]:
     return {
         "task_count": len(prepared.targets),
         "tasks": list(prepared.tasks),
-        "dataset_ids": {
-            target.task_id: target.dataset_id for target in prepared.targets
-        },
-        "public_dirs": {
-            target.task_id: str(target.public_dir) for target in prepared.targets
-        },
+        "dataset_ids": {target.task_id: target.dataset_id for target in prepared.targets},
+        "public_dirs": {target.task_id: str(target.public_dir) for target in prepared.targets},
         "descriptions": {
             target.task_id: {
                 "sha256": target.description_sha256,
@@ -926,7 +750,6 @@ class ConditionExperimentEngine:
         conditions: Sequence[ExperimentCondition],
         runs: Sequence[EngineRun],
         resume: bool,
-        hooks: EngineHooks = EngineHooks(),
     ) -> Path:
         from dslighting.api.benchmark import DSBenchmark
 
@@ -950,39 +773,17 @@ class ConditionExperimentEngine:
                 raise PreflightError(f"manifest repeats run record {key!r}")
             records_by_key[key] = raw
 
-        references = manifest.setdefault("context_audit", {}).setdefault(
-            "reference_by_repetition", {}
-        )
-        if not isinstance(references, dict):
-            raise PreflightError("manifest context references are malformed")
         completed_with_task_failures = False
         manifest["status"] = "running"
         self.store.write(manifest)
 
         for engine_run in runs:
-            reference = references.setdefault(str(engine_run.repetition), {})
-            if not isinstance(reference, dict):
-                raise PreflightError("manifest repetition context reference is malformed")
             for condition in conditions:
                 condition_id = condition.condition_id
                 key = (engine_run.repetition, condition_id)
                 record = records_by_key.get(key)
-                log_path = (
-                    self.run_root
-                    / f"repetition-{engine_run.repetition:02d}"
-                    / condition_id
-                )
-                if record is not None and record.get("status") in COMPLETED_STATUSES:
-                    self._verify_completed(
-                        record=record,
-                        log_path=log_path,
-                        tasks=tasks,
-                        condition=condition,
-                        l1_summary=engine_run.l1_summaries.get(condition_id),
-                        l2_summary=engine_run.l2_summaries.get(condition_id),
-                        reference=reference,
-                        scoring_inputs=hooks.scoring_inputs,
-                    )
+                log_path = self.run_root / f"repetition-{engine_run.repetition:02d}" / condition_id
+                if record is not None and self._has_results(record):
                     completed_with_task_failures |= (
                         record.get("status") == "completed_with_task_failures"
                     )
@@ -993,23 +794,6 @@ class ConditionExperimentEngine:
                     record = {}
                     records.append(record)
                     records_by_key[key] = record
-                else:
-                    attempts = record.setdefault("resume_attempts", [])
-                    if not isinstance(attempts, list):
-                        raise PreflightError(f"resume attempts are malformed for {key!r}")
-                    attempts.append(
-                        {
-                            "previous_status": record.get("status"),
-                            "previous_error_type": record.get("error_type"),
-                            "previous_error": record.get("error"),
-                            "archived_log_path": self.store.archive_log(
-                                log_path,
-                                f"r{engine_run.repetition:02d}-{condition_id}",
-                            ),
-                            "resumed_at_utc": utc_now(),
-                            "mode": "full_condition_rerun",
-                        }
-                    )
                 self._reset_record(
                     record,
                     repetition=engine_run.repetition,
@@ -1019,17 +803,6 @@ class ConditionExperimentEngine:
                 )
                 self.store.write(manifest)
                 try:
-                    before = (
-                        hooks.scoring_inputs("before_condition", condition_id)
-                        if hooks.scoring_inputs is not None
-                        else None
-                    )
-                    if before is not None:
-                        record["scoring_input_attestation"] = {
-                            "before": dict(before),
-                            "after": None,
-                        }
-                        self.store.write(manifest)
                     result = DSBenchmark(
                         benchmark_type=prepared.descriptor.source_id,
                         exp_name=engine_run.configs[condition_id].run.run_name,
@@ -1041,122 +814,49 @@ class ConditionExperimentEngine:
                         log_path=str(log_path),
                         verbose=True,
                     )
-                    audit = collect_task_context_audit(
+                    treatment_usage = collect_treatment_usage(
                         result,
                         tasks=tasks,
                         policy=condition.task_context_policy,
                     )
                     outcomes = collect_task_outcomes(
                         result,
-                        audit,
+                        treatment_usage,
                         tasks=tasks,
                         condition_id=condition_id,
                     )
-                    verify_selected_artifacts(
-                        audit,
-                        condition=condition,
-                        l1_summary=engine_run.l1_summaries.get(condition_id),
-                        l2_summary=engine_run.l2_summaries.get(condition_id),
-                    )
-                    verify_fixed_context(
-                        audit,
-                        reference,
-                        condition_id=condition_id,
-                    )
-                    after = (
-                        hooks.scoring_inputs("after_condition", condition_id)
-                        if hooks.scoring_inputs is not None
-                        else None
-                    )
-                    if after is not None:
-                        record["scoring_input_attestation"]["after"] = dict(after)
                 except Exception as error:
-                    self._fail(manifest, record, error, references)
+                    self._fail(manifest, record, error)
                     raise
                 has_failures = any(item["status"] != "completed" for item in outcomes.values())
                 completed_with_task_failures |= has_failures
                 record.update(
                     {
-                        "status": (
-                            "completed_with_task_failures" if has_failures else "completed"
-                        ),
+                        "status": ("completed_with_task_failures" if has_failures else "completed"),
                         "result_count": result_count(result),
                         "results_path": result_path(result, "results_path"),
                         "metadata_path": result_path(result, "metadata_path"),
-                        "task_context_audit": audit,
+                        "treatment_usage": treatment_usage,
                         "task_outcomes": outcomes,
                         "completed_at_utc": utc_now(),
                     }
                 )
-                manifest["context_audit"].update(
-                    {"fixed_fields": list(FIXED_CONTEXT_FIELDS), "status": "verified_so_far"}
-                )
                 self.store.write(manifest)
-            if hooks.source_guard is not None:
-                hooks.source_guard()
-
         manifest["status"] = (
             "completed_with_task_failures" if completed_with_task_failures else "completed"
-        )
-        manifest["context_audit"].update(
-            {"fixed_fields": list(FIXED_CONTEXT_FIELDS), "status": "verified"}
         )
         manifest["completed_at_utc"] = utc_now()
         self.store.write(manifest)
         return self.store.path
 
-    def _verify_completed(
-        self,
-        *,
-        record: Mapping[str, Any],
-        log_path: Path,
-        tasks: Sequence[str],
-        condition: ExperimentCondition,
-        l1_summary: Mapping[str, Any] | None,
-        l2_summary: Mapping[str, Any] | None,
-        reference: dict[str, dict[str, str]],
-        scoring_inputs: Callable[[str, str], Mapping[str, Any] | None] | None,
-    ) -> None:
-        audit = record.get("task_context_audit")
-        outcomes = record.get("task_outcomes")
-        if not isinstance(audit, Mapping) or set(audit) != set(tasks):
-            raise PreflightError(
-                f"completed condition {condition.condition_id!r} has incomplete audit"
-            )
-        if not isinstance(outcomes, Mapping) or set(outcomes) != set(tasks):
-            raise PreflightError(
-                f"completed condition {condition.condition_id!r} has incomplete outcomes"
-            )
-        for field_name in ("results_path", "metadata_path"):
-            value = record.get(field_name)
-            if not isinstance(value, str) or not Path(value).is_file():
-                raise PreflightError(
-                    f"completed condition {condition.condition_id!r} has no {field_name}"
-                )
-            try:
-                Path(value).resolve().relative_to(log_path.resolve())
-            except ValueError as error:
-                raise PreflightError(
-                    f"completed condition {condition.condition_id!r} {field_name} escapes its log"
-                ) from error
-        verify_selected_artifacts(
-            audit,
-            condition=condition,
-            l1_summary=l1_summary,
-            l2_summary=l2_summary,
+    @staticmethod
+    def _has_results(record: Mapping[str, Any]) -> bool:
+        results_path = record.get("results_path")
+        return (
+            record.get("status") in COMPLETED_STATUSES
+            and isinstance(results_path, str)
+            and Path(results_path).is_file()
         )
-        verify_fixed_context(audit, reference, condition_id=condition.condition_id)
-        if scoring_inputs is not None:
-            current = scoring_inputs("resume_completed_condition", condition.condition_id)
-            recorded = record.get("scoring_input_attestation")
-            if current is not None and (
-                not isinstance(recorded, Mapping)
-                or recorded.get("before") != current
-                or recorded.get("after") != current
-            ):
-                raise PreflightError(
-                    f"completed condition {condition.condition_id!r} scoring inputs changed"
-                )
 
     @staticmethod
     def _reset_record(
@@ -1167,10 +867,7 @@ class ConditionExperimentEngine:
         log_path: Path,
         config: Any,
     ) -> None:
-        attempts = record.get("resume_attempts")
         record.clear()
-        if attempts:
-            record["resume_attempts"] = attempts
         record.update(
             {
                 "repetition": repetition,
@@ -1188,7 +885,6 @@ class ConditionExperimentEngine:
         manifest: dict[str, Any],
         record: dict[str, Any],
         error: Exception,
-        references: Mapping[str, Any],
     ) -> None:
         record.update(
             {
@@ -1206,9 +902,4 @@ class ConditionExperimentEngine:
                 "completed_at_utc": utc_now(),
             }
         )
-        manifest["context_audit"] = {
-            "fixed_fields": list(FIXED_CONTEXT_FIELDS),
-            "status": "failed",
-            "reference_by_repetition": dict(references),
-        }
         self.store.write(manifest)

@@ -206,7 +206,7 @@ def test_build_configs_uses_profile_output_contract_for_every_arm(
         l1_artifact_dir=tmp_path / "l1",
         l2_guidance_path=tmp_path / "l2.md",
     )
-    configs, _ = engine.build_configs(
+    configs = engine.build_configs(
         conditions=conditions,
         run_id="unit-test-run",
         runtime=engine.ConditionRuntime(profile.default_workflow, "unit-test-model", 2),
@@ -221,6 +221,7 @@ def test_build_configs_uses_profile_output_contract_for_every_arm(
         assert config.scheduler.run_id == "unit-test-run"
         assert config.run.parameters["output_artifact_suffix_seed"] == "unit-test-run"
         assert config.task_context.require_canonical_layout is True
+
 
 def test_data_root_normalization_accepts_direct_and_competitions_layouts(
     tmp_path: Path,
@@ -237,8 +238,7 @@ def test_data_root_normalization_accepts_direct_and_competitions_layouts(
 
     assert engine.normalize_data_root(direct_requested, [DABENCH_TASK_ID]) == direct_root.resolve()
     assert (
-        engine.normalize_data_root(nested_requested, [MOSCIBENCH_TASK_ID])
-        == nested_root.resolve()
+        engine.normalize_data_root(nested_requested, [MOSCIBENCH_TASK_ID]) == nested_root.resolve()
     )
 
 
@@ -264,13 +264,9 @@ def test_task_resolution_is_registry_driven_for_each_mle_source(
 
     assert len(targets) == 1
     assert targets[0].task_id == task_id
-    assert targets[0].dataset_id == (
-        "mosci-cyclone" if source_id == "moscibench" else task_id
-    )
+    assert targets[0].dataset_id == ("mosci-cyclone" if source_id == "moscibench" else task_id)
     assert targets[0].public_dir == public_dir.resolve()
-    assert targets[0].sample_submission_path == (
-        public_dir / "sample_submission.csv"
-    ).resolve()
+    assert targets[0].sample_submission_path == (public_dir / "sample_submission.csv").resolve()
     assert targets[0].description_sha256 == engine.sha256(
         targets[0].description_text.encode("utf-8")
     )
@@ -403,7 +399,7 @@ def test_main_only_dry_run_needs_no_artifacts_and_writes_nothing(
     monkeypatch.setattr(runner, "RUNS_ROOT", runs_root)
     original_build_configs = runner.build_configs
 
-    def build_configs(**kwargs: Any) -> tuple[dict[str, Any], str]:
+    def build_configs(**kwargs: Any) -> dict[str, Any]:
         build_arguments.update(kwargs)
         return original_build_configs(**kwargs)
 
@@ -433,25 +429,12 @@ def test_main_only_dry_run_needs_no_artifacts_and_writes_nothing(
     plan = json.loads(capsys.readouterr().out)
     assert plan["policies"] == ["main"]
     assert plan["artifacts"] == {}
-    assert plan["context_audit"]["status"] == "not_run"
+    assert "context_audit" not in plan
     assert plan["benchmark"]["source_id"] == "dabench"
     assert plan["selection"]["tasks"] == [DABENCH_TASK_ID]
 
 
-def test_runtime_provenance_is_collected_and_fixed_context_is_verified() -> None:
-    base = {
-        "policy": "main",
-        "dataset_id": TASK_ID,
-        "main_data_report_sha256": "report-hash",
-        "l1": None,
-        "l2": None,
-    }
-    fixed = {
-        "io_instructions_sha256": "io-hash",
-        "output_artifact_name": "submission.csv",
-        "submission_contract_sha256": "submission-hash",
-        "evaluation_contract_ref_sha256": "evaluation-hash",
-    }
+def test_runtime_provenance_is_reduced_to_treatment_usage() -> None:
     benchmark = SimpleNamespace(
         runner=SimpleNamespace(
             get_run_records=lambda: [
@@ -459,45 +442,46 @@ def test_runtime_provenance_is_collected_and_fixed_context_is_verified() -> None
                     "task_id": TASK_ID,
                     "summary": {"success": True},
                     "task_context_audit": {
-                        "provenance": base,
-                        "fixed_context": fixed,
+                        "provenance": {
+                            "policy": "l1",
+                            "dataset_id": TASK_ID,
+                            "main_data_report_sha256": "report-hash",
+                            "l1": {"path": "/l1.json", "sha256": "l1-hash"},
+                            "l2": None,
+                        },
+                        "fixed_context": {"output_artifact_name": "submission.csv"},
                     },
                 }
             ]
         )
     )
 
-    collected = engine.collect_task_context_audit(
+    collected = engine.collect_treatment_usage(
         benchmark,
         tasks=[TASK_ID],
-        policy="main",
+        policy="l1",
     )
-    reference: dict[str, dict[str, str]] = {}
-    engine.verify_fixed_context(collected, reference, condition_id="main")
 
-    treatment = {
+    assert collected == {
         TASK_ID: {
-            "task_context_provenance": {
-                **base,
-                "policy": "l1",
-                "l1": {"path": "/l1.json", "sha256": "l1-hash"},
-            },
-            "fixed_task_context": fixed,
+            "policy": "l1",
+            "dataset_id": TASK_ID,
+            "l1_sha256": "l1-hash",
+            "l2_sha256": None,
+            "workflow_success": True,
+            "attempt_count": 1,
         }
     }
-    engine.verify_fixed_context(treatment, reference, condition_id="l1")
 
-    changed = {
-        TASK_ID: {
-            "task_context_provenance": {**base, "policy": "l2"},
-            "fixed_task_context": {
-                **fixed,
-                "io_instructions_sha256": "changed-io",
-            },
-        }
-    }
-    with pytest.raises(engine.ExperimentInvariantError, match="io_instructions_sha256"):
-        engine.verify_fixed_context(changed, reference, condition_id="l2")
+
+def test_completed_condition_resume_only_requires_its_result_file(tmp_path: Path) -> None:
+    results = tmp_path / "results.csv"
+    results.write_text("competition_id,score\n", encoding="utf-8")
+    record = {"status": "completed", "results_path": str(results)}
+
+    assert engine.ConditionExperimentEngine._has_results(record) is True
+    results.unlink()
+    assert engine.ConditionExperimentEngine._has_results(record) is False
 
 
 def test_runtime_provenance_is_required_for_every_selected_task() -> None:
@@ -508,7 +492,7 @@ def test_runtime_provenance_is_required_for_every_selected_task() -> None:
     )
 
     with pytest.raises(engine.ExperimentInvariantError, match="did not persist"):
-        engine.collect_task_context_audit(
+        engine.collect_treatment_usage(
             benchmark,
             tasks=[TASK_ID],
             policy="main",
@@ -540,14 +524,14 @@ def test_runtime_provenance_requires_dataset_identity() -> None:
     )
 
     with pytest.raises(engine.ExperimentInvariantError, match="dataset identity"):
-        engine.collect_task_context_audit(
+        engine.collect_treatment_usage(
             benchmark,
             tasks=[TASK_ID],
             policy="main",
         )
 
 
-def test_identical_retry_records_are_deduplicated_but_conflicts_fail() -> None:
+def test_retry_records_keep_the_latest_outcome_and_attempt_count() -> None:
     provenance = {
         "policy": "main",
         "dataset_id": TASK_ID,
@@ -575,31 +559,14 @@ def test_identical_retry_records_are_deduplicated_but_conflicts_fail() -> None:
     ]
     benchmark = SimpleNamespace(runner=SimpleNamespace(get_run_records=lambda: records))
 
-    collected = engine.collect_task_context_audit(
+    collected = engine.collect_treatment_usage(
         benchmark,
         tasks=[TASK_ID],
         policy="main",
     )
     assert list(collected) == [TASK_ID]
-    assert collected[TASK_ID]["run_summary"]["success"] is True
-    assert collected[TASK_ID]["run_summary"]["attempt_count"] == 2
-
-    records[1] = {
-        **record,
-        "task_context_audit": {
-            **record["task_context_audit"],
-            "fixed_context": {
-                **record["task_context_audit"]["fixed_context"],
-                "output_artifact_name": "changed.csv",
-            },
-        },
-    }
-    with pytest.raises(engine.ExperimentInvariantError, match="conflicting retry"):
-        engine.collect_task_context_audit(
-            benchmark,
-            tasks=[TASK_ID],
-            policy="main",
-        )
+    assert collected[TASK_ID]["workflow_success"] is True
+    assert collected[TASK_ID]["attempt_count"] == 2
 
 
 def test_failed_task_record_is_audited_as_an_outcome() -> None:
@@ -630,17 +597,14 @@ def test_failed_task_record_is_audited_as_an_outcome() -> None:
         )
     )
 
-    collected = engine.collect_task_context_audit(
+    collected = engine.collect_treatment_usage(
         benchmark,
         tasks=[TASK_ID],
         policy="main",
     )
 
-    assert collected[TASK_ID]["run_summary"] == {
-        "success": False,
-        "result": "[ERROR] workflow failed after spec construction",
-        "attempt_count": 1,
-    }
+    assert collected[TASK_ID]["workflow_success"] is False
+    assert collected[TASK_ID]["attempt_count"] == 1
 
 
 @pytest.mark.parametrize(
@@ -675,19 +639,15 @@ def test_task_outcomes_distinguish_workflow_and_submission_failures(
             )
         ],
     )
-    audit = {
+    treatment_usage = {
         TASK_ID: {
-            "run_summary": {
-                "success": workflow_success,
-                "result": None,
-                "attempt_count": 1,
-            }
+            "workflow_success": workflow_success,
         }
     }
 
     outcomes = engine.collect_task_outcomes(
         benchmark,
-        audit,
+        treatment_usage,
         tasks=[TASK_ID],
         condition_id="main",
     )
@@ -800,7 +760,7 @@ def test_execute_uses_dynamic_benchmark_contract_and_persists_manifest(
     monkeypatch.setattr(runner, "RUNS_ROOT", runs_root)
     original_build_configs = runner.build_configs
 
-    def build_configs_without_api_key(**kwargs: Any) -> tuple[dict[str, Any], str]:
+    def build_configs_without_api_key(**kwargs: Any) -> dict[str, Any]:
         kwargs["dry_run"] = True
         return original_build_configs(**kwargs)
 
@@ -840,9 +800,14 @@ def test_execute_uses_dynamic_benchmark_contract_and_persists_manifest(
         manifest["runtime"]["output_contract"]["require_output_before_completion"]
         is requires_output
     )
-    assert (
-        manifest["runs"][0]["task_context_audit"][task_id]["task_context_provenance"] == provenance
-    )
+    assert manifest["runs"][0]["treatment_usage"][task_id] == {
+        "policy": "main",
+        "dataset_id": provenance["dataset_id"],
+        "l1_sha256": None,
+        "l2_sha256": None,
+        "workflow_success": True,
+        "attempt_count": 1,
+    }
     assert manifest["runs"][0]["task_outcomes"][task_id]["valid_submission"] is valid_submission
     assert constructor_calls == [
         {
@@ -857,37 +822,3 @@ def test_execute_uses_dynamic_benchmark_contract_and_persists_manifest(
     assert run_calls[0]["log_path"].endswith("/main")
     assert run_calls[0]["verbose"] is True
     assert "task_data_views" not in run_calls[0]["config"].run.parameters
-
-
-def test_runtime_artifacts_must_match_preflight_digests() -> None:
-    artifact = {"path": "/l1.json", "sha256": "l1-hash"}
-    context = {
-        TASK_ID: {
-            "task_context_provenance": {
-                "policy": "l1",
-                "dataset_id": TASK_ID,
-                "main_data_report_sha256": "report-hash",
-                "l1": artifact,
-                "l2": None,
-            },
-            "fixed_task_context": {
-                "io_instructions_sha256": "io-hash",
-                "output_artifact_name": "submission.csv",
-            },
-        }
-    }
-
-    engine.verify_selected_artifacts(
-        context,
-        condition=engine.ExperimentCondition("l1", "l1"),
-        l1_summary={"files": {TASK_ID: {"artifact_id": TASK_ID, **artifact}}},
-        l2_summary=None,
-    )
-
-    with pytest.raises(engine.ExperimentInvariantError, match="preflighted L1"):
-        engine.verify_selected_artifacts(
-            context,
-            condition=engine.ExperimentCondition("l1", "l1"),
-            l1_summary={"files": {TASK_ID: {"path": "/l1.json", "sha256": "changed-hash"}}},
-            l2_summary=None,
-        )

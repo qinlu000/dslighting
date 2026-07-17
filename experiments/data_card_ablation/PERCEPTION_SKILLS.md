@@ -12,8 +12,8 @@ skill arms are independently generated L1 annotations.
 
 | Benchmark | Frozen protocol | Conditions |
 | --- | --- | --- |
-| DABench | `perception-skills-dabench-v1` | `main`, `no-added-skill-v1`, `dataset-semantics-v1` |
-| MoSciBench | `perception-skills-moscibench-v1` | `main`, `no-added-skill-v1`, `dataset-semantics-v1`, `scientific-modalities-v1` |
+| DABench | `perception-skills-dabench-v3` | `main`, `no-added-skill-v1`, `dataset-semantics-v1` |
+| MoSciBench | `perception-skills-moscibench-v2` | `main`, `no-added-skill-v1`, `dataset-semantics-v1`, `scientific-modalities-v1` |
 
 The causal perception-skill contrast is `no-added-skill-v1` versus a skill
 arm. A comparison with `main` also changes the artifact type and annotation
@@ -29,8 +29,8 @@ experimental protocol:
 | --- | ---: | ---: |
 | workflow | `react` | `react` |
 | model | `openai/DeepSeek-V4-Flash` | `openai/DeepSeek-V4-Flash` |
-| task concurrency | 50 | 88 |
-| global/per-key LLM concurrency | 20 / 20 | 20 / 20 |
+| task concurrency | 257 | 88 |
+| global/per-key LLM concurrency | 257 / 257 | 50 / 50 |
 | LLM retry | 10 | 10 |
 | model thinking | disabled | disabled |
 | sandbox | bubblewrap, network disabled | bubblewrap, network disabled |
@@ -39,12 +39,7 @@ experimental protocol:
 
 These are experiment-profile defaults, not global DSLighting defaults. Every
 batch manifest records the profile ID, its fully expanded configuration and
-SHA-256, the source fingerprint, Git commit, frozen-input attestations, task
-selection and child-run fixed-input hashes.
-
-The orchestrator checks the source fingerprint before and after every
-repetition. If the worktree changes, it stops before another repetition can
-load a different implementation.
+SHA-256, Git commit, task selection and validated annotation summaries.
 
 ## Run
 
@@ -91,14 +86,12 @@ the downstream runner or an annotation generator class:
 5. Atomically publish the complete bundle with input, skill and artifact
    hashes.
 
-DABench has 257 tasks grouped into 51 frozen raw-data families. Its two
+DABench has 257 tasks grouped into 51 reviewed raw-data families. Its two
 generated conditions therefore contain 102 canonical family annotations.
-These small frozen outputs and their publication manifest are versioned under
-`artifacts/dabench_annotations/`; the larger one-time generation evidence is
-represented by its pinned hash and is not a runtime dependency. At run time
-the adapter verifies the publication; it never republishes or rewrites it. It
-materializes task-identity wrappers in the batch directory and verifies that
-their solver-visible rendering is unchanged.
+These outputs are versioned under `artifacts/dabench_annotations/`. At run
+time the adapter checks that every selected task has a family annotation,
+validates it against the public files, and materializes task-identity wrappers
+in the batch directory. It does not repeatedly hash scoring or vendor files.
 
 MoSciBench has 88 tasks over six shared annotation units. Its modalities arm
 is retained because these datasets contain scientific modalities for which
@@ -142,5 +135,6 @@ Batch manifests are written under
 This is the only experiment manifest. It records the expanded protocol,
 runtime and benchmark inputs once, followed by one record per repetition and
 condition with annotation hashes, task outcomes, scores, submissions and
-context audits. Resume reads the same file, skips verified completed
-conditions, and reruns an incomplete condition as one unit.
+minimal treatment-usage records. Resume reads the same file, skips a completed
+condition when its result file still exists, and reruns an incomplete
+condition as one unit.

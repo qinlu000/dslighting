@@ -118,15 +118,23 @@ def test_shared_config_builder_changes_only_declared_treatment(tmp_path: Path) -
         ExperimentCondition("semantic", "l1", l1_artifact_dir=annotations),
     )
 
-    configs, fingerprint = build_configs(
+    configs = build_configs(
         conditions=conditions,
         run_id="test-run",
         runtime=runtime,
         config_overrides=None,
         dry_run=True,
     )
+    repeated_configs = build_configs(
+        conditions=conditions,
+        run_id="test-run-r02",
+        runtime=runtime,
+        config_overrides=None,
+        dry_run=True,
+    )
 
-    assert len(fingerprint) == 64
+    assert repeated_configs["main"].scheduler.run_id == "test-run-r02"
+    assert repeated_configs["main"].run.parameters["output_artifact_suffix_seed"] == "test-run-r02"
     assert configs["main"].task_context.policy == "main"
     assert configs["semantic"].task_context.policy == "l1"
     assert configs["semantic"].task_context.l1_artifact_dir == str(annotations)
@@ -246,27 +254,15 @@ def _write_family_annotation(root: Path) -> Path:
     return path
 
 
-def test_dabench_family_manifest_and_scoring_inputs_are_attested(tmp_path: Path) -> None:
+def test_dabench_family_manifest_resolves_selected_tasks(tmp_path: Path) -> None:
     target = _make_family_target(tmp_path)
     manifest = _write_family_manifest(tmp_path, target)
 
     mapping, summary = dabench_adapter._load_dataset_family_manifest(manifest, [target])
-    before = dabench_adapter._verify_family_execution_evaluation_hashes(
-        summary,
-        phase="before_condition",
-        condition_id="main",
-    )
 
     assert mapping == {target.task_id: TEST_FAMILY_ID}
-    assert before is not None
-    assert before["task_count"] == 1
-    target.sample_submission_path.write_text("tampered\n", encoding="utf-8")  # type: ignore[union-attr]
-    with pytest.raises(PreflightError, match="sample_submission.*hash changed"):
-        dabench_adapter._verify_family_execution_evaluation_hashes(
-            summary,
-            phase="after_condition",
-            condition_id="main",
-        )
+    assert summary["task_to_family"] == mapping
+    assert summary["selected_task_count"] == 1
 
 
 def test_family_annotation_materialization_preserves_solver_visible_content(
@@ -278,7 +274,7 @@ def test_family_annotation_materialization_preserves_solver_visible_content(
     canonical_dir = tmp_path / "annotations" / "no-added-skill-v1"
     _write_family_annotation(canonical_dir)
     skill = PerceptionSkillCondition("no-added-skill-v1", (), canonical_dir)
-    canonical_summary = dabench_adapter._preflight_family_l1(
+    dabench_adapter._preflight_family_l1(
         canonical_dir,
         [target],
         mapping,
@@ -288,7 +284,6 @@ def test_family_annotation_materialization_preserves_solver_visible_content(
         (skill,),
         targets=[target],
         task_to_family=mapping,
-        canonical_summaries={skill.perception_skill_id: canonical_summary},
         run_root=tmp_path / "run",
     )
 

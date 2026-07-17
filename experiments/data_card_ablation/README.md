@@ -209,17 +209,14 @@ The runner validates every artifact family required by the selected policies
 and builds all selected `ConfigBuilder` configs before executing. Each selected
 policy is then run through its own `DSBenchmark` instance. A failure stops
 subsequent policies instead of falling back to main context when it is an
-artifact, context-composition, runtime-infrastructure, or audit-invariant
-failure. Solver and evaluation outcomes are recorded and do not stop later
-arms.
+artifact, context-composition, or runtime-infrastructure failure. Solver and
+evaluation outcomes are recorded and do not stop later arms.
 
 Every non-dry invocation writes
 `experiments/data_card_ablation/runs/<run-id>/manifest.json`. The manifest
 records the benchmark source, task selection, runtime settings, artifact
-digests, and each selected policy's status, benchmark result paths, per-task
-context audit, workflow outcome, and evaluation outcome. After each policy,
-the runner verifies the data-report digest, final I/O digest, and result
-basename against the first completed arm; a mismatch fails the experiment.
-Task failures are explicit in the manifest and yield the overall status
+digests, and each selected policy's status, benchmark result paths, minimal
+per-task treatment usage, workflow outcome, and evaluation outcome. Task
+failures are explicit in the manifest and yield the overall status
 `completed_with_task_failures`. A dry run prints the validated JSON plan to
 stdout without creating a run directory or starting `DSBenchmark.run`.

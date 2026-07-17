@@ -62,8 +62,7 @@ class ProtocolOverrides:
     @property
     def active(self) -> bool:
         return any(
-            value is not None
-            for value in (self.model, self.workflow, self.task_concurrency)
+            value is not None for value in (self.model, self.workflow, self.task_concurrency)
         )
 
 
@@ -90,7 +89,6 @@ class PerceptionSkillsExperimentProfile:
     dataset_family_manifest: Path | None
     conditions: tuple[str, ...]
     runtime: RuntimePolicy
-    frozen_input_sha256: Mapping[str, str]
 
     def as_manifest(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -116,8 +114,6 @@ class PerceptionSkillsExperimentProfile:
 _COMMON_RUNTIME: Mapping[str, Any] = {
     "workflow": "react",
     "model": "openai/DeepSeek-V4-Flash",
-    "llm_global_concurrency": 20,
-    "llm_per_key_concurrency": 20,
     "llm_max_retries": 10,
     "llm_thinking": False,
     "sandbox_timeout_seconds": 2 * 60 * 60,
@@ -131,7 +127,7 @@ _COMMON_RUNTIME: Mapping[str, Any] = {
 
 def _profiles() -> dict[str, PerceptionSkillsExperimentProfile]:
     dabench = PerceptionSkillsExperimentProfile(
-        profile_id="perception-skills-dabench-v1",
+        profile_id="perception-skills-dabench-v3",
         schema_version="perception_skills_experiment_profile_v1",
         benchmark="dabench",
         data_root=PROJECT_ROOT / "data" / "releases" / "dabench_perception_clean_v1",
@@ -145,30 +141,15 @@ def _profiles() -> dict[str, PerceptionSkillsExperimentProfile]:
             / "dabench_perception_dataset_manifest.json"
         ),
         conditions=("main", "no-added-skill-v1", "dataset-semantics-v1"),
-        runtime=RuntimePolicy(task_concurrency=50, **_COMMON_RUNTIME),
-        frozen_input_sha256={
-            "dataset_family_manifest": (
-                "c22f572c670f7e9914f5d01ae7220c402e074d948f99f6c1d9bae837291ec708"
-            ),
-            "annotation_publication_manifest": (
-                "9bc07d115bc12df4f66d87741bc2524df1697720bd0528cf40c8c62f3d7456dd"
-            ),
-            "annotation_input_index": (
-                "b37862b6e5e96263835b777477a545b0b62d5d93c5a477de021c3edce1ea3e58"
-            ),
-            "skills_manifest": (
-                "a3fa5ea48d179227d8d49e89292216672c585a7ea421409f412cfb204d27f65b"
-            ),
-            "dataset_semantics_skill": (
-                "964d7913ecb47951b59ae09c286c9b474ed367674d505a29bd817111e7187684"
-            ),
-            "annotations_tree": (
-                "5de158d74c91d17aa5242346de6f62add0f400e77bcf8a2c6a0c89ce127aaeef"
-            ),
-        },
+        runtime=RuntimePolicy(
+            task_concurrency=257,
+            llm_global_concurrency=257,
+            llm_per_key_concurrency=257,
+            **_COMMON_RUNTIME,
+        ),
     )
     moscibench = PerceptionSkillsExperimentProfile(
-        profile_id="perception-skills-moscibench-v1",
+        profile_id="perception-skills-moscibench-v2",
         schema_version="perception_skills_experiment_profile_v1",
         benchmark="moscibench",
         data_root=PROJECT_ROOT / "data" / "releases" / "moscibench_full" / "moscibench",
@@ -181,10 +162,12 @@ def _profiles() -> dict[str, PerceptionSkillsExperimentProfile]:
             "dataset-semantics-v1",
             "scientific-modalities-v1",
         ),
-        # Preserve the reviewed MoSciBench task scheduler ceiling.  LLM calls
-        # remain limited to 20 globally and per key.
-        runtime=RuntimePolicy(task_concurrency=88, **_COMMON_RUNTIME),
-        frozen_input_sha256={},
+        runtime=RuntimePolicy(
+            task_concurrency=88,
+            llm_global_concurrency=50,
+            llm_per_key_concurrency=50,
+            **_COMMON_RUNTIME,
+        ),
     )
     return {profile.benchmark: profile for profile in (dabench, moscibench)}
 

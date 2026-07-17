@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -27,19 +28,25 @@ from experiments.data_card_ablation.perception_skills.runtime import (
 
 def test_profiles_freeze_benchmark_specific_conditions_and_runtime() -> None:
     dabench = load_profile("dabench")
-    mosci = load_profile("perception-skills-moscibench-v1")
+    mosci = load_profile("perception-skills-moscibench-v2")
 
     assert dabench.conditions == ("main", "no-added-skill-v1", "dataset-semantics-v1")
     assert dabench.annotations_root.is_relative_to(
         Path(__file__).resolve().parents[2] / "experiments" / "data_card_ablation" / "artifacts"
     )
     assert not hasattr(dabench, "annotation_input_root")
+    assert not hasattr(dabench, "frozen_input_sha256")
     assert mosci.conditions[-1] == "scientific-modalities-v1"
+    assert dabench.profile_id == "perception-skills-dabench-v3"
+    assert dabench.runtime.task_concurrency == 257
+    assert dabench.runtime.llm_global_concurrency == 257
+    assert dabench.runtime.llm_per_key_concurrency == 257
+    assert mosci.runtime.task_concurrency == 88
+    assert mosci.runtime.llm_global_concurrency == 50
+    assert mosci.runtime.llm_per_key_concurrency == 50
     for profile in (dabench, mosci):
         assert profile.runtime.workflow == "react"
         assert profile.runtime.model == "openai/DeepSeek-V4-Flash"
-        assert profile.runtime.llm_global_concurrency == 20
-        assert profile.runtime.llm_per_key_concurrency == 20
         assert profile.runtime.llm_max_retries == 10
         assert profile.runtime.llm_thinking is False
         assert profile.runtime.sandbox_timeout_seconds == 7200
@@ -78,8 +85,8 @@ def test_perception_conditions_are_only_declarations_for_the_shared_engine(
 def test_runtime_profile_maps_once_to_the_shared_engine() -> None:
     runtime = _runtime(load_profile("dabench"))
 
-    assert runtime.task_concurrency == 50
-    assert runtime.llm_global_concurrency == 20
+    assert runtime.task_concurrency == 257
+    assert runtime.llm_global_concurrency == 257
     assert runtime.sandbox_backend == "bubblewrap"
     assert runtime.checkpoint_resume_enabled is True
 
@@ -138,6 +145,37 @@ def test_resume_targets_one_batch_manifest(tmp_path: Path) -> None:
 
     assert store.read()["runs"] == []
     assert store.path == (tmp_path / "batch" / "manifest.json").resolve()
+
+
+def test_resume_checks_only_the_explicit_experiment_identity(tmp_path: Path) -> None:
+    profile = load_profile("dabench")
+    conditions = _conditions(
+        (PerceptionSkillCondition("no-added-skill-v1", (), tmp_path / "annotations"),)
+    )
+    manifest = {
+        "benchmark": {"source_id": "dabench"},
+        "selection": {"tasks": ["task-1"]},
+        "conditions": [condition.as_manifest() for condition in conditions],
+        "repetitions": 5,
+    }
+
+    PerceptionSkillsRunner._validate_resume_manifest(
+        manifest,
+        profile=profile,
+        prepared=SimpleNamespace(tasks=("task-1",)),
+        conditions=conditions,
+        repetitions=5,
+    )
+
+    manifest["selection"] = {"tasks": ["task-2"]}
+    with pytest.raises(ExperimentConfigurationError, match="does not match"):
+        PerceptionSkillsRunner._validate_resume_manifest(
+            manifest,
+            profile=profile,
+            prepared=SimpleNamespace(tasks=("task-1",)),
+            conditions=conditions,
+            repetitions=5,
+        )
 
 
 def test_public_launcher_works_outside_the_repository(tmp_path: Path) -> None:
