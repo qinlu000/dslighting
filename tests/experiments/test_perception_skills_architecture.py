@@ -41,9 +41,9 @@ def test_profiles_freeze_benchmark_specific_conditions_and_runtime() -> None:
     assert dabench.runtime.task_concurrency == 257
     assert dabench.runtime.llm_global_concurrency == 257
     assert dabench.runtime.llm_per_key_concurrency == 257
-    assert mosci.runtime.task_concurrency == 88
-    assert mosci.runtime.llm_global_concurrency == 50
-    assert mosci.runtime.llm_per_key_concurrency == 50
+    assert mosci.runtime.task_concurrency == 20
+    assert mosci.runtime.llm_global_concurrency == 20
+    assert mosci.runtime.llm_per_key_concurrency == 20
     for profile in (dabench, mosci):
         assert profile.runtime.workflow == "react"
         assert profile.runtime.model == "openai/DeepSeek-V4-Flash"

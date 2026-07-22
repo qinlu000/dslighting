@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "benchmark": "MoSciBench",
+  "split_id": "datacope-moscibench-v1",
+  "explore_fraction": 0.25,
+  "source_sha256": "0733fdc00a2618c5314e05860e762f8ef32196e2fa657184ba9dc311c9a6e759",
+  "partitions": {
+    "health_spa": {
+      "explore": [
+        "mosci-health_spa-2",
+        "mosci-health_spa-5",
+        "mosci-health_spa-12",
+        "mosci-health_spa-17"
+      ],
+      "test": [
+        "mosci-health_spa-1",
+        "mosci-health_spa-3",
+        "mosci-health_spa-4",
+        "mosci-health_spa-6",
+        "mosci-health_spa-7",
+        "mosci-health_spa-8",
+        "mosci-health_spa-9",
+        "mosci-health_spa-10",
+        "mosci-health_spa-11",
+        "mosci-health_spa-13",
+        "mosci-health_spa-14",
+        "mosci-health_spa-15",
+        "mosci-health_spa-16"
+      ]
+    },
+    "massspecgym": {
+      "explore": [
+        "mosci-massspecgym-3",
+        "mosci-massspecgym-5",
+        "mosci-massspecgym-7",
+        "mosci-massspecgym-9"
+      ],
+      "test": [
+        "mosci-massspecgym-1",
+        "mosci-massspecgym-2",
+        "mosci-massspecgym-4",
+        "mosci-massspecgym-6",
+        "mosci-massspecgym-8",
+        "mosci-massspecgym-10",
+        "mosci-massspecgym-11",
+        "mosci-massspecgym-12",
+        "mosci-massspecgym-13",
+        "mosci-massspecgym-14",
+        "mosci-massspecgym-15"
+      ]
+    },
+    "pop_genetics": {
+      "explore": [
+        "mosci-pop_genetics-5",
+        "mosci-pop_genetics-12",
+        "mosci-pop_genetics-13"
+      ],
+      "test": [
+        "mosci-pop_genetics-1",
+        "mosci-pop_genetics-2",
+        "mosci-pop_genetics-3",
+        "mosci-pop_genetics-4",
+        "mosci-pop_genetics-6",
+        "mosci-pop_genetics-7",
+        "mosci-pop_genetics-8",
+        "mosci-pop_genetics-9",
+        "mosci-pop_genetics-10",
+        "mosci-pop_genetics-11"
+      ]
+    },
+    "nurse_stress": {
+      "explore": [
+        "mosci-nurse_stress-5",
+        "mosci-nurse_stress-8",
+        "mosci-nurse_stress-11",
+        "mosci-nurse_stress-13"
+      ],
+      "test": [
+        "mosci-nurse_stress-1",
+        "mosci-nurse_stress-2",
+        "mosci-nurse_stress-3",
+        "mosci-nurse_stress-4",
+        "mosci-nurse_stress-6",
+        "mosci-nurse_stress-7",
+        "mosci-nurse_stress-9",
+        "mosci-nurse_stress-10",
+        "mosci-nurse_stress-12",
+        "mosci-nurse_stress-14",
+        "mosci-nurse_stress-15"
+      ]
+    },
+    "cyclone": {
+      "explore": [
+        "mosci-cyclone-3",
+        "mosci-cyclone-7",
+        "mosci-cyclone-8",
+        "mosci-cyclone-14"
+      ],
+      "test": [
+        "mosci-cyclone-1",
+        "mosci-cyclone-2",
+        "mosci-cyclone-4",
+        "mosci-cyclone-5",
+        "mosci-cyclone-6",
+        "mosci-cyclone-9",
+        "mosci-cyclone-10",
+        "mosci-cyclone-11",
+        "mosci-cyclone-12",
+        "mosci-cyclone-13"
+      ]
+    },
+    "terra": {
+      "explore": [
+        "mosci-terra-1",
+        "mosci-terra-4",
+        "mosci-terra-9",
+        "mosci-terra-14"
+      ],
+      "test": [
+        "mosci-terra-2",
+        "mosci-terra-3",
+        "mosci-terra-5",
+        "mosci-terra-6",
+        "mosci-terra-7",
+        "mosci-terra-8",
+        "mosci-terra-10",
+        "mosci-terra-11",
+        "mosci-terra-12",
+        "mosci-terra-13"
+      ]
+    }
+  }
+}

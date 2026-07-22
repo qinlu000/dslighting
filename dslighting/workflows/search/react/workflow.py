@@ -49,6 +49,7 @@ class ReActWorkflow(BaseWorkflow):
         self.context_config: ReActContextConfig = build_react_context_config(
             services.get("react_context_config")
         )
+        self.agent_skill = str(services.get("agent_skill") or "").strip()
         self.output_contract_config: OutputContractConfig = self._build_output_contract_config(
             services.get("output_contract_config")
         )
@@ -89,7 +90,10 @@ class ReActWorkflow(BaseWorkflow):
             io_instructions=io_instructions,
         )
         question = self._render_task_message(task_context)
-        system_prompt = create_react_prompt(task_context)
+        system_prompt = create_react_prompt(
+            task_context,
+            skill=self.agent_skill or None,
+        )
 
         answer, messages = await self._run_react_loop(
             question=question,

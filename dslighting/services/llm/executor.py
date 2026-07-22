@@ -233,6 +233,11 @@ class LLMCallExecutor:
 
                         content = self._extract_content(response)
                         duration = time.perf_counter() - perf_start
+                        reasoning_content = getattr(
+                            response.choices[0].message, "reasoning_content", None
+                        )
+                        if not content.strip() and reasoning_content:
+                            response.choices[0].message.content = content = reasoning_content
                         if not content.strip():
                             response_metadata = summarize_empty_response(response)
                             logger.warning(

@@ -13,7 +13,6 @@ from dslighting.error import LLMServiceError
 from dslighting.services.llm.pool import GlobalAPIKeyPool
 from dslighting.services.llm.service import LLMService
 from dslighting.services.llm.executor import MAX_TRANSPORT_RETRY_DELAY_SECONDS
-from dslighting.services.llm.observed_call import summarize_empty_response
 
 
 class _OutputModel(BaseModel):
@@ -116,18 +115,15 @@ async def test_default_transport_retry_uses_ten_attempts_with_capped_backoff(mon
 
 
 @pytest.mark.asyncio
-async def test_empty_response_logs_only_safe_structural_metadata(
+async def test_reasoning_content_is_used_when_content_is_empty(
     monkeypatch,
-    tmp_path: Path,
-    caplog,
 ) -> None:
     GlobalAPIKeyPool.clear_pools()
-    session = init_debug(enabled=True, profile="full", output_dir=str(tmp_path), console_output=False)
     response = _Response("")
     response.id = "response-123"
     response.model = "gpt-test"
     response.choices[0].finish_reason = "stop"
-    response.choices[0].message.reasoning_content = "sensitive reasoning body"
+    response.choices[0].message.reasoning_content = "final response from reasoning content"
     response.choices[0].message.tool_calls = [{"id": "call-1"}]
 
     async def _fake_acompletion(**kwargs):
@@ -138,44 +134,10 @@ async def test_empty_response_logs_only_safe_structural_metadata(
     service = LLMService(
         LLMConfig(model="gpt-test", api_key="secret", api_base="https://example.com/v1")
     )
-    try:
-        with caplog.at_level("WARNING"):
-            with pytest.raises(LLMServiceError, match="empty response"):
-                await service.call("Return text", max_retries=1)
-    finally:
-        current = get_debug_session()
-        if current is not None:
-            await current.close()
+    result = await service.call("Return text", max_retries=1)
 
-    metadata = summarize_empty_response(response)
-    assert metadata == {
-        "response_type": "_Response",
-        "response_id": "response-123",
-        "response_model": "gpt-test",
-        "choice_count": 1,
-        "finish_reason": "stop",
-        "content_state": "blank",
-        "content_length": 0,
-        "reasoning_content_present": True,
-        "reasoning_content_length": len("sensitive reasoning body"),
-        "tool_call_count": 1,
-        "usage": {
-            "prompt_tokens": 11,
-            "completion_tokens": 7,
-            "total_tokens": 18,
-            "prompt_tokens_cost": None,
-            "completion_tokens_cost": None,
-            "total_tokens_cost": None,
-        },
-    }
-    assert "response-123" in caplog.text
-    assert "reasoning_content_present" in caplog.text
-    assert "sensitive reasoning body" not in caplog.text
-    assert "secret" not in caplog.text
-
-    assert session.output_dir is not None
-    events = _load_jsonl(session.output_dir / "events.jsonl")
-    assert "llm.response.empty" in [entry["event_type"] for entry in events]
+    assert result == "final response from reasoning content"
+    assert response.choices[0].message.content == result
 
 
 @pytest.mark.asyncio

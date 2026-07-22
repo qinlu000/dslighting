@@ -163,9 +163,9 @@ def _profiles() -> dict[str, PerceptionSkillsExperimentProfile]:
             "scientific-modalities-v1",
         ),
         runtime=RuntimePolicy(
-            task_concurrency=88,
-            llm_global_concurrency=50,
-            llm_per_key_concurrency=50,
+            task_concurrency=20,
+            llm_global_concurrency=20,
+            llm_per_key_concurrency=20,
             **_COMMON_RUNTIME,
         ),
     )

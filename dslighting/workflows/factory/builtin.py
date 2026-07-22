@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
 from dslighting.benchmark.core.base import BaseBenchmark
@@ -186,6 +187,32 @@ def _resolve_output_contract_settings(config: Any) -> OutputContractConfig:
             error_code="CFG-002",
         )
     return OutputContractConfig(**raw)
+
+
+def _resolve_agent_skill(config: Any) -> str:
+    raw_path = getattr(getattr(config, "agent_runtime", None), "skill_path", None)
+    if not str(raw_path or "").strip():
+        return ""
+
+    path = Path(str(raw_path)).expanduser().resolve()
+    if not path.is_file():
+        raise ConfigurationError(
+            f"`agent_runtime.skill_path` is not a file: {path}",
+            error_code="CFG-002",
+        )
+    try:
+        skill = path.read_text(encoding="utf-8").strip()
+    except (OSError, UnicodeError) as exc:
+        raise ConfigurationError(
+            f"Cannot read `agent_runtime.skill_path` {path}: {exc}",
+            error_code="CFG-002",
+        ) from exc
+    if not skill:
+        raise ConfigurationError(
+            f"`agent_runtime.skill_path` is empty: {path}",
+            error_code="CFG-002",
+        )
+    return skill
 
 
 class AIDEWorkflowFactory(BaseWorkflowFactory):
@@ -486,6 +513,7 @@ class ReActWorkflowFactory(BaseWorkflowFactory):
             "workspace": workspace,
             "react_context_config": context_config,
             "output_contract_config": output_contract_config,
+            "agent_skill": _resolve_agent_skill(config),
         }
         return ReActWorkflow(
             operators=operators,
