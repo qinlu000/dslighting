@@ -258,6 +258,77 @@ async def test_react_workflow_repairs_unclosed_answer_and_stops(tmp_path) -> Non
 
 
 @pytest.mark.asyncio
+async def test_react_workflow_repairs_stripped_think_opening_and_executes(tmp_path) -> None:
+    workspace = _DummyWorkspaceService(tmp_path / "workspace")
+    llm = _DummyLLMService(
+        [
+            "Inspect first.</Think><Action>```python\nprint('run')\n```</Action>",
+            "Done.</Think><Answer>finished</Answer>",
+        ]
+    )
+    execute_operator = _FakeExecuteOperator(workspace, stdout="run")
+    workflow = ReActWorkflow(
+        operators={"react": ReActOperator(max_steps=2), "execute": execute_operator},
+        services={"llm": llm, "sandbox": SimpleNamespace(), "workspace": workspace},
+        agent_config={},
+    )
+
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    await workflow.solve(
+        description="Inspect the data.",
+        io_instructions="Return after the action succeeds.",
+        data_dir=data_dir,
+        output_path=tmp_path / "out" / "answer.txt",
+    )
+
+    assert execute_operator.calls == [{"code": "print('run')", "mode": "script"}]
+    saved_messages = json.loads(
+        (workspace.get_path("artifacts") / "messages.json").read_text(encoding="utf-8")
+    )
+    assert saved_messages[2]["content"].startswith("<Think>\nInspect first.")
+
+
+@pytest.mark.asyncio
+async def test_react_workflow_rejects_duplicate_actions_without_executing_and_recovers(
+    tmp_path,
+) -> None:
+    workspace = _DummyWorkspaceService(tmp_path / "workspace")
+    llm = _DummyLLMService(
+        [
+            (
+                "<Think>Try two actions.</Think>"
+                "<Action>```python\nprint('must not run')\n```</Action>"
+                "<Action>```python\nprint('must not run either')\n```</Action>"
+            ),
+            "<Think>Retry correctly.</Think><Action>```python\nprint('run once')\n```</Action>",
+            "<Think>Done.</Think><Answer>finished</Answer>",
+        ]
+    )
+    execute_operator = _FakeExecuteOperator(workspace, stdout="run once")
+    workflow = ReActWorkflow(
+        operators={"react": ReActOperator(max_steps=3), "execute": execute_operator},
+        services={"llm": llm, "sandbox": SimpleNamespace(), "workspace": workspace},
+        agent_config={},
+    )
+
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+
+    await workflow.solve(
+        description="Run exactly one valid action.",
+        io_instructions="Return after the action succeeds.",
+        data_dir=data_dir,
+        output_path=tmp_path / "out" / "answer.txt",
+    )
+
+    assert execute_operator.calls == [{"code": "print('run once')", "mode": "script"}]
+    assert len(llm.calls) == 3
+    assert "Protocol error:" in llm.calls[1][-1]["content"]
+    assert "exactly one <Action>" in llm.calls[1][-1]["content"]
+
+
+@pytest.mark.asyncio
 async def test_react_workflow_leaves_directory_submission_artifact_in_sandbox(tmp_path) -> None:
     workspace = _DummyWorkspaceService(tmp_path / "workspace")
     llm = _DummyLLMService(["<Think>x</Think><Action>```python\nprint('dir')\n```</Action>"])

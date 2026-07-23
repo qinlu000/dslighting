@@ -17,8 +17,7 @@ async def test_react_operator_extracts_strict_python_action_for_workflow_executi
     )
 
     result = await operator(
-        "<Think>Inspect the data.</Think>\n"
-        "<Action>```python\nprint('hello')\n```</Action>",
+        "<Think>Inspect the data.</Think>\n" "<Action>```python\nprint('hello')\n```</Action>",
     )
 
     assert isinstance(result, ReActTurnResult)
@@ -74,6 +73,43 @@ async def test_react_operator_rejects_malformed_turns(invalid_reply: str) -> Non
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "invalid_reply",
+    [
+        (
+            "<Think>First thought.</Think><Think>Second thought.</Think>"
+            "<Action>```python\nprint('one')\n```</Action>"
+        ),
+        (
+            "<Think>Reason.</Think>"
+            "<Action>```python\nprint('one')\n```</Action>"
+            "<Action>```python\nprint('two')\n```</Action>"
+        ),
+        (
+            "<Think>Reason.</Think>"
+            "<Action>```python\nprint('one')\n```"
+            "<Action>```python\nprint('two')\n```</Action>"
+        ),
+        ("<Think>Reason.</Think>" "<Action>```python\nprint('one')\n```</Action></Action>"),
+        ("<Think>Done.</Think>" "<Action>first</Action>" "<Action>second</Action>"),
+        ("<Think>Done.</Think>" "<Answer>first</Answer>" "<Answer>second</Answer>"),
+        "<Think>Done.</Think><Answer>first<Answer>second</Answer>",
+        "<Think>Done.</Think></Think><Answer>first</Answer>",
+    ],
+)
+async def test_react_operator_rejects_duplicate_protocol_tags(invalid_reply: str) -> None:
+    operator = ReActOperator()
+
+    result = await operator(invalid_reply)
+
+    assert result.final_answer is None
+    assert result.action_code is None
+    assert result.next_user_message is not None
+    assert "Protocol error:" in result.next_user_message
+    assert "exactly one" in result.next_user_message
+
+
+@pytest.mark.asyncio
 async def test_react_operator_returns_final_answer_for_answer_block() -> None:
     operator = ReActOperator()
 
@@ -93,6 +129,32 @@ async def test_react_operator_repairs_unclosed_answer_block() -> None:
 
     assert result.final_answer == "42"
     assert result.next_user_message is None
+
+
+@pytest.mark.asyncio
+async def test_react_operator_repairs_stripped_think_opening_tag() -> None:
+    operator = ReActOperator(max_steps=1)
+
+    result = await operator(
+        "Inspect the data before continuing.</Think>"
+        "<Action>```python\nprint('ok')\n```</Action>"
+    )
+
+    assert result.action_code == "print('ok')"
+
+
+@pytest.mark.asyncio
+async def test_react_operator_does_not_repair_ambiguous_stripped_think_reply() -> None:
+    operator = ReActOperator(max_steps=1)
+
+    result = await operator(
+        "Discuss <Action> tags.</Think>"
+        "<Action>```python\nprint('must not run')\n```</Action>"
+    )
+
+    assert result.action_code is None
+    assert result.next_user_message is not None
+    assert "Protocol error:" in result.next_user_message
 
 
 @pytest.mark.asyncio

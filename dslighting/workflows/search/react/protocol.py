@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 from typing import Optional
 
 from dslighting.utils.typing import ExecutionResult
@@ -131,6 +131,14 @@ def normalize_react_reply(content: str) -> NormalizedReActReply:
             repair_reason="added missing </Answer> closing tag",
         )
 
+    if _can_repair_missing_think_open(raw_content):
+        return NormalizedReActReply(
+            raw_content=raw_content,
+            normalized_content="<Think>\n" + raw_content.lstrip(),
+            repaired=True,
+            repair_reason="added missing <Think> opening tag",
+        )
+
     return NormalizedReActReply(
         raw_content=raw_content,
         normalized_content=raw_content,
@@ -172,8 +180,14 @@ def extract_final_answer_from_action(action: str) -> Optional[str]:
 
 
 def validate_turn_structure(content: str) -> tuple[bool, Optional[str]]:
-    if "<Think>" not in content or "</Think>" not in content:
+    # Protocol delimiters are reserved tokens. Count both sides before applying
+    # the regex grammar so regex backtracking cannot absorb duplicate blocks.
+    think_open_count = content.count("<Think>")
+    think_close_count = content.count("</Think>")
+    if think_open_count == 0 or think_close_count == 0:
         return False, "Missing <Think>...</Think> block."
+    if think_open_count != 1 or think_close_count != 1:
+        return False, "Reply must contain exactly one <Think>...</Think> block."
 
     if "<Final Answer>" in content or "</Final Answer>" in content:
         return (
@@ -181,8 +195,13 @@ def validate_turn_structure(content: str) -> tuple[bool, Optional[str]]:
             "<Final Answer>...</Final Answer> is not supported. Use <Answer>...</Answer> instead.",
         )
 
-    has_action = "<Action>" in content or "</Action>" in content
-    has_answer = "<Answer>" in content or "</Answer>" in content
+    action_open_count = content.count("<Action>")
+    action_close_count = content.count("</Action>")
+    answer_open_count = content.count("<Answer>")
+    answer_close_count = content.count("</Answer>")
+
+    has_action = action_open_count > 0 or action_close_count > 0
+    has_answer = answer_open_count > 0 or answer_close_count > 0
 
     response_block_count = sum(1 for present in (has_action, has_answer) if present)
     if response_block_count == 0:
@@ -192,6 +211,11 @@ def validate_turn_structure(content: str) -> tuple[bool, Optional[str]]:
             False,
             "Reply must contain exactly one of <Action>...</Action> or <Answer>...</Answer>.",
         )
+
+    if has_action and (action_open_count != 1 or action_close_count != 1):
+        return False, "Reply must contain exactly one <Action>...</Action> block."
+    if has_answer and (answer_open_count != 1 or answer_close_count != 1):
+        return False, "Reply must contain exactly one <Answer>...</Answer> block."
 
     think_index = content.find("<Think>")
     response_index = len(content)
@@ -251,6 +275,32 @@ def _can_repair_unclosed_answer(content: str) -> bool:
     if match is None:
         return False
     return bool(match.group("answer").strip())
+
+
+def _can_repair_missing_think_open(content: str) -> bool:
+    """Recognize an intact turn whose leading Think opener was stripped.
+
+    Some reasoning-model gateways consume a leading ``<Think>`` token while
+    preserving the closing tag and complete response block. This repair rejects
+    partial or duplicate response blocks so ambiguous code is never executed.
+    """
+    if "<Think>" in content or content.count("</Think>") != 1:
+        return False
+    if "<Final Answer>" in content or "</Final Answer>" in content:
+        return False
+
+    think_text, response_text = content.split("</Think>", maxsplit=1)
+    if not think_text.strip():
+        return False
+
+    action_count = content.count("<Action>") + content.count("</Action>")
+    answer_count = content.count("<Answer>") + content.count("</Answer>")
+    if (action_count, answer_count) not in {(2, 0), (0, 2)}:
+        return False
+
+    repaired = f"<Think>{think_text}</Think>{response_text}"
+    is_valid, _ = validate_turn_structure(repaired)
+    return is_valid
 
 
 def wrap_observation(observation: str) -> str:
