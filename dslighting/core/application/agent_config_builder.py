@@ -32,7 +32,7 @@ class AgentConfigBuilder:
     _RAG_WORKFLOWS = {"automind", "dsagent"}
     _RAG_KEYS = {"enable_rag", "case_dir"}
     _LEGACY_REACT_PARAM_KEYS = LEGACY_REACT_RUNTIME_KEYS
-    _VALID_SANDBOX_BACKENDS = {"local", "e2b", "ds_sandbox"}
+    _VALID_SANDBOX_BACKENDS = {"local", "docker", "e2b", "ds_sandbox"}
     _VALID_DS_SANDBOX_BACKEND_TYPES = {"docker", "local"}
 
     def __init__(
@@ -222,10 +222,21 @@ class AgentConfigBuilder:
             backend = backend.strip()
             if backend not in self._VALID_SANDBOX_BACKENDS:
                 raise ConfigurationError(
-                    "`sandbox_backend` must be one of: local, e2b, ds_sandbox",
+                    "`sandbox_backend` must be one of: local, docker, e2b, ds_sandbox",
                     error_code="CFG-002",
                 )
             config.sandbox.backend = backend
+
+        docker_image = merged.pop("sandbox_docker_image", None)
+        if docker_image is None:
+            docker_image = os.getenv("SANDBOX_DOCKER_IMAGE")
+        if docker_image is not None:
+            if not isinstance(docker_image, str) or not docker_image.strip():
+                raise ConfigurationError(
+                    "`sandbox_docker_image` must be a non-empty string",
+                    error_code="CFG-002",
+                )
+            config.sandbox.docker_image = docker_image.strip()
 
         backend_type = merged.pop("sandbox_backend_type", self.sandbox_backend_type)
         if backend_type is None:
@@ -276,6 +287,13 @@ class AgentConfigBuilder:
                     "When sandbox_backend=ds_sandbox, sandbox_backend_type must be docker or local",
                     error_code="CFG-002",
                 )
+
+        if config.sandbox.backend == "docker" and not config.sandbox.docker_image:
+            raise ConfigurationError(
+                "sandbox_backend='docker' requires sandbox_docker_image or "
+                "SANDBOX_DOCKER_IMAGE",
+                error_code="CFG-002",
+            )
 
         if config.sandbox.backend == "e2b" and not (
             config.sandbox.api_key or os.getenv("E2B_API_KEY")

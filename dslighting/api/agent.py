@@ -99,13 +99,15 @@ class Agent(AgentInterface):
             timeout: Sandbox timeout in seconds
             keep_workspace: Whether to keep workspace after execution
             sandbox_backend: Optional sandbox backend:
-                "local" | "e2b" | "ds_sandbox"
+                "local" | "docker" | "e2b" | "ds_sandbox"
             sandbox_backend_type: Optional DS-Sandbox backend type:
                 "docker" | "local"
             sandbox_timeout: Optional sandbox timeout override in seconds
             sandbox_api_key: Optional API key for E2B backend.
                 If omitted, E2B_API_KEY from environment is used.
             **kwargs: Additional arguments passed to configuration builder.
+                For the Docker backend, pass
+                `sandbox_docker_image="your-image:tag"`.
                 For RAG workflows, use namespaced arguments:
                 `dsagent={"enable_rag": True, "case_dir": "./experience_replay"}`
                 or `automind={"enable_rag": True, "case_dir": "./experience_replay"}`.

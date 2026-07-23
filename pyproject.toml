@@ -98,6 +98,10 @@ dev = [
     "twine>=4.0.0",
 ]
 
+docker = [
+    "docker>=7.0.0,<8.0.0",
+]
+
 # Legacy compatibility - keep 'full' and 'all' as aliases
 # They now refer to the default installation since all dependencies are required
 full = []

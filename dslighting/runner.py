@@ -653,6 +653,17 @@ class DSLightingRunner:
                         exc_info=True,
                     )
 
+                if sandbox_service:
+                    try:
+                        await sandbox_service.shutdown()
+                    except Exception as shutdown_error:
+                        logger.warning(
+                            "Failed to shut down sandbox for task '%s': %s",
+                            task.task_id,
+                            shutdown_error,
+                            exc_info=True,
+                        )
+
                 # Cleanup workspace
                 if workspace_service:
                     failed = isinstance(result, str) and result.startswith("[ERROR]")

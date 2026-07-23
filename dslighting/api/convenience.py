@@ -256,13 +256,15 @@ def run_agent(
             Examples: "gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet".
         api_keys: Optional API key pool for rotation.
         sandbox_backend: Optional sandbox backend selector:
-            "local" | "e2b" | "ds_sandbox".
+            "local" | "docker" | "e2b" | "ds_sandbox".
         sandbox_backend_type: Optional DS-Sandbox backend type:
             "docker" | "local". Only used when sandbox_backend="ds_sandbox".
         sandbox_timeout: Optional sandbox timeout override in seconds.
         sandbox_api_key: Optional API key for E2B backend.
             If omitted, E2B_API_KEY from environment is used.
         **kwargs: Additional keyword arguments passed to the agent.
+            For the Docker backend, pass
+            `sandbox_docker_image="your-image:tag"`.
             For RAG workflows, pass namespaced parameters:
             `dsagent={"enable_rag": True, "case_dir": "./experience_replay"}`
             or `automind={"enable_rag": True, "case_dir": "./experience_replay"}`.

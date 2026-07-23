@@ -63,3 +63,16 @@ def test_invalid_sandbox_backend_raises_cfg_002() -> None:
 def test_e2b_requires_api_key() -> None:
     with pytest.raises(ConfigurationError, match="E2B API key"):
         _builder(sandbox_backend="e2b").build(task_id="demo", run_kwargs={})
+
+
+def test_docker_backend_requires_and_maps_image() -> None:
+    with pytest.raises(ConfigurationError, match="sandbox_docker_image"):
+        _builder(sandbox_backend="docker").build(task_id="demo", run_kwargs={})
+
+    config = _builder(
+        sandbox_backend="docker",
+        init_kwargs={"sandbox_docker_image": "agenticdatabench:test"},
+    ).build(task_id="demo", run_kwargs={})
+
+    assert config.sandbox.backend == "docker"
+    assert config.sandbox.docker_image == "agenticdatabench:test"

@@ -56,12 +56,18 @@ class SandboxConfig(BaseModel):
     """Code execution sandbox settings."""
 
     timeout: int = 6 * 3600
-    backend: str = "local"  # Sandbox backend: local, e2b, ds_sandbox
+    backend: str = "local"  # Sandbox backend: local, docker, e2b, ds_sandbox
     backend_type: str = "docker"  # Backend type for ds_sandbox: docker, local
     api_key: Optional[str] = None  # API key for e2b
     local_isolation: Literal["process", "bubblewrap"] = "process"
     environment_policy: Literal["inherit", "allowlist"] = "inherit"
     network_policy: Literal["inherit", "disabled"] = "inherit"
+    docker_image: Optional[str] = None
+    docker_workspace_path: str = "/workspace"
+    docker_user: Optional[str] = None
+    memory_mb: int = 4096
+    cpu_cores: float = 2.0
+    pids_limit: int = 256
 
 
 class DataAnalysisConfig(BaseModel):

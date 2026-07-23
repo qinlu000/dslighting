@@ -890,3 +890,10 @@ class SandboxService:
     def get_execution_history(self) -> List[Dict[str, Any]]:
         """Return a copy of sandbox execution history for telemetry persistence."""
         return list(self.execution_history)
+
+    async def shutdown(self) -> None:
+        """Release the configured backend and local helper executor."""
+
+        if self.backend is not None:
+            await self.backend.shutdown()
+        self._executor.shutdown(wait=False, cancel_futures=True)

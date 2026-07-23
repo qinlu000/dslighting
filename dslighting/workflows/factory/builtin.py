@@ -83,13 +83,31 @@ def _create_sandbox_service(workspace: WorkspaceService, config: Any) -> Sandbox
 
     backend_config = SandboxBackendConfig(
         timeout=config.sandbox.timeout,
+        memory_mb=getattr(config.sandbox, "memory_mb", 4096),
+        cpu_cores=getattr(config.sandbox, "cpu_cores", 2.0),
         isolation=getattr(config.sandbox, "local_isolation", "process"),
         environment_policy=getattr(config.sandbox, "environment_policy", "inherit"),
         network_policy=getattr(config.sandbox, "network_policy", "inherit"),
         env_vars=dict(env_overrides),
     )
 
-    if backend_type == "e2b":
+    if backend_type == "docker":
+        from dslighting.services.sandbox_backends.backends.docker import DockerSandboxBackend
+
+        image = str(getattr(config.sandbox, "docker_image", "") or "").strip()
+        if not image:
+            raise ConfigurationError(
+                "sandbox.backend='docker' requires sandbox.docker_image",
+                error_code="CFG-002",
+            )
+        backend = DockerSandboxBackend(
+            config=backend_config,
+            image=image,
+            container_workspace=getattr(config.sandbox, "docker_workspace_path", "/workspace"),
+            user=getattr(config.sandbox, "docker_user", None),
+            pids_limit=getattr(config.sandbox, "pids_limit", 256),
+        )
+    elif backend_type == "e2b":
         from dslighting.services.sandbox_backends.backends.e2b import E2BSandboxBackend
 
         backend = E2BSandboxBackend(config=backend_config, api_key=api_key)
