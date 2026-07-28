@@ -51,6 +51,10 @@ WORKFLOW_ALIASES = {
     "automind": "automind",
     "aflow": "aflow",
     "react": "react",
+    "mini_swe_agent": "mini_swe_agent",
+    "mini-swe-agent": "mini_swe_agent",
+    "minisweagent": "mini_swe_agent",
+    "mini": "mini_swe_agent",
 }
 
 
@@ -89,7 +93,9 @@ class Agent(AgentInterface):
         Initialize Agent.
 
         Args:
-            workflow: Name of the workflow to use ("aide", "autokaggle", "data_interpreter", "deepanalyze", "dsagent", "automind", "aflow")
+            workflow: Name of the workflow to use ("aide", "autokaggle",
+                "data_interpreter", "deepanalyze", "dsagent", "automind",
+                "aflow", "react", "mini_swe_agent")
             model: LLM model to use
             api_key: API key (optional, will be read from env if not provided)
             api_keys: API key pool for rotation (optional)
@@ -116,7 +122,8 @@ class Agent(AgentInterface):
         if workflow_key not in WORKFLOW_ALIASES:
             raise ConfigurationError(
                 f"Unknown workflow: {workflow}. "
-                f"Choose from: aide, autokaggle, data_interpreter, deepanalyze, dsagent, automind, aflow, react",
+                f"Choose from: aide, autokaggle, data_interpreter, deepanalyze, "
+                f"dsagent, automind, aflow, react, mini_swe_agent",
                 error_code="CFG-002",
             )
 

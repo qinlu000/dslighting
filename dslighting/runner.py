@@ -54,6 +54,7 @@ from dslighting.workflows.factory.builtin import (
     MyCustomAgentWorkflowFactory,
     ReActWorkflowFactory,
 )
+from dslighting.workflows.factory.minisweagent import MiniSWEAgentWorkflowFactory
 from dslighting.workflows.output_contract import (
     is_valid_output_path,
     resolve_runner_output_candidate,
@@ -441,6 +442,7 @@ WORKFLOW_FACTORIES: dict[str, type[BaseWorkflowFactory]] = {
     "deepanalyze": DeepAnalyzeWorkflowFactory,
     "my_custom_agent": MyCustomAgentWorkflowFactory,
     "react": ReActWorkflowFactory,
+    "mini_swe_agent": MiniSWEAgentWorkflowFactory,
 }
 
 TASK_ADAPTER_CLASSES: dict[TaskType, type[BaseTaskAdapter]] = {

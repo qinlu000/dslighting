@@ -93,6 +93,8 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 pip install -r requirements.txt  # Core runtime dependencies
 pip install -e .
+# Optional: mini-swe-agent v2 workflow
+# pip install -e '.[mini-swe-agent]'
 # Optional: full development/research dependency set
 # pip install -r requirements_local.txt
 ```
@@ -250,6 +252,36 @@ agent = Agent(
 result = agent.run(task_id="bike-sharing-demand")
 print(result)
 ```
+
+### Use mini-swe-agent
+
+Install the optional integration, then select the `mini_swe_agent` workflow:
+
+```bash
+pip install 'dslighting[mini-swe-agent]'
+```
+
+```python
+from dslighting.api import Agent
+
+agent = Agent(
+    workflow="mini_swe_agent",
+    model="openai/gpt-4o",
+    mini_swe_agent={
+        "step_limit": 20,
+        "cost_limit": 3.0,
+        "command_timeout": 120,
+    },
+)
+result = agent.run(task_id="bike-sharing-demand")
+print(result.success, result.score, result.cost)
+```
+
+mini-swe-agent supplies the agent loop. With `sandbox_backend="docker"` it
+uses the official mini-swe-agent Docker environment; DSLighting still owns task
+loading, workspace layout, grading, and telemetry. Local mode uses the official
+host-executing environment and is intended only for trusted debugging. See
+[`docs/mini_swe_agent.md`](docs/mini_swe_agent.md) for configuration details.
 
 ---
 

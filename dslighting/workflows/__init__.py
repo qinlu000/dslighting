@@ -31,6 +31,10 @@ _LAZY_EXPORTS: Dict[str, Tuple[str, str]] = {
     "MyCustomAgentWorkflowFactory": ("dslighting.workflows.factory", "MyCustomAgentWorkflowFactory"),
     "AFlowWorkflowFactory": ("dslighting.workflows.factory", "AFlowWorkflowFactory"),
     "ReActWorkflowFactory": ("dslighting.workflows.factory", "ReActWorkflowFactory"),
+    "MiniSWEAgentWorkflowFactory": (
+        "dslighting.workflows.factory",
+        "MiniSWEAgentWorkflowFactory",
+    ),
     "DynamicWorkflowFactory": ("dslighting.workflows.factory", "DynamicWorkflowFactory"),
     "AIDE": ("dslighting.workflows.presets", "AIDE"),
     "AutoKaggle": ("dslighting.workflows.presets", "AutoKaggle"),
@@ -48,6 +52,10 @@ _LAZY_EXPORTS: Dict[str, Tuple[str, str]] = {
     "AutoMindWorkflow": ("dslighting.workflows.presets", "AutoMindWorkflow"),
     "AFlowWorkflow": ("dslighting.workflows.presets", "AFlowWorkflow"),
     "ReActWorkflow": ("dslighting.workflows.presets", "ReActWorkflow"),
+    "MiniSWEAgentWorkflow": (
+        "dslighting.workflows.search.minisweagent",
+        "MiniSWEAgentWorkflow",
+    ),
     "SearchStrategy": ("dslighting.workflows.strategies", "SearchStrategy"),
     "GreedyStrategy": ("dslighting.workflows.strategies", "GreedyStrategy"),
     "BeamSearchStrategy": ("dslighting.workflows.strategies", "BeamSearchStrategy"),

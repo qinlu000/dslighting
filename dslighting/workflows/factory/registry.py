@@ -18,6 +18,10 @@ _BUILTIN_FACTORY_TARGETS: dict[str, FactoryTarget] = {
     "deepanalyze": ("dslighting.workflows.factory.builtin", "DeepAnalyzeWorkflowFactory"),
     "aflow": ("dslighting.workflows.factory.builtin", "AFlowWorkflowFactory"),
     "react": ("dslighting.workflows.factory.builtin", "ReActWorkflowFactory"),
+    "mini_swe_agent": (
+        "dslighting.workflows.factory.minisweagent",
+        "MiniSWEAgentWorkflowFactory",
+    ),
     "my_custom_agent": ("dslighting.workflows.factory.builtin", "MyCustomAgentWorkflowFactory"),
 }
 

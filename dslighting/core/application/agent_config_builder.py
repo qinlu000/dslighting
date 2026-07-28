@@ -28,7 +28,7 @@ from dslighting.error import ConfigurationError
 class AgentConfigBuilder:
     """Map Agent inputs/kwargs into a normalized DSLightingConfig."""
 
-    _WORKFLOW_PARAMS_WORKFLOWS = {"automind", "dsagent"}
+    _WORKFLOW_PARAMS_WORKFLOWS = {"automind", "dsagent", "mini_swe_agent"}
     _RAG_WORKFLOWS = {"automind", "dsagent"}
     _RAG_KEYS = {"enable_rag", "case_dir"}
     _LEGACY_REACT_PARAM_KEYS = LEGACY_REACT_RUNTIME_KEYS

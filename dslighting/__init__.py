@@ -85,6 +85,7 @@ def list_workflows() -> None:
         ("DataInterpreter", "EDA and analysis workflow"),
         ("DeepAnalyze", "Deep analysis workflow"),
         ("ReAct", "Reasoning + acting workflow with strict tags"),
+        ("MiniSWEAgent", "Official mini-swe-agent loop for benchmark tasks"),
         ("DSAgent", "Structured operator workflow"),
         ("AutoMind", "Planning workflow with knowledge retrieval"),
         ("AFlow", "Meta-optimization workflow"),

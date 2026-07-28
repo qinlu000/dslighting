@@ -209,6 +209,7 @@ result = dslighting.run_agent(task_id="bike-sharing-demand")
   5. dsagent           - Long-term planning with logging
   6. deepanalyze       - Deep analysis with structured tags
   7. react             - Reasoning + acting baseline with strict tags
+  8. mini_swe_agent    - mini-swe-agent v2 loop with optional official Docker
 """)
 
     print("Useful Commands:")
@@ -249,6 +250,7 @@ def _get_workflow_info():
     Returns a list of workflow metadata dictionaries.
     """
     from dslighting.workflows import presets
+    from dslighting.workflows.factory.minisweagent import MiniSWEAgentWorkflowFactory
 
     # Workflow metadata - this information is not available in the workflow classes
     # so we maintain it here as the single source of truth
@@ -330,11 +332,37 @@ def _get_workflow_info():
             },
             "class": presets.ReAct,
         },
+        "mini_swe_agent": {
+            "full_name": "mini-swe-agent",
+            "description": "Official mini-swe-agent loop using DSLighting benchmark I/O",
+            "use_cases": [
+                "Data-science benchmark tasks",
+                "Minimal agent baselines",
+                "Shell-driven iteration",
+            ],
+            "default_model": "openai/gpt-4o",
+            "parameters": {"step_limit": 10, "cost_limit": 0.0},
+            "unique_params": {
+                "step_limit": "Maximum model calls (default: agent_runtime.max_steps)",
+                "cost_limit": "Maximum model cost; 0 disables the limit",
+                "command_timeout": "Per-command execution timeout in seconds (default: 30)",
+            },
+            "class": MiniSWEAgentWorkflowFactory,
+        },
     }
 
     # Get available workflows from presets module
     available_workflows = []
-    for name in ["aide", "autokaggle", "data_interpreter", "automind", "dsagent", "deepanalyze", "react"]:
+    for name in [
+        "aide",
+        "autokaggle",
+        "data_interpreter",
+        "automind",
+        "dsagent",
+        "deepanalyze",
+        "react",
+        "mini_swe_agent",
+    ]:
         metadata = workflow_metadata.get(name)
         if metadata and metadata.get("class") is not None:
             # cmd_workflows expects each item to include workflow name for display.
@@ -543,6 +571,27 @@ agent = dslighting.Agent(
 result = agent.run(data, description="Solve the task with strict <Think>/<Action> turns")
 
 print(f"Output: {result.output}")
+print(f"Cost: ${result.cost:.2f}")
+""",
+        "mini_swe_agent": """
+from dotenv import load_dotenv
+load_dotenv()
+
+from dslighting.api import Agent
+
+agent = Agent(
+    workflow="mini_swe_agent",
+    model="openai/gpt-4o",
+    mini_swe_agent={
+        "step_limit": 20,
+        "cost_limit": 3.0,
+        "command_timeout": 120,
+    },
+)
+
+result = agent.run(task_id="bike-sharing-demand")
+
+print(f"Score: {result.score}")
 print(f"Cost: ${result.cost:.2f}")
 """
     }

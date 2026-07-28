@@ -253,6 +253,7 @@ class ConfigBuilder:
                 "automind",
                 "dsagent",
                 "deepanalyze",
+                "mini_swe_agent",
             ]:
                 # Nested dictionary format (v1.9.0+)
                 if isinstance(value, dict):
@@ -275,8 +276,8 @@ class ConfigBuilder:
             elif wf_name == "aide":
                 # AIDE parameters → agent.search
                 config.setdefault("agent", {}).setdefault("search", {}).update(wf_params)
-            elif wf_name in ["automind", "dsagent"]:
-                # AutoMind/DS-Agent parameters → workflow.params
+            elif wf_name in ["automind", "dsagent", "mini_swe_agent"]:
+                # Workflow-owned parameters → workflow.params
                 config.setdefault("workflow", {}).setdefault("params", {}).update(wf_params)
             elif wf_name == "data_interpreter":
                 # DataInterpreter parameters → agent.search (for max_iterations)

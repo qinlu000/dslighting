@@ -51,6 +51,54 @@ def _is_relative_to(path: Path, parent: Path) -> bool:
     return True
 
 
+def resolve_docker_input_mounts(
+    workspace: Path,
+) -> tuple[tuple[Path, Path], ...]:
+    """Resolve trusted top-level workspace symlinks into read-only Docker mounts.
+
+    The returned pairs are ``(host_source, container_visible_target)``.  Mounting
+    the resolved host source at the symlink's original absolute target keeps
+    input links valid inside a container without exposing arbitrary host paths.
+    """
+
+    workspace = Path(workspace).expanduser().resolve()
+    mounts: list[tuple[Path, Path]] = []
+    for child in sorted(workspace.iterdir(), key=lambda path: path.name):
+        if not child.is_symlink():
+            continue
+        raw_target = Path(os.readlink(child))
+        visible_target = Path(
+            os.path.abspath(
+                raw_target if raw_target.is_absolute() else workspace / raw_target
+            )
+        )
+        try:
+            source_target = child.resolve(strict=True)
+        except (FileNotFoundError, RuntimeError) as exc:
+            raise ValueError(
+                f"Workspace input symlink is dangling or cyclic: {child}"
+            ) from exc
+        if _is_relative_to(visible_target, workspace):
+            continue
+        if source_target == Path("/") or _is_relative_to(workspace, source_target):
+            raise ValueError(f"Refusing overly broad Docker input symlink target: {child}")
+        if any(
+            visible_target == protected
+            or _is_relative_to(visible_target, protected)
+            for protected in _PROTECTED_MOUNT_ROOTS
+        ):
+            raise ValueError(
+                f"Refusing Docker input mount over protected container path: {visible_target}"
+            )
+        if not (source_target.is_file() or source_target.is_dir()):
+            raise ValueError(
+                "Workspace input symlink target is not a regular file or directory: "
+                f"{child}"
+            )
+        mounts.append((source_target, visible_target))
+    return tuple(mounts)
+
+
 def _default_client_factory() -> Any:
     try:
         import docker
@@ -295,33 +343,7 @@ class DockerSandboxBackend(SandboxBackend):
         return result
 
     def _freeze_input_mounts(self, workspace: Path) -> tuple[tuple[Path, Path], ...]:
-        mounts: list[tuple[Path, Path]] = []
-        for child in sorted(workspace.iterdir(), key=lambda path: path.name):
-            if not child.is_symlink():
-                continue
-            raw_target = Path(os.readlink(child))
-            visible_target = Path(os.path.abspath(raw_target if raw_target.is_absolute() else workspace / raw_target))
-            try:
-                source_target = child.resolve(strict=True)
-            except (FileNotFoundError, RuntimeError) as exc:
-                raise ValueError(f"Workspace input symlink is dangling or cyclic: {child}") from exc
-            if _is_relative_to(visible_target, workspace):
-                continue
-            if source_target == Path("/") or _is_relative_to(workspace, source_target):
-                raise ValueError(f"Refusing overly broad Docker input symlink target: {child}")
-            if any(
-                visible_target == protected or _is_relative_to(visible_target, protected)
-                for protected in _PROTECTED_MOUNT_ROOTS
-            ):
-                raise ValueError(
-                    f"Refusing Docker input mount over protected container path: {visible_target}"
-                )
-            if not (source_target.is_file() or source_target.is_dir()):
-                raise ValueError(
-                    f"Workspace input symlink target is not a regular file or directory: {child}"
-                )
-            mounts.append((source_target, visible_target))
-        return tuple(mounts)
+        return resolve_docker_input_mounts(workspace)
 
     def _container_env(self) -> dict[str, str]:
         workspace = Path(self.container_workspace)

@@ -19,6 +19,7 @@ __all__ = [
     "MyCustomAgentWorkflowFactory",
     "AFlowWorkflowFactory",
     "ReActWorkflowFactory",
+    "MiniSWEAgentWorkflowFactory",
     "DynamicWorkflowFactory",
 ]
 
@@ -50,6 +51,10 @@ _EXPORT_MAP = {
     ),
     "AFlowWorkflowFactory": ("dslighting.workflows.factory.builtin", "AFlowWorkflowFactory"),
     "ReActWorkflowFactory": ("dslighting.workflows.factory.builtin", "ReActWorkflowFactory"),
+    "MiniSWEAgentWorkflowFactory": (
+        "dslighting.workflows.factory.minisweagent",
+        "MiniSWEAgentWorkflowFactory",
+    ),
     "DynamicWorkflowFactory": ("dslighting.workflows.factory.builtin", "DynamicWorkflowFactory"),
 }
 
