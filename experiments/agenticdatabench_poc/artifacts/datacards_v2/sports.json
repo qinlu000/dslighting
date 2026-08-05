@@ -1,0 +1,2718 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "sports",
+  "data_objects": [
+    {
+      "name": "euro.Country",
+      "files": [
+        "European_Soccer_database.sqlite"
+      ],
+      "kind": "table",
+      "meaning": "European soccer country lookup."
+    },
+    {
+      "name": "euro.League",
+      "files": [
+        "European_Soccer_database.sqlite"
+      ],
+      "kind": "table",
+      "meaning": "European soccer league lookup linked to country."
+    },
+    {
+      "name": "euro.Match",
+      "files": [
+        "European_Soccer_database.sqlite"
+      ],
+      "kind": "table",
+      "meaning": "European soccer match records with teams, scores, lineups, event payloads, and bookmaker odds.",
+      "notes": "home/away player slot and X/Y coordinate fields form numbered 1-11 families; event columns are serialized text payloads; odds columns use bookmaker prefix plus H/D/A outcome suffix."
+    },
+    {
+      "name": "euro.Player",
+      "files": [
+        "European_Soccer_database.sqlite"
+      ],
+      "kind": "table",
+      "meaning": "European soccer player identity and physical attributes."
+    },
+    {
+      "name": "euro.Player_Attributes",
+      "files": [
+        "European_Soccer_database.sqlite"
+      ],
+      "kind": "table",
+      "meaning": "Dated European soccer player skill ratings."
+    },
+    {
+      "name": "euro.Team",
+      "files": [
+        "European_Soccer_database.sqlite"
+      ],
+      "kind": "table",
+      "meaning": "European soccer team identity."
+    },
+    {
+      "name": "euro.Team_Attributes",
+      "files": [
+        "European_Soccer_database.sqlite"
+      ],
+      "kind": "table",
+      "meaning": "Dated European soccer team tactical ratings and classes."
+    },
+    {
+      "name": "nba.common_player_info",
+      "files": [
+        "NBA Database/common_player_info.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA player biographical, roster, team, experience, and draft information."
+    },
+    {
+      "name": "nba.draft_combine_stats",
+      "files": [
+        "NBA Database/draft_combine_stats.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA draft-combine player measurements, athletic tests, and shooting drills by season."
+    },
+    {
+      "name": "nba.draft_history",
+      "files": [
+        "NBA Database/draft_history.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA draft selections with player, pick, team, and prior organization."
+    },
+    {
+      "name": "nba.game",
+      "files": [
+        "NBA Database/game.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA game-level home and away box-score totals."
+    },
+    {
+      "name": "nba.game_info",
+      "files": [
+        "NBA Database/game_info.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA game attendance and duration information."
+    },
+    {
+      "name": "nba.game_summary",
+      "files": [
+        "NBA Database/game_summary.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA game status, season, home/visitor, and broadcast summary."
+    },
+    {
+      "name": "nba.inactive_players",
+      "files": [
+        "NBA Database/inactive_players.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA inactive-player listings by game and team."
+    },
+    {
+      "name": "nba.line_score",
+      "files": [
+        "NBA Database/line_score.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA home/away quarter and overtime line scores."
+    },
+    {
+      "name": "nba.officials",
+      "files": [
+        "NBA Database/officials.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA officials assigned to each game."
+    },
+    {
+      "name": "nba.other_stats",
+      "files": [
+        "NBA Database/other_stats.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA game-level home/away paint, second-chance, fast-break, lead, turnover, and rebound statistics."
+    },
+    {
+      "name": "nba.player",
+      "files": [
+        "NBA Database/player.csv"
+      ],
+      "kind": "table",
+      "meaning": "Compact NBA player identity and active-status lookup."
+    },
+    {
+      "name": "nba.team",
+      "files": [
+        "NBA Database/team.csv"
+      ],
+      "kind": "table",
+      "meaning": "Compact NBA team identity and founding-year lookup."
+    },
+    {
+      "name": "nba.team_details",
+      "files": [
+        "NBA Database/team_details.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA team venue, ownership, management, affiliation, and social-link details."
+    },
+    {
+      "name": "nba.team_history",
+      "files": [
+        "NBA Database/team_history.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA franchise city/nickname eras."
+    },
+    {
+      "name": "nba.team_info_common",
+      "files": [
+        "NBA Database/team_info_common.csv"
+      ],
+      "kind": "table",
+      "meaning": "NBA team-season identity, standings, rank, and per-game summary fields; the public file currently contains headers but no data rows."
+    },
+    {
+      "name": "athlete_events",
+      "files": [
+        "athlete_events.csv"
+      ],
+      "kind": "table",
+      "meaning": "One row per athlete-event appearance in modern Olympic history, including demographics, team/NOC, Games, sport, event, and medal."
+    },
+    {
+      "name": "noc_regions",
+      "files": [
+        "noc_regions.csv"
+      ],
+      "kind": "table",
+      "meaning": "NOC code to region mapping with optional notes."
+    }
+  ],
+  "variables": [
+    {
+      "object": "euro.Country",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Country",
+      "name": "name",
+      "meaning": "Name.",
+      "unit": null
+    },
+    {
+      "object": "euro.League",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.League",
+      "name": "country_id",
+      "meaning": "Country foreign key.",
+      "unit": null
+    },
+    {
+      "object": "euro.League",
+      "name": "name",
+      "meaning": "Name.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "country_id",
+      "meaning": "Country foreign key.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "league_id",
+      "meaning": "League foreign key.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "season",
+      "meaning": "Season label or year.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "stage",
+      "meaning": "Stage.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "date",
+      "meaning": "Observation timestamp.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "match_api_id",
+      "meaning": "Match API identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "home_team_api_id",
+      "meaning": "Home team api id.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "away_team_api_id",
+      "meaning": "Away team api id.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "home_team_goal",
+      "meaning": "Home-team goals.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "away_team_goal",
+      "meaning": "Away-team goals.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "goal",
+      "meaning": "Serialized match-event payload for goal. SQLite TEXT.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "shoton",
+      "meaning": "Serialized match-event payload for shoton. SQLite TEXT.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "shotoff",
+      "meaning": "Serialized match-event payload for shotoff. SQLite TEXT.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "foulcommit",
+      "meaning": "Serialized match-event payload for foulcommit. SQLite TEXT.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "card",
+      "meaning": "Serialized match-event payload for card. SQLite TEXT.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "cross",
+      "meaning": "Serialized match-event payload for cross. SQLite TEXT.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "corner",
+      "meaning": "Serialized match-event payload for corner. SQLite TEXT.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "possession",
+      "meaning": "Serialized match-event payload for possession. SQLite TEXT.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player",
+      "name": "player_api_id",
+      "meaning": "European soccer player API identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player",
+      "name": "player_name",
+      "meaning": "Player name.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player",
+      "name": "player_fifa_api_id",
+      "meaning": "FIFA player identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player",
+      "name": "birthday",
+      "meaning": "Birth timestamp.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player",
+      "name": "height",
+      "meaning": "Height.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "euro.Player",
+      "name": "weight",
+      "meaning": "Weight.",
+      "unit": "pounds for NBA; kilograms for Olympics"
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "player_fifa_api_id",
+      "meaning": "FIFA player identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "player_api_id",
+      "meaning": "European soccer player API identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "date",
+      "meaning": "Observation timestamp.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "overall_rating",
+      "meaning": "Overall rating.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "potential",
+      "meaning": "Potential.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "preferred_foot",
+      "meaning": "Preferred foot.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "attacking_work_rate",
+      "meaning": "Attacking work rate.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "defensive_work_rate",
+      "meaning": "Defensive work rate.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "crossing",
+      "meaning": "Crossing.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "finishing",
+      "meaning": "Finishing.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "heading_accuracy",
+      "meaning": "Heading accuracy.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "short_passing",
+      "meaning": "Short passing.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "volleys",
+      "meaning": "Volleys.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "dribbling",
+      "meaning": "Dribbling.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "curve",
+      "meaning": "Curve.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "free_kick_accuracy",
+      "meaning": "Free kick accuracy.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "long_passing",
+      "meaning": "Long passing.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "ball_control",
+      "meaning": "Ball control.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "acceleration",
+      "meaning": "Acceleration.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "sprint_speed",
+      "meaning": "Sprint speed.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "agility",
+      "meaning": "Agility.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "reactions",
+      "meaning": "Reactions.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "balance",
+      "meaning": "Balance.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "shot_power",
+      "meaning": "Shot power.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "jumping",
+      "meaning": "Jumping.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "stamina",
+      "meaning": "Stamina.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "strength",
+      "meaning": "Strength.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "long_shots",
+      "meaning": "Long shots.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "aggression",
+      "meaning": "Aggression.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "interceptions",
+      "meaning": "Interceptions.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "positioning",
+      "meaning": "Positioning.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "vision",
+      "meaning": "Vision.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "penalties",
+      "meaning": "Penalties.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "marking",
+      "meaning": "Marking.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "standing_tackle",
+      "meaning": "Standing tackle.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "sliding_tackle",
+      "meaning": "Sliding tackle.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "gk_diving",
+      "meaning": "Gk diving.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "gk_handling",
+      "meaning": "Gk handling.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "gk_kicking",
+      "meaning": "Gk kicking.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "gk_positioning",
+      "meaning": "Gk positioning.",
+      "unit": null
+    },
+    {
+      "object": "euro.Player_Attributes",
+      "name": "gk_reflexes",
+      "meaning": "Gk reflexes.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team",
+      "name": "team_api_id",
+      "meaning": "European soccer team API identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team",
+      "name": "team_fifa_api_id",
+      "meaning": "FIFA team identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team",
+      "name": "team_long_name",
+      "meaning": "Team long name.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team",
+      "name": "team_short_name",
+      "meaning": "Team short name.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "team_fifa_api_id",
+      "meaning": "FIFA team identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "team_api_id",
+      "meaning": "European soccer team API identifier.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "date",
+      "meaning": "Observation timestamp.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "buildUpPlaySpeed",
+      "meaning": "Build up play speed.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "buildUpPlaySpeedClass",
+      "meaning": "Build up play speed class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "buildUpPlayDribbling",
+      "meaning": "Build up play dribbling.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "buildUpPlayDribblingClass",
+      "meaning": "Build up play dribbling class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "buildUpPlayPassing",
+      "meaning": "Build up play passing.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "buildUpPlayPassingClass",
+      "meaning": "Build up play passing class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "buildUpPlayPositioningClass",
+      "meaning": "Build up play positioning class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "chanceCreationPassing",
+      "meaning": "Chance creation passing.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "chanceCreationPassingClass",
+      "meaning": "Chance creation passing class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "chanceCreationCrossing",
+      "meaning": "Chance creation crossing.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "chanceCreationCrossingClass",
+      "meaning": "Chance creation crossing class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "chanceCreationShooting",
+      "meaning": "Chance creation shooting.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "chanceCreationShootingClass",
+      "meaning": "Chance creation shooting class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "chanceCreationPositioningClass",
+      "meaning": "Chance creation positioning class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "defencePressure",
+      "meaning": "Defence pressure.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "defencePressureClass",
+      "meaning": "Defence pressure class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "defenceAggression",
+      "meaning": "Defence aggression.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "defenceAggressionClass",
+      "meaning": "Defence aggression class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "defenceTeamWidth",
+      "meaning": "Defence team width.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "defenceTeamWidthClass",
+      "meaning": "Defence team width class.",
+      "unit": null
+    },
+    {
+      "object": "euro.Team_Attributes",
+      "name": "defenceDefenderLineClass",
+      "meaning": "Defence defender line class.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "person_id",
+      "meaning": "NBA person identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "first_name",
+      "meaning": "First name.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "last_name",
+      "meaning": "Last name.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "display_first_last",
+      "meaning": "Display first last.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "display_last_comma_first",
+      "meaning": "Display last comma first.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "display_fi_last",
+      "meaning": "Display fi last.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "player_slug",
+      "meaning": "Player slug.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "birthdate",
+      "meaning": "Birth timestamp.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "school",
+      "meaning": "School.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "country",
+      "meaning": "Country.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "last_affiliation",
+      "meaning": "Last affiliation.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "height",
+      "meaning": "Height.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "weight",
+      "meaning": "Weight.",
+      "unit": "pounds for NBA; kilograms for Olympics"
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "season_exp",
+      "meaning": "Season exp.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "jersey",
+      "meaning": "Jersey.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "position",
+      "meaning": "Position.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "rosterstatus",
+      "meaning": "Rosterstatus.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "games_played_current_season_flag",
+      "meaning": "Games played current season flag.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "team_id",
+      "meaning": "NBA team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "team_name",
+      "meaning": "Team name.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "team_abbreviation",
+      "meaning": "Team abbreviation.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "team_code",
+      "meaning": "Team code.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "team_city",
+      "meaning": "Team city.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "playercode",
+      "meaning": "Playercode.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "from_year",
+      "meaning": "From year.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "to_year",
+      "meaning": "To year.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "dleague_flag",
+      "meaning": "Dleague flag.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "nba_flag",
+      "meaning": "Nba flag.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "games_played_flag",
+      "meaning": "Games played flag.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "draft_year",
+      "meaning": "Draft year.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "draft_round",
+      "meaning": "Draft round.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "draft_number",
+      "meaning": "Draft number.",
+      "unit": null
+    },
+    {
+      "object": "nba.common_player_info",
+      "name": "greatest_75_flag",
+      "meaning": "Greatest 75 flag.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "season",
+      "meaning": "Season label or year.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "player_id",
+      "meaning": "NBA player identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "first_name",
+      "meaning": "First name.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "last_name",
+      "meaning": "Last name.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "player_name",
+      "meaning": "Player name.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "position",
+      "meaning": "Position.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "height_wo_shoes",
+      "meaning": "Height wo shoes.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "height_wo_shoes_ft_in",
+      "meaning": "Height wo shoes ft in.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "height_w_shoes",
+      "meaning": "Height w shoes.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "height_w_shoes_ft_in",
+      "meaning": "Height w shoes ft in.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "weight",
+      "meaning": "Weight.",
+      "unit": "pounds for NBA; kilograms for Olympics"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "wingspan",
+      "meaning": "Wingspan.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "wingspan_ft_in",
+      "meaning": "Wingspan ft in.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "standing_reach",
+      "meaning": "Standing reach.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "standing_reach_ft_in",
+      "meaning": "Standing reach ft in.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "body_fat_pct",
+      "meaning": "Body fat pct.",
+      "unit": "fraction"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "hand_length",
+      "meaning": "Hand length.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "hand_width",
+      "meaning": "Hand width.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "standing_vertical_leap",
+      "meaning": "Standing vertical leap.",
+      "unit": "inches"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "max_vertical_leap",
+      "meaning": "Max vertical leap.",
+      "unit": "inches"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "lane_agility_time",
+      "meaning": "Lane agility time.",
+      "unit": "seconds or source time format"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "modified_lane_agility_time",
+      "meaning": "Modified lane agility time.",
+      "unit": "seconds or source time format"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "three_quarter_sprint",
+      "meaning": "Three quarter sprint.",
+      "unit": "seconds or source time format"
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "bench_press",
+      "meaning": "Bench press.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_fifteen_corner_left",
+      "meaning": "Spot fifteen corner left.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_fifteen_break_left",
+      "meaning": "Spot fifteen break left.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_fifteen_top_key",
+      "meaning": "Spot fifteen top key.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_fifteen_break_right",
+      "meaning": "Spot fifteen break right.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_fifteen_corner_right",
+      "meaning": "Spot fifteen corner right.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_college_corner_left",
+      "meaning": "Spot college corner left.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_college_break_left",
+      "meaning": "Spot college break left.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_college_top_key",
+      "meaning": "Spot college top key.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_college_break_right",
+      "meaning": "Spot college break right.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_college_corner_right",
+      "meaning": "Spot college corner right.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_nba_corner_left",
+      "meaning": "Spot nba corner left.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_nba_break_left",
+      "meaning": "Spot nba break left.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_nba_top_key",
+      "meaning": "Spot nba top key.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_nba_break_right",
+      "meaning": "Spot nba break right.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "spot_nba_corner_right",
+      "meaning": "Spot nba corner right.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "off_drib_fifteen_break_left",
+      "meaning": "Off drib fifteen break left.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "off_drib_fifteen_top_key",
+      "meaning": "Off drib fifteen top key.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "off_drib_fifteen_break_right",
+      "meaning": "Off drib fifteen break right.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "off_drib_college_break_left",
+      "meaning": "Off drib college break left.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "off_drib_college_top_key",
+      "meaning": "Off drib college top key.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "off_drib_college_break_right",
+      "meaning": "Off drib college break right.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "on_move_fifteen",
+      "meaning": "On move fifteen.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_combine_stats",
+      "name": "on_move_college",
+      "meaning": "On move college.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "person_id",
+      "meaning": "NBA person identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "player_name",
+      "meaning": "Player name.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "season",
+      "meaning": "Season label or year.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "round_number",
+      "meaning": "Round number.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "round_pick",
+      "meaning": "Round pick.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "overall_pick",
+      "meaning": "Overall pick.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "draft_type",
+      "meaning": "Draft type.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "team_id",
+      "meaning": "NBA team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "team_city",
+      "meaning": "Team city.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "team_name",
+      "meaning": "Team name.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "team_abbreviation",
+      "meaning": "Team abbreviation.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "organization",
+      "meaning": "Organization.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "organization_type",
+      "meaning": "Organization type.",
+      "unit": null
+    },
+    {
+      "object": "nba.draft_history",
+      "name": "player_profile_flag",
+      "meaning": "Player profile flag.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "season_id",
+      "meaning": "Season identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "team_id_home",
+      "meaning": "Home-team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "team_abbreviation_home",
+      "meaning": "Team abbreviation home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "team_name_home",
+      "meaning": "Team name home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "game_id",
+      "meaning": "NBA game identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "game_date",
+      "meaning": "Game date.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "matchup_home",
+      "meaning": "Matchup home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "wl_home",
+      "meaning": "Home-team win/loss code.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "min",
+      "meaning": "Min.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fgm_home",
+      "meaning": "Fgm home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fga_home",
+      "meaning": "Fga home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fg_pct_home",
+      "meaning": "Fg pct home.",
+      "unit": "fraction"
+    },
+    {
+      "object": "nba.game",
+      "name": "fg3m_home",
+      "meaning": "Fg3m home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fg3a_home",
+      "meaning": "Fg3a home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fg3_pct_home",
+      "meaning": "Fg3 pct home.",
+      "unit": "fraction"
+    },
+    {
+      "object": "nba.game",
+      "name": "ftm_home",
+      "meaning": "Ftm home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fta_home",
+      "meaning": "Fta home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "ft_pct_home",
+      "meaning": "Ft pct home.",
+      "unit": "fraction"
+    },
+    {
+      "object": "nba.game",
+      "name": "oreb_home",
+      "meaning": "Oreb home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "dreb_home",
+      "meaning": "Dreb home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "reb_home",
+      "meaning": "Reb home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "ast_home",
+      "meaning": "Ast home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "stl_home",
+      "meaning": "Stl home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "blk_home",
+      "meaning": "Blk home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "tov_home",
+      "meaning": "Tov home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "pf_home",
+      "meaning": "Pf home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "pts_home",
+      "meaning": "Pts home.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.game",
+      "name": "plus_minus_home",
+      "meaning": "Plus minus home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "video_available_home",
+      "meaning": "Video available home.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "team_id_away",
+      "meaning": "Away-team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "team_abbreviation_away",
+      "meaning": "Team abbreviation away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "team_name_away",
+      "meaning": "Team name away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "matchup_away",
+      "meaning": "Matchup away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "wl_away",
+      "meaning": "Away-team win/loss code.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fgm_away",
+      "meaning": "Fgm away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fga_away",
+      "meaning": "Fga away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fg_pct_away",
+      "meaning": "Fg pct away.",
+      "unit": "fraction"
+    },
+    {
+      "object": "nba.game",
+      "name": "fg3m_away",
+      "meaning": "Fg3m away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fg3a_away",
+      "meaning": "Fg3a away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fg3_pct_away",
+      "meaning": "Fg3 pct away.",
+      "unit": "fraction"
+    },
+    {
+      "object": "nba.game",
+      "name": "ftm_away",
+      "meaning": "Ftm away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "fta_away",
+      "meaning": "Fta away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "ft_pct_away",
+      "meaning": "Ft pct away.",
+      "unit": "fraction"
+    },
+    {
+      "object": "nba.game",
+      "name": "oreb_away",
+      "meaning": "Oreb away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "dreb_away",
+      "meaning": "Dreb away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "reb_away",
+      "meaning": "Reb away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "ast_away",
+      "meaning": "Ast away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "stl_away",
+      "meaning": "Stl away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "blk_away",
+      "meaning": "Blk away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "tov_away",
+      "meaning": "Tov away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "pf_away",
+      "meaning": "Pf away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "pts_away",
+      "meaning": "Pts away.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.game",
+      "name": "plus_minus_away",
+      "meaning": "Plus minus away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "video_available_away",
+      "meaning": "Video available away.",
+      "unit": null
+    },
+    {
+      "object": "nba.game",
+      "name": "season_type",
+      "meaning": "Regular-season or postseason category.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_info",
+      "name": "game_id",
+      "meaning": "NBA game identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_info",
+      "name": "game_date",
+      "meaning": "Game date.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_info",
+      "name": "attendance",
+      "meaning": "Attendance.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_info",
+      "name": "game_time",
+      "meaning": "Game time.",
+      "unit": "seconds or source time format"
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "game_date_est",
+      "meaning": "Game date in source EST convention.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "game_sequence",
+      "meaning": "Game sequence.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "game_id",
+      "meaning": "NBA game identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "game_status_id",
+      "meaning": "Game status id.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "game_status_text",
+      "meaning": "Game status text.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "gamecode",
+      "meaning": "Gamecode.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "home_team_id",
+      "meaning": "Home-team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "visitor_team_id",
+      "meaning": "Visitor-team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "season",
+      "meaning": "Season label or year.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "live_period",
+      "meaning": "Live period.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "live_pc_time",
+      "meaning": "Live pc time.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "natl_tv_broadcaster_abbreviation",
+      "meaning": "Natl tv broadcaster abbreviation.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "live_period_time_bcast",
+      "meaning": "Live period time bcast.",
+      "unit": null
+    },
+    {
+      "object": "nba.game_summary",
+      "name": "wh_status",
+      "meaning": "Wh status.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "game_id",
+      "meaning": "NBA game identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "player_id",
+      "meaning": "NBA player identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "first_name",
+      "meaning": "First name.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "last_name",
+      "meaning": "Last name.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "jersey_num",
+      "meaning": "Jersey num.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "team_id",
+      "meaning": "NBA team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "team_city",
+      "meaning": "Team city.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "team_name",
+      "meaning": "Team name.",
+      "unit": null
+    },
+    {
+      "object": "nba.inactive_players",
+      "name": "team_abbreviation",
+      "meaning": "Team abbreviation.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "game_date_est",
+      "meaning": "Game date in source EST convention.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "game_sequence",
+      "meaning": "Game sequence.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "game_id",
+      "meaning": "NBA game identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_id_home",
+      "meaning": "Home-team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_abbreviation_home",
+      "meaning": "Team abbreviation home.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_city_name_home",
+      "meaning": "Team city name home.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_nickname_home",
+      "meaning": "Team nickname home.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_wins_losses_home",
+      "meaning": "Team wins losses home.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "pts_home",
+      "meaning": "Pts home.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_id_away",
+      "meaning": "Away-team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_abbreviation_away",
+      "meaning": "Team abbreviation away.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_city_name_away",
+      "meaning": "Team city name away.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_nickname_away",
+      "meaning": "Team nickname away.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "team_wins_losses_away",
+      "meaning": "Team wins losses away.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "pts_away",
+      "meaning": "Pts away.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.officials",
+      "name": "game_id",
+      "meaning": "NBA game identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.officials",
+      "name": "official_id",
+      "meaning": "Official id.",
+      "unit": null
+    },
+    {
+      "object": "nba.officials",
+      "name": "first_name",
+      "meaning": "First name.",
+      "unit": null
+    },
+    {
+      "object": "nba.officials",
+      "name": "last_name",
+      "meaning": "Last name.",
+      "unit": null
+    },
+    {
+      "object": "nba.officials",
+      "name": "jersey_num",
+      "meaning": "Jersey num.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "game_id",
+      "meaning": "NBA game identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "league_id",
+      "meaning": "League foreign key.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_id_home",
+      "meaning": "Home-team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_abbreviation_home",
+      "meaning": "Team abbreviation home.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_city_home",
+      "meaning": "Team city home.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "pts_paint_home",
+      "meaning": "Pts paint home.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "pts_2nd_chance_home",
+      "meaning": "Pts 2nd chance home.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "pts_fb_home",
+      "meaning": "Pts fb home.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "largest_lead_home",
+      "meaning": "Largest lead home.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "lead_changes",
+      "meaning": "Lead changes.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "times_tied",
+      "meaning": "Times tied.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_turnovers_home",
+      "meaning": "Team turnovers home.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "total_turnovers_home",
+      "meaning": "Total turnovers home.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_rebounds_home",
+      "meaning": "Team rebounds home.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "pts_off_to_home",
+      "meaning": "Pts off to home.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_id_away",
+      "meaning": "Away-team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_abbreviation_away",
+      "meaning": "Team abbreviation away.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_city_away",
+      "meaning": "Team city away.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "pts_paint_away",
+      "meaning": "Pts paint away.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "pts_2nd_chance_away",
+      "meaning": "Pts 2nd chance away.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "pts_fb_away",
+      "meaning": "Pts fb away.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "largest_lead_away",
+      "meaning": "Largest lead away.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_turnovers_away",
+      "meaning": "Team turnovers away.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "total_turnovers_away",
+      "meaning": "Total turnovers away.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "team_rebounds_away",
+      "meaning": "Team rebounds away.",
+      "unit": null
+    },
+    {
+      "object": "nba.other_stats",
+      "name": "pts_off_to_away",
+      "meaning": "Pts off to away.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.player",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.player",
+      "name": "full_name",
+      "meaning": "Full name.",
+      "unit": null
+    },
+    {
+      "object": "nba.player",
+      "name": "first_name",
+      "meaning": "First name.",
+      "unit": null
+    },
+    {
+      "object": "nba.player",
+      "name": "last_name",
+      "meaning": "Last name.",
+      "unit": null
+    },
+    {
+      "object": "nba.player",
+      "name": "is_active",
+      "meaning": "Is active.",
+      "unit": null
+    },
+    {
+      "object": "nba.team",
+      "name": "id",
+      "meaning": "Internal row identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.team",
+      "name": "full_name",
+      "meaning": "Full name.",
+      "unit": null
+    },
+    {
+      "object": "nba.team",
+      "name": "abbreviation",
+      "meaning": "Abbreviation.",
+      "unit": null
+    },
+    {
+      "object": "nba.team",
+      "name": "nickname",
+      "meaning": "Nickname.",
+      "unit": null
+    },
+    {
+      "object": "nba.team",
+      "name": "city",
+      "meaning": "City.",
+      "unit": null
+    },
+    {
+      "object": "nba.team",
+      "name": "state",
+      "meaning": "State.",
+      "unit": null
+    },
+    {
+      "object": "nba.team",
+      "name": "year_founded",
+      "meaning": "Year founded.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "team_id",
+      "meaning": "NBA team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "abbreviation",
+      "meaning": "Abbreviation.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "nickname",
+      "meaning": "Nickname.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "yearfounded",
+      "meaning": "Yearfounded.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "city",
+      "meaning": "City.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "arena",
+      "meaning": "Arena.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "arenacapacity",
+      "meaning": "Arenacapacity.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "owner",
+      "meaning": "Owner.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "generalmanager",
+      "meaning": "Generalmanager.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "headcoach",
+      "meaning": "Headcoach.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "dleagueaffiliation",
+      "meaning": "Dleagueaffiliation.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "facebook",
+      "meaning": "Facebook.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "instagram",
+      "meaning": "Instagram.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_details",
+      "name": "twitter",
+      "meaning": "Twitter.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_history",
+      "name": "team_id",
+      "meaning": "NBA team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_history",
+      "name": "city",
+      "meaning": "City.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_history",
+      "name": "nickname",
+      "meaning": "Nickname.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_history",
+      "name": "year_founded",
+      "meaning": "Year founded.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_history",
+      "name": "year_active_till",
+      "meaning": "Year active till.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "team_id",
+      "meaning": "NBA team identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "season_year",
+      "meaning": "Season year.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "team_city",
+      "meaning": "Team city.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "team_name",
+      "meaning": "Team name.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "team_abbreviation",
+      "meaning": "Team abbreviation.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "team_conference",
+      "meaning": "Team conference.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "team_division",
+      "meaning": "Team division.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "team_code",
+      "meaning": "Team code.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "team_slug",
+      "meaning": "Team slug.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "w",
+      "meaning": "W.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "l",
+      "meaning": "L.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "pct",
+      "meaning": "Pct.",
+      "unit": "fraction"
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "conf_rank",
+      "meaning": "Conf rank.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "div_rank",
+      "meaning": "Div rank.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "min_year",
+      "meaning": "Min year.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "max_year",
+      "meaning": "Max year.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "league_id",
+      "meaning": "League foreign key.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "season_id",
+      "meaning": "Season identifier.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "pts_rank",
+      "meaning": "Pts rank.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "pts_pg",
+      "meaning": "Pts pg.",
+      "unit": "points or count as named"
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "reb_rank",
+      "meaning": "Reb rank.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "reb_pg",
+      "meaning": "Reb pg.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "ast_rank",
+      "meaning": "Ast rank.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "ast_pg",
+      "meaning": "Ast pg.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "opp_pts_rank",
+      "meaning": "Opp pts rank.",
+      "unit": null
+    },
+    {
+      "object": "nba.team_info_common",
+      "name": "opp_pts_pg",
+      "meaning": "Opp pts pg.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "ID",
+      "meaning": "Athlete or patient-style record identifier.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Name",
+      "meaning": "Name.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Sex",
+      "meaning": "Sex.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Age",
+      "meaning": "Athlete age.",
+      "unit": "years"
+    },
+    {
+      "object": "athlete_events",
+      "name": "Height",
+      "meaning": "Athlete height.",
+      "unit": "source-specific length unit"
+    },
+    {
+      "object": "athlete_events",
+      "name": "Weight",
+      "meaning": "Athlete weight.",
+      "unit": "pounds for NBA; kilograms for Olympics"
+    },
+    {
+      "object": "athlete_events",
+      "name": "Team",
+      "meaning": "Team.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "NOC",
+      "meaning": "National Olympic Committee code.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Games",
+      "meaning": "Olympic edition label combining year and season.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Year",
+      "meaning": "Year.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Season",
+      "meaning": "Season.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "City",
+      "meaning": "City.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Sport",
+      "meaning": "Sport.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Event",
+      "meaning": "Event.",
+      "unit": null
+    },
+    {
+      "object": "athlete_events",
+      "name": "Medal",
+      "meaning": "Medal category; NA denotes no medal.",
+      "unit": null
+    },
+    {
+      "object": "noc_regions",
+      "name": "NOC",
+      "meaning": "National Olympic Committee code.",
+      "unit": null
+    },
+    {
+      "object": "noc_regions",
+      "name": "region",
+      "meaning": "Region.",
+      "unit": null
+    },
+    {
+      "object": "noc_regions",
+      "name": "notes",
+      "meaning": "Notes.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "home_player_X1 through home_player_X11",
+      "meaning": "Home lineup X coordinates, slots 1-11.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "home_player_Y1 through home_player_Y11",
+      "meaning": "Home lineup Y coordinates, slots 1-11.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "away_player_X1 through away_player_X11",
+      "meaning": "Away lineup X coordinates, slots 1-11.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "away_player_Y1 through away_player_Y11",
+      "meaning": "Away lineup Y coordinates, slots 1-11.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "home_player_1 through home_player_11",
+      "meaning": "Home lineup player_api_id slots 1-11.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "away_player_1 through away_player_11",
+      "meaning": "Away lineup player_api_id slots 1-11.",
+      "unit": null
+    },
+    {
+      "object": "euro.Match",
+      "name": "bookmaker odds: B365/BW/IW/LB/PS/WH/SJ/VC/GB/BS × H/D/A",
+      "meaning": "Decimal odds families; prefix is bookmaker and H/D/A is home/draw/away.",
+      "unit": null
+    },
+    {
+      "object": "nba.line_score",
+      "name": "pts_qtr1_home through pts_qtr4_home",
+      "meaning": "Home points by regulation quarter 1-4.",
+      "unit": "points"
+    },
+    {
+      "object": "nba.line_score",
+      "name": "pts_qtr1_away through pts_qtr4_away",
+      "meaning": "Away points by regulation quarter 1-4.",
+      "unit": "points"
+    },
+    {
+      "object": "nba.line_score",
+      "name": "pts_ot1_home through pts_ot10_home",
+      "meaning": "Home points by overtime period 1-10.",
+      "unit": "points"
+    },
+    {
+      "object": "nba.line_score",
+      "name": "pts_ot1_away through pts_ot10_away",
+      "meaning": "Away points by overtime period 1-10.",
+      "unit": "points"
+    }
+  ],
+  "structure": [
+    {
+      "description": "European joins: League.country_id→Country.id; Match country/league/team IDs→lookups; lineup IDs→Player.player_api_id; dated attributes join by player_api_id or team_api_id.",
+      "objects": [
+        "euro.Country",
+        "euro.League",
+        "euro.Match",
+        "euro.Player",
+        "euro.Player_Attributes",
+        "euro.Team",
+        "euro.Team_Attributes"
+      ]
+    },
+    {
+      "description": "NBA tables join on game_id; team IDs join team lookups; player/person IDs join player tables and draft/combine records.",
+      "objects": [
+        "nba.game",
+        "nba.game_info",
+        "nba.game_summary",
+        "nba.inactive_players",
+        "nba.line_score",
+        "nba.officials",
+        "nba.other_stats",
+        "nba.player",
+        "nba.common_player_info",
+        "nba.team",
+        "nba.team_details",
+        "nba.team_history",
+        "nba.team_info_common",
+        "nba.draft_history",
+        "nba.draft_combine_stats"
+      ]
+    },
+    {
+      "description": "Olympic rows are athlete-event appearances; NOC joins noc_regions.NOC.",
+      "objects": [
+        "athlete_events",
+        "noc_regions"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "Missing values use blank strings, NA, or SQLite NULL depending on source; NA in Olympic Medal means no medal rather than an unknown medal category.",
+    "Historical NBA coverage and field availability vary by era; early games have many blank box-score components and team-season summary is header-only.",
+    "European match event payloads are serialized text and formation coordinates are sparsely populated; bookmaker columns also have uneven coverage.",
+    "Physical-measurement units differ between NBA and Olympic files and some NBA combine fields include both numeric and formatted feet/inches versions."
+  ],
+  "annotation_notes": [
+    "Exact bounded columns are listed separately; only numbered lineup/coordinate, bookmaker-odds, and quarter/overtime families are grouped.",
+    "Descriptions use public schemas and observed encodings only."
+  ]
+}

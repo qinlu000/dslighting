@@ -1,5 +1,6 @@
 import pytest
 
+from dslighting.config import LLMConfig
 from dslighting.core.application.agent_config_builder import AgentConfigBuilder
 from dslighting.core.visualization_policy import VisualizationPolicy
 from dslighting.error import ConfigurationError
@@ -8,12 +9,7 @@ from dslighting.error import ConfigurationError
 def _make_builder(workflow_name: str, init_kwargs: dict):
     return AgentConfigBuilder(
         workflow_name=workflow_name,
-        model="gpt-4o",
-        api_key=None,
-        api_keys=None,
-        api_base=None,
-        provider=None,
-        temperature=None,
+        llm_config=LLMConfig(model="gpt-4o"),
         timeout=300,
         keep_workspace=True,
         sandbox_backend=None,

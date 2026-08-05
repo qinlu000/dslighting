@@ -414,6 +414,8 @@ class MiniSWEAgentWorkflow(BaseWorkflow):
         if self.llm_config.provider:
             model_kwargs["custom_llm_provider"] = self.llm_config.provider
         model_kwargs["temperature"] = self.llm_config.temperature
+        model_kwargs["timeout"] = self.llm_config.request_timeout_seconds
+        model_kwargs["num_retries"] = self.llm_config.sdk_max_retries
         if self.llm_config.thinking is not None:
             extra_body = dict(model_kwargs.get("extra_body") or {})
             extra_body["thinking"] = {"type": "enabled" if self.llm_config.thinking else "disabled"}

@@ -15,7 +15,6 @@ import copy
 from contextlib import asynccontextmanager
 import hashlib
 import logging
-import os
 import threading
 import time
 import weakref
@@ -32,11 +31,7 @@ from dslighting.services.llm.cost import apply_custom_model_pricing
 from dslighting.services.llm.executor import LLMCallExecutor, LLMCallSpec
 from dslighting.services.llm.observed_call import extract_usage, serialize_response_for_debug
 from dslighting.services.llm.pool import GlobalAPIKeyPool
-from dslighting.utils.constants import (
-    DEFAULT_CACHE_TTL_SECONDS,
-    DEFAULT_MAX_CONCURRENT_PER_KEY,
-)
-from dslighting.utils.defaults import DEFAULT_MAX_RETRIES
+from dslighting.utils.constants import DEFAULT_CACHE_TTL_SECONDS
 
 # Ensure custom pricing is applied
 apply_custom_model_pricing()
@@ -70,16 +65,14 @@ class LLMService:
     _global_cost_mutex = threading.RLock()
 
     @classmethod
-    def normalize_concurrency_limits(
+    def _normalize_concurrency_limits(
         cls,
-        *,
-        global_max_concurrency: int | None = None,
-        model_quotas: dict[str, Any] | None = None,
+        config: LLMConfig,
     ) -> tuple[int | None, dict[str, int]]:
         """Normalize concurrency limits into a stable, comparable representation."""
-        normalized_global = cls._normalize_positive_int(global_max_concurrency)
+        normalized_global = cls._normalize_positive_int(config.global_max_concurrency)
         normalized_model_limits: dict[str, int] = {}
-        for raw_model, raw_cap in (model_quotas or {}).items():
+        for raw_model, raw_cap in config.model_quotas.items():
             model_name = cls._normalize_model_name(raw_model)
             cap = cls._normalize_positive_int(raw_cap)
             if not model_name or cap is None:
@@ -88,37 +81,21 @@ class LLMService:
         return normalized_global, normalized_model_limits
 
     @classmethod
-    def _concurrency_limit_signature(
+    def concurrency_limit_signature(
         cls,
-        *,
-        global_max_concurrency: int | None = None,
-        model_quotas: dict[str, Any] | None = None,
+        config: LLMConfig,
     ) -> tuple[int | None, tuple[tuple[str, int], ...]]:
-        normalized_global, normalized_model_limits = cls.normalize_concurrency_limits(
-            global_max_concurrency=global_max_concurrency,
-            model_quotas=model_quotas,
-        )
+        normalized_global, normalized_model_limits = cls._normalize_concurrency_limits(config)
         return normalized_global, tuple(sorted(normalized_model_limits.items()))
 
     @classmethod
     def configure_concurrency_limits(
         cls,
-        *,
-        global_max_concurrency: int | None = None,
-        model_quotas: dict[str, Any] | None = None,
+        config: LLMConfig,
     ) -> None:
-        """
-        Configure process-wide LLM concurrency limits.
-
-        Args:
-            global_max_concurrency: Global in-flight request cap.
-            model_quotas: Per-model in-flight request caps.
-        """
+        """Configure process-wide limits from the canonical LLM config."""
         with cls._concurrency_mutex:
-            normalized_global, normalized_model_limits = cls.normalize_concurrency_limits(
-                global_max_concurrency=global_max_concurrency,
-                model_quotas=model_quotas,
-            )
+            normalized_global, normalized_model_limits = cls._normalize_concurrency_limits(config)
             previous_signature = (
                 cls._global_limit,
                 tuple(sorted(cls._model_limits.items())),
@@ -173,29 +150,15 @@ class LLMService:
             return None
         return parsed if parsed > 0 else None
 
-    def __init__(
-        self,
-        config: LLMConfig,
-        max_concurrent_per_key: int | None = None,
-    ):
+    def __init__(self, config: LLMConfig):
         """
         初始化 LLM Service。
 
         Args:
             config: LLM 配置
-            max_concurrent_per_key: 每个 API key 的最大并发数（默认读取配置，未配置时使用系统默认）
         """
         self.config = config
-
-        configured_per_key = self._normalize_positive_int(max_concurrent_per_key)
-        if configured_per_key is None:
-            configured_per_key = self._normalize_positive_int(getattr(config, "max_concurrent_per_key", None))
-        if configured_per_key is None:
-            configured_per_key = self._normalize_positive_int(os.getenv("LLM_MAX_CONCURRENT_PER_KEY"))
-        if configured_per_key is None:
-            configured_per_key = DEFAULT_MAX_CONCURRENT_PER_KEY
-
-        self.max_concurrent_per_key = configured_per_key
+        self.max_concurrent_per_key = config.max_concurrent_per_key
         self.total_cost = 0.0
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
@@ -304,6 +267,8 @@ class LLMService:
             "temperature": self.config.temperature,
             "api_key": api_key,
             "api_base": self.config.api_base,
+            "timeout": self.config.request_timeout_seconds,
+            "num_retries": self.config.sdk_max_retries,
         }
         if self.config.provider:
             kwargs["custom_llm_provider"] = self.config.provider
@@ -406,26 +371,7 @@ class LLMService:
         action = self._classify_error_action(error)
         if action == "retry_next_key":
             return 1800.0
-        if action == "retry_same_key":
-            return 60.0
         return 0.0
-
-    async def _make_llm_call_with_retries(
-        self,
-        messages: list,
-        response_format: dict | None = None,
-        max_retries: int = DEFAULT_MAX_RETRIES,
-        base_delay: float = 1.0,
-    ):
-        """
-        Backward-compatible wrapper retained for advanced callers that still use the
-        old private helper. Internally it now routes through the unified executor.
-        """
-        return await self.call_messages(
-            messages=messages,
-            max_retries=max_retries,
-            response_format=response_format,
-        )
 
     def _record_successful_call(
         self,
@@ -528,7 +474,6 @@ class LLMService:
         self,
         prompt: str,
         system_message: str | None = None,
-        max_retries: int | None = None,
     ) -> str:
         """
         Makes a standard, asynchronous call to the LLM and returns the text response.
@@ -537,12 +482,9 @@ class LLMService:
         Args:
             prompt: The user's prompt.
             system_message: An optional system message to guide the LLM's behavior.
-            max_retries: Maximum number of retry attempts (default: 10).
-
         Returns:
             The string content of the LLM's response.
         """
-        retries = max_retries if max_retries is not None else self.config.max_retries
         messages = []
         if system_message:
             messages.append({"role": "system", "content": system_message})
@@ -557,7 +499,7 @@ class LLMService:
             LLMCallSpec(
                 messages=messages,
                 response_mode="text",
-                max_transport_retries=retries,
+                max_transport_retries=self.config.max_retries,
                 max_validation_retries=1,
             )
         )
@@ -567,7 +509,6 @@ class LLMService:
     async def call_messages(
         self,
         messages: list[dict[str, Any]],
-        max_retries: int | None = None,
         response_format: dict | None = None,
     ) -> Any:
         """
@@ -575,19 +516,17 @@ class LLMService:
 
         Args:
             messages: Full message list to send.
-            max_retries: Maximum transport retry attempts.
             response_format: Optional response format specification.
 
         Returns:
             The raw LiteLLM response object.
         """
-        retries = max_retries if max_retries is not None else self.config.max_retries
         return await self._executor.execute(
             LLMCallSpec(
                 messages=messages,
                 response_format=response_format,
                 response_mode="text",
-                max_transport_retries=retries,
+                max_transport_retries=self.config.max_retries,
                 max_validation_retries=1,
             )
         )
@@ -596,7 +535,6 @@ class LLMService:
         self,
         prompt: str,
         output_model: type[BaseModel],
-        max_retries: int | None = None,
     ) -> BaseModel:
         """
         Calls the LLM and forces the output to be a JSON object conforming to the
@@ -605,12 +543,9 @@ class LLMService:
         Args:
             prompt: The user's prompt.
             output_model: The Pydantic model class for the desired output structure.
-            max_retries: Maximum number of retry attempts (default: 10).
-
         Returns:
             An instantiated Pydantic model with the LLM's response.
         """
-        retries = max_retries if max_retries is not None else self.config.max_retries
         system_message = (
             "You are a helpful assistant that always responds with a JSON object "
             "that strictly adheres to the provided JSON Schema. Do not add any "
@@ -645,8 +580,8 @@ class LLMService:
                 response_format=response_format,
                 output_model=output_model,
                 response_mode="json",
-                max_transport_retries=retries,
-                max_validation_retries=max(1, retries),
+                max_transport_retries=self.config.max_retries,
+                max_validation_retries=max(1, self.config.max_retries),
             )
         )
 
@@ -710,7 +645,6 @@ class LLMService:
         self,
         prompts: list[str],
         system_message: str | None = None,
-        max_retries: int | None = None,
         batch_size: int = 20,
     ) -> list[str]:
         """
@@ -723,7 +657,6 @@ class LLMService:
         Args:
             prompts: List of prompts to process
             system_message: Optional system message for all prompts
-            max_retries: Maximum number of retry attempts per prompt
             batch_size: Number of prompts to process concurrently (default: 20)
 
         Returns:
@@ -757,7 +690,7 @@ class LLMService:
             tasks = []
             for i, prompt in enumerate(batch_prompts):
                 batch_indices.append(batch_start + i)
-                task = self.call(prompt, system_message=system_message, max_retries=max_retries)
+                task = self.call(prompt, system_message=system_message)
                 tasks.append(task)
 
             # Execute batch concurrently
@@ -780,7 +713,6 @@ class LLMService:
         self,
         prompts: list[str],
         output_model: type[BaseModel],
-        max_retries: int | None = None,
         batch_size: int = 20,
     ) -> list[BaseModel | None]:
         """
@@ -791,7 +723,6 @@ class LLMService:
         Args:
             prompts: List of prompts to process
             output_model: Pydantic model for response validation
-            max_retries: Maximum number of retry attempts per prompt
             batch_size: Number of prompts to process concurrently
 
         Returns:
@@ -823,7 +754,7 @@ class LLMService:
             tasks = []
             for i, prompt in enumerate(batch_prompts):
                 batch_indices.append(batch_start + i)
-                task = self.call_with_json(prompt, output_model, max_retries=max_retries)
+                task = self.call_with_json(prompt, output_model)
                 tasks.append(task)
 
             batch_results = await asyncio.gather(*tasks, return_exceptions=True)

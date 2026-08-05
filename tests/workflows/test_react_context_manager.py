@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from dslighting.workflows.search.react_context_manager import (
+from dslighting.workflows.search.react.context_manager import (
     ReActContextConfig,
     ReActContextManager,
     build_react_context_config,
@@ -82,6 +82,31 @@ def test_summarize_old_turns_strategy_inserts_structured_summary() -> None:
     ]
     assert "turn-3" in payload
     assert "turn-4" in payload
+
+
+def test_summarize_old_explore_turn_preserves_request_semantics() -> None:
+    manager = _build_manager(
+        ReActContextConfig(
+            strategy="summarize_old_turns",
+            keep_recent_turns=1,
+            max_history_chars=4000,
+            summary_max_chars=1200,
+        )
+    )
+
+    manager.add_assistant_reply(
+        "<Think>Need evidence.</Think><Explore>Inspect row count.</Explore>"
+    )
+    manager.add_runtime_reply(
+        "<Observation><PerceptionResult>rows=3</PerceptionResult></Observation>"
+    )
+    manager.add_assistant_reply(_assistant_turn(2))
+    manager.add_runtime_reply(_observation_turn(2))
+
+    payload = "\n".join(message["content"] for message in manager.build_messages())
+
+    assert "explore=Inspect row count." in payload
+    assert "malformed assistant reply" not in payload
 
 
 def test_hybrid_strategy_summary_shrink_is_strict_and_terminates() -> None:

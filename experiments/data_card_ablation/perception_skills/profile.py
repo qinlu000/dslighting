@@ -12,6 +12,9 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from dslighting.config import LLMConfig
+from dslighting.core.config.llm_resolution import build_llm_config
+
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 EXPERIMENT_ROOT = PROJECT_ROOT / "experiments" / "data_card_ablation"
 
@@ -19,12 +22,8 @@ EXPERIMENT_ROOT = PROJECT_ROOT / "experiments" / "data_card_ablation"
 @dataclass(frozen=True)
 class RuntimePolicy:
     workflow: str
-    model: str
+    llm: LLMConfig
     task_concurrency: int
-    llm_global_concurrency: int
-    llm_per_key_concurrency: int
-    llm_max_retries: int
-    llm_thinking: bool
     sandbox_timeout_seconds: int
     sandbox_backend: str
     sandbox_environment_policy: str
@@ -100,6 +99,10 @@ class PerceptionSkillsExperimentProfile:
         ):
             value = payload[key]
             payload[key] = str(value) if value is not None else None
+        payload["runtime"]["llm"] = self.runtime.llm.model_dump(
+            mode="json",
+            exclude={"api_key", "api_keys"},
+        )
         payload["conditions"] = list(self.conditions)
         return payload
 
@@ -113,9 +116,6 @@ class PerceptionSkillsExperimentProfile:
 
 _COMMON_RUNTIME: Mapping[str, Any] = {
     "workflow": "react",
-    "model": "openai/DeepSeek-V4-Flash",
-    "llm_max_retries": 10,
-    "llm_thinking": False,
     "sandbox_timeout_seconds": 2 * 60 * 60,
     "sandbox_backend": "bubblewrap",
     "sandbox_environment_policy": "allowlist",
@@ -142,9 +142,14 @@ def _profiles() -> dict[str, PerceptionSkillsExperimentProfile]:
         ),
         conditions=("main", "no-added-skill-v1", "dataset-semantics-v1"),
         runtime=RuntimePolicy(
+            llm=build_llm_config(
+                model="openai/DeepSeek-V4-Flash",
+                thinking=False,
+                max_retries=10,
+                max_concurrent_per_key=257,
+                global_max_concurrency=257,
+            ),
             task_concurrency=257,
-            llm_global_concurrency=257,
-            llm_per_key_concurrency=257,
             **_COMMON_RUNTIME,
         ),
     )
@@ -163,9 +168,14 @@ def _profiles() -> dict[str, PerceptionSkillsExperimentProfile]:
             "scientific-modalities-v1",
         ),
         runtime=RuntimePolicy(
+            llm=build_llm_config(
+                model="openai/DeepSeek-V4-Flash",
+                thinking=False,
+                max_retries=10,
+                max_concurrent_per_key=20,
+                global_max_concurrency=20,
+            ),
             task_concurrency=20,
-            llm_global_concurrency=20,
-            llm_per_key_concurrency=20,
             **_COMMON_RUNTIME,
         ),
     )

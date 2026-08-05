@@ -7,7 +7,7 @@ from typing import Literal, Optional, Sequence, Union
 
 from dslighting.config import LLMConfig
 from dslighting.core.config.llm_resolution import build_llm_config
-from dslighting.utils.defaults import DEFAULT_LLM_MODEL, ENV_LLM_MODEL
+from dslighting.utils.defaults import ENV_LLM_MODEL
 
 ENV_JUDGE_MODEL = "JUDGE_MODEL"
 ENV_JUDGE_IMAGE_MODEL = "JUDGE_IMAGE_MODEL"
@@ -17,7 +17,7 @@ ROLE_TEXT_JUDGE = "text_judge"
 ROLE_IMAGE_JUDGE = "image_judge"
 LLMRole = Literal["primary", "text_judge", "image_judge"]
 
-DEFAULT_PRIMARY_MODEL = DEFAULT_LLM_MODEL
+DEFAULT_PRIMARY_MODEL = LLMConfig().model
 DEFAULT_TEXT_JUDGE_MODEL = "openai/deepseek-ai/DeepSeek-V3.1-Terminus"
 DEFAULT_IMAGE_JUDGE_MODEL = "openai/Qwen/Qwen2-VL-72B-Instruct"
 

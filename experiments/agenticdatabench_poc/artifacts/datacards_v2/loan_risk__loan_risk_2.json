@@ -1,0 +1,41 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_2",
+  "data_objects": [
+    {
+      "name": "multi_score_application_records",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Application-level records combining identifiers, optional outcome/holdout fields, two AFT aggregate scores, anonymous AFT and PAC feature families, and five additional score variants."
+    }
+  ],
+  "variables": [
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "rowkey", "meaning": "Opaque application-record identifier.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "apply_date", "meaning": "Application calendar date encoded as YYYYMMDD.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "scene_code", "meaning": "Categorical application-scene code.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "label", "meaning": "Nullable outcome field; populated values, if present, use a binary-label role indicated by the name.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "flag", "meaning": "Categorical sampling or partition flag; random is an observed value.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "is_held_out", "meaning": "Nullable indicator intended to mark held-out records.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "aft_v4_score", "meaning": "Aggregate score associated with the AFT v4 feature representation.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "aft_v4_ee_score", "meaning": "EE-labeled aggregate score associated with AFT v4.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "aft_v4_f0 … aft_v4_f44", "meaning": "Forty-five indexed AFT v4 numeric features. The family mixes score-like values and larger count/day-like values; -1 and values such as 366 appear as explicit numeric codes.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "pac_v2_x0 … pac_v2_x27", "meaning": "Twenty-eight indexed PAC v2 numeric features on a score-like scale.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "scene_id", "meaning": "Second categorical scene identifier, distinct from scene_code.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "score_0", "meaning": "Continuous score variant 0.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "score_1", "meaning": "Continuous score variant 1.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "score_2", "meaning": "Continuous score variant 2.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "score_3", "meaning": "Continuous score variant 3.", "unit": null},
+    {"object": "multi_score_application_records", "file": "input.csv", "name": "score_4", "meaning": "Continuous score variant 4.", "unit": null}
+  ],
+  "structure": [
+    {"description": "The table is flat and application-grained. All score and feature families align by rowkey; scene_code and scene_id are separate fields and should not be conflated.", "objects": ["multi_score_application_records"]}
+  ],
+  "uncertainties": [
+    "The source does not define the outcome, the score calibration, or the semantics of indexed AFT/PAC features.",
+    "Numeric special values inside the AFT family are not documented as missing-value sentinels versus valid codes."
+  ],
+  "annotation_notes": [
+    "Blank label or is_held_out cells are missing values, not zeros.",
+    "The indexed AFT and PAC columns are grouped because they form regular high-dimensional feature families."
+  ]
+}

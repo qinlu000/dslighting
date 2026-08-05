@@ -49,6 +49,7 @@ def test_react_factory_reads_shared_runtime_config(monkeypatch) -> None:
         ),
         agent_runtime=AgentRuntimeConfig(
             max_steps=12,
+            perception_enabled=True,
             observation=AgentRuntimeObservationConfig(
                 max_tokens=1200,
                 head_tokens=600,
@@ -84,6 +85,9 @@ def test_react_factory_reads_shared_runtime_config(monkeypatch) -> None:
     assert workflow.services["react_context_config"].keep_recent_turns == 6
     assert workflow.services["output_contract_config"].require_output_before_completion is True
     assert workflow.services["output_contract_config"].missing_output_feedback_retries == 2
+    assert workflow.services["perception_enabled"] is True
+    assert workflow.perception_enabled is True
+    assert execute_operator.sandbox is workflow.services["sandbox"]
     assert workflow.agent_config == config.agent.model_dump()
 
 
@@ -101,6 +105,7 @@ def test_resolve_agent_runtime_settings_uses_defaults() -> None:
     assert context_config.summary_trigger_turns == 18
     assert context_config.summary_max_chars == 4000
     assert context_config.recent_observation_window == 8
+    assert config.agent_runtime.perception_enabled is False
 
 
 def test_resolve_agent_runtime_settings_rejects_invalid_observation_budget() -> None:

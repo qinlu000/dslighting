@@ -4,6 +4,7 @@ import logging
 
 import pytest
 
+from dslighting.config import LLMConfig
 from dslighting.core.application.agent_config_builder import AgentConfigBuilder
 from dslighting.core.types import TaskDefinition
 from dslighting.runner import DSLightingRunner
@@ -16,12 +17,12 @@ TARGET_MODEL = "openai/deepseek-ai/DeepSeek-V3.1-Terminus"
 def _build_agent_config():
     builder = AgentConfigBuilder(
         workflow_name="aide",
-        model=TARGET_MODEL,
-        api_key=None,
-        api_keys=["k1", "k2"],
-        api_base="https://api.siliconflow.cn/v1",
-        provider=None,
-        temperature=1.0,
+        llm_config=LLMConfig(
+            model=TARGET_MODEL,
+            api_keys=["k1", "k2"],
+            api_base="https://api.siliconflow.cn/v1",
+            temperature=1.0,
+        ),
         timeout=300,
         keep_workspace=False,
         sandbox_backend=None,

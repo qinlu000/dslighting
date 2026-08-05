@@ -30,12 +30,7 @@ from dslighting.workflows.search.minisweagent.workflow import (
 def _agent_config_builder(**init_kwargs) -> AgentConfigBuilder:
     return AgentConfigBuilder(
         workflow_name="mini_swe_agent",
-        model="openai/gpt-4o",
-        api_key="test-key",
-        api_keys=None,
-        api_base=None,
-        provider=None,
-        temperature=None,
+        llm_config=LLMConfig(model="openai/gpt-4o", api_key="test-key"),
         timeout=300,
         keep_workspace=False,
         sandbox_backend=None,
@@ -267,7 +262,11 @@ class _FakeAgent:
         return {"exit_status": "Submitted", "submission": "done"}
 
 
-def _workflow(tmp_path: Path) -> tuple[MiniSWEAgentWorkflow, _DummyWorkspace]:
+def _workflow(
+    tmp_path: Path,
+    *,
+    llm_config: LLMConfig | None = None,
+) -> tuple[MiniSWEAgentWorkflow, _DummyWorkspace]:
     workspace = _DummyWorkspace(tmp_path / "workspace")
     telemetry = MiniSWEAgentTelemetry()
     workflow = MiniSWEAgentWorkflow(
@@ -277,13 +276,30 @@ def _workflow(tmp_path: Path) -> tuple[MiniSWEAgentWorkflow, _DummyWorkspace]:
             "workspace": workspace,
         },
         agent_config={},
-        llm_config=LLMConfig(model="openai/gpt-4o", api_key="test-key"),
+        llm_config=llm_config or LLMConfig(model="openai/gpt-4o", api_key="test-key"),
         settings=MiniSWEAgentSettings(
             step_limit=5,
             wall_time_limit_seconds=60,
         ),
     )
     return workflow, workspace
+
+
+def test_model_config_uses_shared_llm_transport_settings(tmp_path: Path) -> None:
+    workflow, _ = _workflow(
+        tmp_path,
+        llm_config=LLMConfig(
+            model="openai/gpt-4o",
+            api_key="test-key",
+            request_timeout_seconds=25,
+            sdk_max_retries=2,
+        ),
+    )
+
+    model_kwargs = workflow._build_model_config({})["model_kwargs"]
+
+    assert model_kwargs["timeout"] == 25
+    assert model_kwargs["num_retries"] == 2
 
 
 def test_official_local_config_uses_task_workspace(tmp_path: Path) -> None:

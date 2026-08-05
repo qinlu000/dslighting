@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 
 import dslighting.core.task_context as task_context_boundary
+from dslighting.config import LLMConfig
 from dslighting.benchmark.core.source_catalog import get_benchmark_source_catalog
 from dslighting.core.task_context._markdown import replace_dataset_description
 from experiments.data_card_ablation import engine
@@ -209,7 +210,11 @@ def test_build_configs_uses_profile_output_contract_for_every_arm(
     configs = engine.build_configs(
         conditions=conditions,
         run_id="unit-test-run",
-        runtime=engine.ConditionRuntime(profile.default_workflow, "unit-test-model", 2),
+        runtime=engine.ConditionRuntime(
+            profile.default_workflow,
+            LLMConfig(model="unit-test-model"),
+            2,
+        ),
         config_overrides=profile.config_overrides,
         dry_run=True,
     )

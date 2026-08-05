@@ -464,7 +464,7 @@ def judge_image_once(
 
     The judge always uses the structured JSON image protocol.
     """
-    resolved_config = resolve_image_judge_llm_config()
+    resolved_config = resolve_image_judge_llm_config(temperature=temperature)
     kwargs = _llm_config_to_call_kwargs(resolved_config)
     model = kwargs["model"]
     if not kwargs.get("api_key"):
@@ -500,13 +500,9 @@ def judge_image_once(
         response_format = {"type": "json_object"} if use_json_mode else None
         request_mode = "json_mode" if use_json_mode else "prompt_enforced_json"
         return completion_with_observability(
-            model=model,
-            provider=provider,
-            api_base=api_base,
-            api_key=kwargs.get("api_key"),
+            llm_config=resolved_config,
             messages=messages,
             response_format=response_format,
-            temperature=temperature,
             max_tokens=max_tokens,
             response_mode="json" if response_format is not None else "text",
             extra_tags={
@@ -825,7 +821,7 @@ def text_score(
     """
     Call the text LLM judge (JUDGE_MODEL) to score a predicted answer.
     """
-    resolved_config = resolve_text_judge_llm_config()
+    resolved_config = resolve_text_judge_llm_config(temperature=0.0)
     kwargs = _llm_config_to_call_kwargs(resolved_config)
     model = kwargs["model"]
     if not kwargs.get("api_key"):
@@ -848,12 +844,8 @@ def text_score(
 
     try:
         result = completion_with_observability(
-            model=model,
-            provider=kwargs.get("provider"),
-            api_base=kwargs.get("api_base"),
-            api_key=kwargs.get("api_key"),
+            llm_config=resolved_config,
             messages=messages,
-            temperature=0.0,
             max_tokens=128,
             response_mode="json",
             extra_tags={"judge_kind": "text"},

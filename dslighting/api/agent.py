@@ -26,9 +26,11 @@ Example:
 import asyncio
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
+from dslighting.config import LLMConfig
 from dslighting.core.application import AgentAppService
+from dslighting.core.config.llm_resolution import build_llm_config
 from dslighting.core.interfaces import AgentInterface, AgentResult
 if TYPE_CHECKING:
     from dslighting.runner import DSLightingRunner
@@ -75,12 +77,13 @@ class Agent(AgentInterface):
     def __init__(
         self,
         workflow: str = "aide",
-        model: str = "gpt-4o",
+        model: Optional[str] = None,
         api_key: Union[str, List[str], None] = None,
         api_keys: Optional[List[str]] = None,
         api_base: str = None,
         provider: str = None,
         temperature: float = None,
+        llm_config: Optional[LLMConfig] = None,
         timeout: int = 300,
         keep_workspace: bool = False,
         sandbox_backend: Optional[str] = None,
@@ -132,14 +135,28 @@ class Agent(AgentInterface):
                 "Only one of `api_key` or `api_keys` may be provided.",
                 error_code="CFG-002",
             )
+        if llm_config is not None and any(
+            value is not None
+            for value in (model, api_key, api_keys, api_base, provider, temperature)
+        ):
+            raise ConfigurationError(
+                "`llm_config` cannot be combined with individual LLM arguments.",
+                error_code="CFG-002",
+            )
 
         self.workflow_name = WORKFLOW_ALIASES[workflow_key]
-        self.model = model
-        self.api_key = api_key
-        self.api_keys = api_keys
-        self.api_base = api_base
-        self.provider = provider
-        self.temperature = temperature
+        self.llm_config = (
+            llm_config.model_copy(deep=True)
+            if llm_config is not None
+            else build_llm_config(
+                model=model,
+                api_key=api_key,
+                api_keys=api_keys,
+                api_base=api_base,
+                provider=provider,
+                temperature=temperature,
+            )
+        )
         self.timeout = timeout
         self.keep_workspace = keep_workspace
         self.sandbox_backend = sandbox_backend
@@ -231,12 +248,7 @@ class Agent(AgentInterface):
     def _create_app_service(self) -> AgentAppService:
         return AgentAppService(
             workflow_name=self.workflow_name,
-            model=self.model,
-            api_key=self.api_key,
-            api_keys=self.api_keys,
-            api_base=self.api_base,
-            provider=self.provider,
-            temperature=self.temperature,
+            llm_config=self.llm_config,
             timeout=self.timeout,
             keep_workspace=self.keep_workspace,
             sandbox_backend=self.sandbox_backend,

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from dslighting.config import LLMConfig
 from experiments.data_card_ablation import prepare_dabench_perception_data as dabench_clean
 from experiments.data_card_ablation.engine import (
     ConditionRuntime,
@@ -100,12 +101,14 @@ def test_shared_config_builder_changes_only_declared_treatment(tmp_path: Path) -
     annotations.mkdir()
     runtime = ConditionRuntime(
         workflow="react",
-        model="openai/test-model",
+        llm=LLMConfig(
+            model="openai/test-model",
+            global_max_concurrency=20,
+            max_concurrent_per_key=20,
+            max_retries=10,
+            thinking=False,
+        ),
         task_concurrency=4,
-        llm_global_concurrency=20,
-        llm_per_key_concurrency=20,
-        llm_max_retries=10,
-        llm_thinking=False,
         sandbox_timeout_seconds=7200,
         sandbox_backend="bubblewrap",
         sandbox_environment_policy="allowlist",
@@ -139,7 +142,7 @@ def test_shared_config_builder_changes_only_declared_treatment(tmp_path: Path) -
     assert configs["semantic"].task_context.policy == "l1"
     assert configs["semantic"].task_context.l1_artifact_dir == str(annotations)
     assert configs["main"].output_contract == configs["semantic"].output_contract
-    assert configs["main"].scheduler.llm_max_concurrency == 20
+    assert configs["main"].llm.global_max_concurrency == 20
     assert configs["main"].llm.max_retries == 10
     assert configs["main"].llm.thinking is False
 

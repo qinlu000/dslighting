@@ -39,16 +39,16 @@ def test_profiles_freeze_benchmark_specific_conditions_and_runtime() -> None:
     assert mosci.conditions[-1] == "scientific-modalities-v1"
     assert dabench.profile_id == "perception-skills-dabench-v3"
     assert dabench.runtime.task_concurrency == 257
-    assert dabench.runtime.llm_global_concurrency == 257
-    assert dabench.runtime.llm_per_key_concurrency == 257
+    assert dabench.runtime.llm.global_max_concurrency == 257
+    assert dabench.runtime.llm.max_concurrent_per_key == 257
     assert mosci.runtime.task_concurrency == 20
-    assert mosci.runtime.llm_global_concurrency == 20
-    assert mosci.runtime.llm_per_key_concurrency == 20
+    assert mosci.runtime.llm.global_max_concurrency == 20
+    assert mosci.runtime.llm.max_concurrent_per_key == 20
     for profile in (dabench, mosci):
         assert profile.runtime.workflow == "react"
-        assert profile.runtime.model == "openai/DeepSeek-V4-Flash"
-        assert profile.runtime.llm_max_retries == 10
-        assert profile.runtime.llm_thinking is False
+        assert profile.runtime.llm.model == "openai/DeepSeek-V4-Flash"
+        assert profile.runtime.llm.max_retries == 10
+        assert profile.runtime.llm.thinking is False
         assert profile.runtime.sandbox_timeout_seconds == 7200
         assert profile.runtime.sandbox_backend == "bubblewrap"
         assert profile.runtime.sandbox_network_policy == "disabled"
@@ -86,7 +86,7 @@ def test_runtime_profile_maps_once_to_the_shared_engine() -> None:
     runtime = _runtime(load_profile("dabench"))
 
     assert runtime.task_concurrency == 257
-    assert runtime.llm_global_concurrency == 257
+    assert runtime.llm.global_max_concurrency == 257
     assert runtime.sandbox_backend == "bubblewrap"
     assert runtime.checkpoint_resume_enabled is True
 

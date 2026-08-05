@@ -130,6 +130,10 @@ handoff, child Python runner, or per-condition orchestration layer exists.
 
 ## Results
 
+Numerical conclusions are centralized in
+[`experiments/results/annotation_perception_skills.md`](../results/annotation_perception_skills.md).
+The batch manifest remains the machine-readable runtime record.
+
 Batch manifests are written under
 `data/experiments/data_card_ablation/batches/<batch-id>/manifest.json`.
 This is the only experiment manifest. It records the expanded protocol,

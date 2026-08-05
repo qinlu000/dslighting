@@ -2,20 +2,17 @@ from __future__ import annotations
 
 import pytest
 
+from dslighting.config import LLMConfig
 from dslighting.core.application.agent_config_builder import AgentConfigBuilder
 from dslighting.core.config import ConfigBuilder
+from dslighting.core.config.runtime_params import normalize_agent_runtime_params
 from dslighting.error import ConfigurationError
 
 
 def _builder() -> AgentConfigBuilder:
     return AgentConfigBuilder(
         workflow_name="react",
-        model="gpt-4o",
-        api_key=None,
-        api_keys=None,
-        api_base=None,
-        provider=None,
-        temperature=None,
+        llm_config=LLMConfig(model="gpt-4o"),
         timeout=300,
         keep_workspace=False,
         sandbox_backend=None,
@@ -24,6 +21,19 @@ def _builder() -> AgentConfigBuilder:
         sandbox_api_key=None,
         init_kwargs={},
     )
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [("true", True), ("off", False)],
+)
+def test_normalize_agent_runtime_params_coerces_perception_enabled(
+    value: str,
+    expected: bool,
+) -> None:
+    assert normalize_agent_runtime_params({"perception_enabled": value}) == {
+        "perception_enabled": expected
+    }
 
 
 def test_agent_config_builder_maps_agent_runtime_to_shared_config() -> None:

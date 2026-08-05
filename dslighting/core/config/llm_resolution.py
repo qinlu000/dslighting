@@ -5,14 +5,11 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 from dslighting.config import LLMConfig
 from dslighting.error import ConfigurationError
 from dslighting.utils.defaults import (
-    DEFAULT_API_BASE,
-    DEFAULT_LLM_MODEL,
-    DEFAULT_TEMPERATURE,
     ENV_API_BASE,
     ENV_API_KEY,
     ENV_LLM_MODEL,
@@ -30,7 +27,7 @@ def load_global_llm_env() -> Dict[str, Any]:
     """Load global LLM overrides from environment variables."""
     payload: Dict[str, Any] = {}
 
-    api_key = os.getenv(ENV_API_KEY)
+    api_key = os.getenv(ENV_API_KEY) or os.getenv("OPENAI_API_KEY")
     if api_key:
         payload["api_key"] = api_key
 
@@ -102,7 +99,7 @@ def resolve_model_name(model: Optional[str]) -> str:
     if env_model and env_model.strip():
         return env_model.strip()
 
-    return DEFAULT_LLM_MODEL
+    return LLMConfig().model
 
 
 def normalize_api_credentials(payload: Dict[str, Any], *, source: str = "llm") -> Optional[Dict[str, Any]]:
@@ -147,13 +144,16 @@ def build_llm_config(
     api_base: Optional[str] = None,
     provider: Optional[str] = None,
     temperature: Optional[float] = None,
+    thinking: Optional[bool] = None,
+    max_retries: Optional[int] = None,
+    request_timeout_seconds: Optional[float] = None,
+    sdk_max_retries: Optional[int] = None,
+    max_concurrent_per_key: Optional[int] = None,
+    global_max_concurrency: Optional[int] = None,
+    model_quotas: Optional[Mapping[str, int]] = None,
 ) -> LLMConfig:
     """Build a resolved LLMConfig from defaults, env, model overrides, and explicit params."""
-    defaults: Dict[str, Any] = {
-        "model": DEFAULT_LLM_MODEL,
-        "temperature": DEFAULT_TEMPERATURE,
-        "api_base": DEFAULT_API_BASE,
-    }
+    defaults = LLMConfig().model_dump()
 
     env_llm = load_global_llm_env()
     resolved_model = resolve_model_name(model)
@@ -166,6 +166,13 @@ def build_llm_config(
         "api_base": api_base,
         "provider": provider,
         "temperature": temperature,
+        "thinking": thinking,
+        "max_retries": max_retries,
+        "request_timeout_seconds": request_timeout_seconds,
+        "sdk_max_retries": sdk_max_retries,
+        "max_concurrent_per_key": max_concurrent_per_key,
+        "global_max_concurrency": global_max_concurrency,
+        "model_quotas": dict(model_quotas) if model_quotas is not None else None,
     }
 
     merged = _merge_non_none(defaults, env_llm)

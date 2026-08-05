@@ -157,14 +157,20 @@ def run_react(
     from dslighting.api.benchmark import DSBenchmark
     from dslighting.benchmark.core.source_catalog import get_benchmark_source_catalog
     from dslighting.core.config.builder import ConfigBuilder
+    from dslighting.core.config.llm_resolution import build_llm_config
 
     agent_runtime: dict[str, object] = {"max_steps": max_steps}
     if spec.skill_file is not None:
         agent_runtime["skill_path"] = str(spec.skill_file)
-    config = ConfigBuilder().build_config(
-        workflow="react",
+    llm_config = build_llm_config(
         model=spec.model,
         temperature=spec.temperature,
+        max_concurrent_per_key=llm_max_concurrency,
+        global_max_concurrency=llm_max_concurrency,
+    )
+    config = ConfigBuilder().build_config(
+        workflow="react",
+        llm_config=llm_config,
         workspace_dir=str(spec.workspace_base),
         run_name=spec.run_name,
         keep_workspace=True,
@@ -194,10 +200,8 @@ def run_react(
     )
     config.run.dag_runtime.node_timeout_seconds = float(timeout_seconds)
     config.scheduler.max_concurrency = max_concurrency
-    config.scheduler.llm_max_concurrency = llm_max_concurrency
     config.scheduler.gpu_policy = "cpu_default"
     config.scheduler.cpu_worker_pool_size = max_concurrency
-    config.llm.max_concurrent_per_key = llm_max_concurrency
 
     configure_logging(
         level="INFO",

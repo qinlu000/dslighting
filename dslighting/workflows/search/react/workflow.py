@@ -10,8 +10,12 @@ from typing import Any, Dict, Optional
 from dslighting.config import OutputContractConfig
 from dslighting.ops.code.execute import ExecuteAndTestOperator
 from dslighting.ops.presets.react import ReActOperator
-from dslighting.prompts.workflows.react import create_react_prompt
+from dslighting.prompts.workflows.react import (
+    create_perception_prompt,
+    create_react_prompt,
+)
 from dslighting.runtime.dag.actor import SolveWorkflowActor
+from dslighting.services.sandbox_backends.backends.docker import DockerSandboxBackend
 from dslighting.workflows.base import BaseWorkflow
 from dslighting.workflows.output_contract import (
     OutputContractStatus,
@@ -23,13 +27,19 @@ from dslighting.workflows.search.react.context_manager import (
     ReActContextManager,
     build_react_context_config,
 )
+from dslighting.workflows.search.react.perception_protocol import (
+    normalize_perception_reply,
+    parse_perception_reply,
+)
 from dslighting.workflows.search.react.protocol import normalize_react_reply, wrap_feedback
 
 logger = logging.getLogger(__name__)
 
+PERCEPTION_MAX_STEPS = 4
+
 
 class ReActWorkflow(BaseWorkflow):
-    """Thin workflow wrapper around the strict ReAct operator."""
+    """Thin workflow wrapper around the ReAct operator."""
 
     def __init__(
         self,
@@ -50,6 +60,7 @@ class ReActWorkflow(BaseWorkflow):
             services.get("react_context_config")
         )
         self.agent_skill = str(services.get("agent_skill") or "").strip()
+        self.perception_enabled = bool(services.get("perception_enabled", False))
         self.output_contract_config: OutputContractConfig = self._build_output_contract_config(
             services.get("output_contract_config")
         )
@@ -90,14 +101,20 @@ class ReActWorkflow(BaseWorkflow):
             io_instructions=io_instructions,
         )
         question = self._render_task_message(task_context)
+        perception_enabled = self._has_offline_docker_perception()
         system_prompt = create_react_prompt(
             task_context,
             skill=self.agent_skill or None,
+            allow_explore=perception_enabled,
+        )
+        perception_system_prompt = (
+            create_perception_prompt() if perception_enabled else None
         )
 
         answer, messages = await self._run_react_loop(
             question=question,
             system_prompt=system_prompt,
+            perception_system_prompt=perception_system_prompt,
             output_path=output_path,
         )
         logger.info(
@@ -112,6 +129,7 @@ class ReActWorkflow(BaseWorkflow):
         *,
         question: str,
         system_prompt: str,
+        perception_system_prompt: str | None,
         output_path: Path,
     ) -> tuple[str | None, list[dict]]:
         context_manager = ReActContextManager(
@@ -126,7 +144,6 @@ class ReActWorkflow(BaseWorkflow):
             logger.info("[ReActWorkflow] step %d/%d", step + 1, self.max_steps)
             response = await self.llm_service.call_messages(
                 context_manager.build_messages(),
-                max_retries=self.llm_service.config.max_retries,
             )
             content = response.choices[0].message.content or ""
             normalized_reply = normalize_react_reply(content)
@@ -138,7 +155,10 @@ class ReActWorkflow(BaseWorkflow):
                 )
             context_manager.add_assistant_reply(normalized_reply.normalized_content)
 
-            turn_result = await self.react_op(normalized_reply.normalized_content)
+            turn_result = await self.react_op(
+                normalized_reply.normalized_content,
+                allow_explore=perception_system_prompt is not None,
+            )
             if turn_result.final_answer is not None:
                 if self.output_contract_config.require_output_before_completion:
                     status = self._inspect_output_contract(output_path)
@@ -174,6 +194,17 @@ class ReActWorkflow(BaseWorkflow):
                 )
                 continue
 
+            if turn_result.explore_request is not None:
+                assert perception_system_prompt is not None
+                perception_result = await self._run_perception_loop(
+                    request=turn_result.explore_request,
+                    system_prompt=perception_system_prompt,
+                )
+                context_manager.add_runtime_reply(
+                    self.react_op.build_perception_message(perception_result)
+                )
+                continue
+
             if turn_result.next_user_message is not None:
                 context_manager.add_runtime_reply(turn_result.next_user_message)
                 if (
@@ -192,6 +223,107 @@ class ReActWorkflow(BaseWorkflow):
             )
 
         return final_answer, context_manager.export_full_history()
+
+    async def _run_perception_loop(
+        self,
+        *,
+        request: str,
+        system_prompt: str,
+    ) -> str:
+        """Run a short, isolated-context Perception loop and return its report."""
+        if not self._has_offline_docker_perception():
+            logger.error(
+                "[PerceptionAgent] refused to start without a shared offline "
+                "Docker sandbox."
+            )
+            return (
+                "Perception Agent was not started because its Docker sandbox cannot "
+                "prove that network access is disabled."
+            )
+
+        context_manager = ReActContextManager(
+            system_prompt=system_prompt,
+            task_message=f"Exploration Request:\n{request}",
+            config=self.context_config,
+        )
+
+        for step in range(PERCEPTION_MAX_STEPS):
+            logger.info(
+                "[PerceptionAgent] step %d/%d",
+                step + 1,
+                PERCEPTION_MAX_STEPS,
+            )
+            response = await self.llm_service.call_messages(
+                context_manager.build_messages(),
+            )
+            content = response.choices[0].message.content or ""
+            normalized_reply = normalize_perception_reply(content)
+            if normalized_reply.repaired:
+                logger.info(
+                    "[PerceptionAgent] repaired reply at step %d: %s",
+                    step + 1,
+                    normalized_reply.repair_reason,
+                )
+            context_manager.add_assistant_reply(normalized_reply.normalized_content)
+            turn_result = parse_perception_reply(normalized_reply.normalized_content)
+            if turn_result.report is not None:
+                return turn_result.report
+
+            if turn_result.action_code is not None:
+                exec_result = await self.execute_op(
+                    code=turn_result.action_code,
+                    mode="script",
+                )
+                context_manager.add_runtime_reply(
+                    self.react_op.build_execution_message(
+                        exec_result,
+                        escape_output=True,
+                    )
+                )
+                continue
+
+            if turn_result.next_user_message is not None:
+                context_manager.add_runtime_reply(turn_result.next_user_message)
+
+            if (
+                context_manager.consecutive_feedback_turns()
+                > self.context_config.max_feedback_retries
+            ):
+                logger.warning(
+                    "[PerceptionAgent] stopping after %d consecutive feedback turns.",
+                    context_manager.consecutive_feedback_turns(),
+                )
+                return (
+                    "Perception Agent stopped after repeated protocol errors "
+                    "without returning a perception report."
+                )
+
+        logger.warning(
+            "[PerceptionAgent] reached its step limit without a perception report."
+        )
+        return (
+            "Perception Agent reached its step limit without returning a final "
+            "perception report. Continue without it or send a narrower request."
+        )
+
+    def _has_offline_docker_perception(self) -> bool:
+        """Return whether Perception can reuse the opt-in offline Docker sandbox."""
+        if not self.perception_enabled:
+            return False
+
+        execution_sandbox = getattr(self.execute_op, "sandbox", None)
+        if execution_sandbox is not self.sandbox_service:
+            return False
+
+        backend = getattr(execution_sandbox, "backend", None)
+        if not isinstance(backend, DockerSandboxBackend):
+            return False
+
+        config = getattr(backend, "config", None)
+        return (
+            getattr(config, "environment_policy", None) == "allowlist"
+            and getattr(config, "network_policy", None) == "disabled"
+        )
 
     def _build_output_contract_footer(self, output_path: Path) -> str | None:
         if not self.output_contract_config.require_output_before_completion:

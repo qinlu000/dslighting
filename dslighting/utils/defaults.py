@@ -1,30 +1,18 @@
 """
 Default configurations for DSLighting simplified API.
 
-This module defines sensible defaults that can be overridden by:
+This module defines non-LLM defaults that can be overridden by:
 1. User parameters (highest priority)
 2. Environment variables
 3. These defaults (lowest priority)
 
-NOTE: This is the PRIMARY source for default configuration values.
-This module is the single source of truth for configuration defaults.
-constants.py may re-export selected values for backward compatibility.
-Any default-value changes should be made here first.
+LLM defaults live only on ``dslighting.config.LLMConfig``.
+constants.py may re-export selected non-LLM values for backward compatibility.
 """
 
 from __future__ import annotations
 
-from typing import Dict, List, Any
-
-
-# ============================================================================
-# LLM Defaults
-# ============================================================================
-
-DEFAULT_LLM_MODEL = "gpt-4o-mini"
-DEFAULT_TEMPERATURE = 0.7
-DEFAULT_MAX_RETRIES = 10
-DEFAULT_API_BASE = "https://api.openai.com/v1"
+from typing import Any, Dict
 
 
 # ============================================================================
@@ -113,14 +101,6 @@ to create the final DSLightingConfig.
 """
 
 DEFAULT_CONFIG: Dict[str, Any] = {
-    "llm": {
-        "model": DEFAULT_LLM_MODEL,
-        "temperature": DEFAULT_TEMPERATURE,
-        "max_retries": DEFAULT_MAX_RETRIES,
-        "max_concurrent_per_key": 20,
-        "api_base": DEFAULT_API_BASE,
-        "api_key": None,  # Will be loaded from env
-    },
     "workflow": {
         "name": DEFAULT_WORKFLOW,
         "params": {}
@@ -168,7 +148,6 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "oom_retry_memory_growth": 1.35,
         "sandbox_memory_mode": "off",
         "sandbox_default_memory_gb": 6.0,
-        "llm_max_concurrency": None,
         "cpu_worker_pool_size": None,
         "exp_name": None,
         "monitor_language": None,

@@ -184,6 +184,8 @@ class ConfigValidator:
         for field, constraint_info in constraints.items():
             if field in config:
                 value = config[field]
+                if value is None:
+                    continue
                 if "min" in constraint_info and value < constraint_info["min"]:
                     errors.append(ValidationError(
                         field=field,
@@ -226,11 +228,21 @@ class ConfigValidator:
             "types": {
                 "model": str,
                 "temperature": (int, float),
+                "thinking": (bool, type(None)),
                 "max_retries": int,
+                "request_timeout_seconds": (int, float),
+                "sdk_max_retries": int,
+                "max_concurrent_per_key": int,
+                "global_max_concurrency": (int, type(None)),
+                "model_quotas": dict,
             },
             "constraints": {
                 "temperature": {"min": 0.0, "max": 2.0},
-                "max_retries": {"min": 0, "max": 10},
+                "max_retries": {"min": 1},
+                "request_timeout_seconds": {"min": 0.001},
+                "sdk_max_retries": {"min": 0},
+                "max_concurrent_per_key": {"min": 1},
+                "global_max_concurrency": {"min": 1},
             }
         }
 

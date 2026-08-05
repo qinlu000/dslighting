@@ -9,7 +9,7 @@ and tracking costs.
 
 Submodules:
 - service: LLMService and CachedLLMService classes
-- pool: GlobalAPIKeyPool and LLMConnectionPool classes
+- pool: GlobalAPIKeyPool class
 - cost: Cost tracking and model pricing utilities
 
 For backward compatibility, all classes are also re-exported at the package level.
@@ -18,11 +18,10 @@ For backward compatibility, all classes are also re-exported at the package leve
 from __future__ import annotations
 
 from dslighting.services.llm.service import CachedLLMService, LLMService
-from dslighting.services.llm.pool import GlobalAPIKeyPool, LLMConnectionPool
+from dslighting.services.llm.pool import GlobalAPIKeyPool
 
 __all__ = [
     "LLMService",
     "CachedLLMService",
     "GlobalAPIKeyPool",
-    "LLMConnectionPool",
 ]

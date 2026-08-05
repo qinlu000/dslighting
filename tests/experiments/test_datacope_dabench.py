@@ -133,7 +133,7 @@ def test_react_factory_reads_the_configured_skill_file(tmp_path: Path) -> None:
 async def test_react_workflow_puts_the_skill_only_in_the_system_prompt(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    captured: dict[str, str] = {}
+    captured: dict[str, str | None] = {}
     react_operator = type("ReactOperator", (), {"max_steps": 1})()
     workflow = ReActWorkflow(
         operators={"react": react_operator, "execute": object()},
@@ -141,16 +141,26 @@ async def test_react_workflow_puts_the_skill_only_in_the_system_prompt(
         agent_config={},
     )
 
-    async def fake_loop(*, question, system_prompt, output_path):  # noqa: ANN001, ANN202
+    async def fake_loop(  # noqa: ANN001, ANN202
+        *,
+        question,
+        system_prompt,
+        perception_system_prompt,
+        output_path,
+    ):
         captured["question"] = question
         captured["system_prompt"] = system_prompt
+        captured["perception_system_prompt"] = perception_system_prompt
         return None, []
 
     monkeypatch.setattr(workflow, "_run_react_loop", fake_loop)
     await workflow.solve("task description", "write result.csv", tmp_path, tmp_path / "result.csv")
 
+    assert isinstance(captured["system_prompt"], str)
+    assert isinstance(captured["question"], str)
     assert "SKILL_SENTINEL" in captured["system_prompt"]
     assert "SKILL_SENTINEL" not in captured["question"]
+    assert captured["perception_system_prompt"] is None
 
 
 def test_run_spec_uses_frozen_phase_tasks_and_hashes_skill(tmp_path: Path) -> None:

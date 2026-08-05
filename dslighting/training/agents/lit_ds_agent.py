@@ -77,14 +77,16 @@ class LitDSAgent(agl.LitAgent[Dict[str, Any]]):
 
         init_kwargs = {**self.workflow_config, "max_steps": self.max_steps}
 
+        from dslighting.config import LLMConfig
+
         service = AgentAppService(
             workflow_name=self.workflow_name,
-            model=llm.model,
-            api_key=llm.api_key or None,
-            api_keys=None,
-            api_base=llm.endpoint or None,
-            provider=None,
-            temperature=llm.sampling_parameters.get("temperature", 0.7),
+            llm_config=LLMConfig(
+                model=llm.model,
+                api_key=llm.api_key or None,
+                api_base=llm.endpoint or None,
+                temperature=llm.sampling_parameters.get("temperature", 0.7),
+            ),
             timeout=None,
             keep_workspace=False,
             sandbox_backend=None,

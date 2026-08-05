@@ -17,8 +17,6 @@ from dslighting.benchmark.core.source_catalog import (
 from dslighting.config import DSLightingConfig, WorkflowConfig
 from dslighting.core.config.shared import get_workflow_for_benchmark
 from dslighting.error import ConfigurationError
-if TYPE_CHECKING:
-    from dslighting.runner import DSLightingRunner
 
 if TYPE_CHECKING:
     from dslighting.benchmark import RuntimeSchedulerOptions
@@ -274,8 +272,8 @@ class DSBenchmark:
         return prepared
 
     def _build_runtime_options(self, config: DSLightingConfig) -> "RuntimeSchedulerOptions":
-        """Build RuntimeSchedulerOptions from DSLightingConfig.scheduler."""
-        return config.scheduler.to_runtime_options()
+        """Build scheduler options, sourcing LLM limits only from the global LLM config."""
+        return config.scheduler.to_runtime_options(llm_config=config.llm)
 
     def _execute_benchmark(
         self,

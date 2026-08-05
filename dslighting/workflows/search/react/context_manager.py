@@ -2,21 +2,20 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import logging
 import re
+from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from dslighting.state.context import (
-    DEFAULT_MAX_HISTORY_CHARS,
-    DEFAULT_MAX_OUTPUT_CHARS,
-    hard_truncate_chars,
-    hard_truncate_head_tail,
-)
 from dslighting.core.config.runtime_params import (
     AGENT_RUNTIME_CONTEXT_ALLOWED_KEYS,
     AGENT_RUNTIME_CONTEXT_ALLOWED_STRATEGIES,
     normalize_agent_runtime_context_params,
+)
+from dslighting.state.context import (
+    DEFAULT_MAX_OUTPUT_CHARS,
+    hard_truncate_chars,
+    hard_truncate_head_tail,
 )
 from dslighting.workflows.search.react.validation import validate_react_operator_params
 
@@ -536,6 +535,7 @@ class ReActContextManager:
     def _summarize_turn(self, turn: ReActTurn) -> str:
         think = self._extract_tag_content(turn.assistant_reply, "Think")
         action = self._extract_tag_content(turn.assistant_reply, "Action")
+        explore = self._extract_tag_content(turn.assistant_reply, "Explore")
         parts: list[str] = []
 
         if think:
@@ -546,6 +546,8 @@ class ReActContextManager:
                 parts.append("action=executed python code")
             else:
                 parts.append(f"action={self._shorten(action, 120)}")
+        elif explore:
+            parts.append(f"explore={self._shorten(explore, 120)}")
         else:
             parts.append("action=malformed assistant reply")
 

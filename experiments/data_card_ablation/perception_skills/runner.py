@@ -184,12 +184,8 @@ def _runtime(profile: PerceptionSkillsExperimentProfile) -> ConditionRuntime:
     policy = profile.runtime
     return ConditionRuntime(
         workflow=policy.workflow,
-        model=policy.model,
+        llm=policy.llm,
         task_concurrency=policy.task_concurrency,
-        llm_global_concurrency=policy.llm_global_concurrency,
-        llm_per_key_concurrency=policy.llm_per_key_concurrency,
-        llm_max_retries=policy.llm_max_retries,
-        llm_thinking=policy.llm_thinking,
         sandbox_timeout_seconds=policy.sandbox_timeout_seconds,
         sandbox_backend=policy.sandbox_backend,
         sandbox_environment_policy=policy.sandbox_environment_policy,
@@ -444,12 +440,12 @@ class PerceptionSkillsRunner:
             "selection": selection_manifest(prepared),
             "runtime": {
                 "workflow": profile.runtime.workflow,
-                "model": profile.runtime.model,
+                "model": first_config.llm.model,
                 "concurrency": profile.runtime.task_concurrency,
-                "llm_max_concurrency": profile.runtime.llm_global_concurrency,
-                "llm_max_concurrent_per_key": profile.runtime.llm_per_key_concurrency,
-                "llm_max_retries": profile.runtime.llm_max_retries,
-                "llm_thinking": profile.runtime.llm_thinking,
+                "llm_max_concurrency": first_config.llm.global_max_concurrency,
+                "llm_max_concurrent_per_key": first_config.llm.max_concurrent_per_key,
+                "llm_max_retries": first_config.llm.max_retries,
+                "llm_thinking": first_config.llm.thinking,
                 "gpu_policy": profile.runtime.device_admission,
                 "checkpoint_resume_enabled": profile.runtime.checkpoint_resume_enabled,
                 "output_contract": first_config.output_contract.model_dump(mode="json"),
@@ -530,7 +526,11 @@ class PerceptionSkillsRunner:
             return self.base_profile, True
         runtime = replace(
             self.base_profile.runtime,
-            model=request.overrides.model or self.base_profile.runtime.model,
+            llm=self.base_profile.runtime.llm.model_copy(
+                update={
+                    "model": request.overrides.model or self.base_profile.runtime.llm.model,
+                }
+            ),
             workflow=request.overrides.workflow or self.base_profile.runtime.workflow,
             task_concurrency=(
                 request.overrides.task_concurrency or self.base_profile.runtime.task_concurrency

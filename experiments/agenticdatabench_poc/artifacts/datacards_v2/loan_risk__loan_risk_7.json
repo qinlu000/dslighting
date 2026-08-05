@@ -1,0 +1,27 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_7",
+  "data_objects": [
+    {
+      "name": "monthly_status_transitions",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Account-month records containing the previous and current categorical credit-status states."
+    }
+  ],
+  "variables": [
+    {"object": "monthly_status_transitions", "file": "input.csv", "name": "account_id", "meaning": "Integer account identifier; it can repeat across months.", "unit": null},
+    {"object": "monthly_status_transitions", "file": "input.csv", "name": "month", "meaning": "Observation month encoded as YYYYMM.", "unit": null},
+    {"object": "monthly_status_transitions", "file": "input.csv", "name": "prev_status", "meaning": "Status immediately preceding the current month; observed codes are M0, M1, M2, M3, M3+, and Bad.", "unit": null},
+    {"object": "monthly_status_transitions", "file": "input.csv", "name": "curr_status", "meaning": "Status for the current month; observed codes are M0, M1, M2, M3, M3+, and Bad.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Rows form an account-by-month panel. prev_status and curr_status encode a within-row transition between adjacent status states.", "objects": ["monthly_status_transitions"]}
+  ],
+  "uncertainties": [
+    "The file does not define the operational meaning or severity ordering of M0 through M3+, or whether Bad is absorbing."
+  ],
+  "annotation_notes": [
+    "Status values are categorical strings; any ordinal interpretation should be justified separately."
+  ]
+}

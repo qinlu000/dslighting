@@ -11,6 +11,7 @@ from dslighting.config import LLMConfig
 from dslighting.debug.api import get_debug_session, init_debug
 from dslighting.error import LLMServiceError
 from dslighting.services.llm.pool import GlobalAPIKeyPool
+from dslighting.services.llm.observed_call import completion_with_observability
 from dslighting.services.llm.service import LLMService
 from dslighting.services.llm.executor import MAX_TRANSPORT_RETRY_DELAY_SECONDS
 
@@ -64,6 +65,8 @@ def test_completion_kwargs_forward_explicit_thinking_mode() -> None:
             api_key="secret",
             api_base="https://example.com/v1",
             thinking=False,
+            request_timeout_seconds=15,
+            sdk_max_retries=1,
         )
     )
     disabled_kwargs = disabled._build_completion_kwargs(
@@ -72,9 +75,26 @@ def test_completion_kwargs_forward_explicit_thinking_mode() -> None:
         api_key="secret",
     )
     assert disabled_kwargs["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert disabled_kwargs["timeout"] == 15
+    assert disabled_kwargs["num_retries"] == 1
+
+    default_disabled = LLMService(
+        LLMConfig(model="gpt-test", api_key="secret", api_base="https://example.com/v1")
+    )
+    default_disabled_kwargs = default_disabled._build_completion_kwargs(
+        messages=[{"role": "user", "content": "Return text"}],
+        response_format=None,
+        api_key="secret",
+    )
+    assert default_disabled_kwargs["extra_body"] == {"thinking": {"type": "disabled"}}
 
     inherited = LLMService(
-        LLMConfig(model="gpt-test", api_key="secret", api_base="https://example.com/v1")
+        LLMConfig(
+            model="gpt-test",
+            api_key="secret",
+            api_base="https://example.com/v1",
+            thinking=None,
+        )
     )
     inherited_kwargs = inherited._build_completion_kwargs(
         messages=[{"role": "user", "content": "Return text"}],
@@ -82,6 +102,33 @@ def test_completion_kwargs_forward_explicit_thinking_mode() -> None:
         api_key="secret",
     )
     assert "extra_body" not in inherited_kwargs
+
+
+def test_observed_completion_uses_llm_config_transport_settings(monkeypatch) -> None:
+    captured: dict = {}
+
+    def _fake_completion(**kwargs):
+        captured.update(kwargs)
+        return _Response("ok")
+
+    monkeypatch.setattr("litellm.completion", _fake_completion)
+    config = LLMConfig(
+        model="gpt-test",
+        api_key="secret",
+        api_base="https://example.com/v1",
+        thinking=False,
+        request_timeout_seconds=20,
+        sdk_max_retries=2,
+    )
+
+    completion_with_observability(
+        llm_config=config,
+        messages=[{"role": "user", "content": "Return text"}],
+    )
+
+    assert captured["timeout"] == 20
+    assert captured["num_retries"] == 2
+    assert captured["extra_body"] == {"thinking": {"type": "disabled"}}
 
 
 @pytest.mark.asyncio
@@ -132,9 +179,14 @@ async def test_reasoning_content_is_used_when_content_is_empty(
 
     monkeypatch.setattr("litellm.acompletion", _fake_acompletion)
     service = LLMService(
-        LLMConfig(model="gpt-test", api_key="secret", api_base="https://example.com/v1")
+        LLMConfig(
+            model="gpt-test",
+            api_key="secret",
+            api_base="https://example.com/v1",
+            max_retries=1,
+        )
     )
-    result = await service.call("Return text", max_retries=1)
+    result = await service.call("Return text")
 
     assert result == "final response from reasoning content"
     assert response.choices[0].message.content == result
@@ -153,9 +205,16 @@ async def test_call_with_json_emits_single_logical_call_with_validation_retry(mo
 
     monkeypatch.setattr("litellm.acompletion", _fake_acompletion)
 
-    service = LLMService(LLMConfig(model="gpt-test", api_key="secret", api_base="https://example.com/v1"))
+    service = LLMService(
+        LLMConfig(
+            model="gpt-test",
+            api_key="secret",
+            api_base="https://example.com/v1",
+            max_retries=2,
+        )
+    )
     try:
-        result = await service.call_with_json("Return JSON", _OutputModel, max_retries=2)
+        result = await service.call_with_json("Return JSON", _OutputModel)
         assert result.value == "ok"
     finally:
         current = get_debug_session()
@@ -204,9 +263,10 @@ async def test_call_with_json_rotates_to_next_key_on_auth_failure(monkeypatch) -
             model="gpt-test",
             api_keys=["bad-key", "good-key"],
             api_base="https://example.com/v1",
+            max_retries=1,
         )
     )
-    result = await service.call_with_json("Return JSON", _OutputModel, max_retries=1)
+    result = await service.call_with_json("Return JSON", _OutputModel)
 
     assert result.value == "ok"
     assert attempted_keys == ["bad-key", "good-key"]
@@ -235,10 +295,11 @@ async def test_call_with_json_fails_after_all_keys_auth_fail(monkeypatch) -> Non
             model="gpt-test",
             api_keys=["bad-key-1", "bad-key-2"],
             api_base="https://example.com/v1",
+            max_retries=1,
         )
     )
 
     with pytest.raises(LLMServiceError, match="exhausting 2 API key"):
-        await service.call_with_json("Return JSON", _OutputModel, max_retries=1)
+        await service.call_with_json("Return JSON", _OutputModel)
 
     assert attempted_keys == ["bad-key-1", "bad-key-2"]

@@ -21,7 +21,6 @@ from dslighting.services.llm.observed_call import (
     extract_response_content,
     summarize_empty_response,
 )
-from dslighting.utils.defaults import DEFAULT_MAX_RETRIES
 
 if TYPE_CHECKING:
     from dslighting.services.llm.service import LLMService
@@ -34,10 +33,10 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class LLMCallSpec:
     messages: list[dict[str, Any]]
+    max_transport_retries: int
     response_format: dict[str, Any] | None = None
     output_model: type[BaseModel] | None = None
     response_mode: str = "text"
-    max_transport_retries: int = DEFAULT_MAX_RETRIES
     max_validation_retries: int = 1
     base_delay: float = 1.0
 

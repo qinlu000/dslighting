@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from dslighting.config import LLMConfig
 from dslighting.core.application.agent_app_service import AgentAppService
 from dslighting.core.interfaces import AgentResult
 
@@ -23,12 +24,7 @@ async def test_app_service_calls_task_executor_with_resolved_input(monkeypatch, 
 
     service = AgentAppService(
         workflow_name="aide",
-        model="gpt-4o",
-        api_key=None,
-        api_keys=None,
-        api_base=None,
-        provider=None,
-        temperature=None,
+        llm_config=LLMConfig(model="gpt-4o"),
         timeout=300,
         keep_workspace=False,
         sandbox_backend=None,

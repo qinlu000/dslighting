@@ -1,0 +1,31 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_25",
+  "data_objects": [
+    {
+      "name": "partitioned_scene_features",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Monthly application records with record and scene identifiers, train/test assignment, binary label, and indexed AFT v4 and PAC v2 feature families."
+    }
+  ],
+  "variables": [
+    {"object": "partitioned_scene_features", "file": "input.csv", "name": "rowkey", "meaning": "Opaque application-record identifier.", "unit": null},
+    {"object": "partitioned_scene_features", "file": "input.csv", "name": "apply_date", "meaning": "Application month encoded as YYYYMM.", "unit": null},
+    {"object": "partitioned_scene_features", "file": "input.csv", "name": "scene_code", "meaning": "Categorical scene code represented as scene followed by an integer.", "unit": null},
+    {"object": "partitioned_scene_features", "file": "input.csv", "name": "flag", "meaning": "Provided data-partition indicator with observed values train and test.", "unit": null},
+    {"object": "partitioned_scene_features", "file": "input.csv", "name": "label", "meaning": "Binary 0/1 outcome indicator; the positive event is not defined.", "unit": null},
+    {"object": "partitioned_scene_features", "file": "input.csv", "name": "aft_v4_f0 … aft_v4_f44", "meaning": "Forty-five indexed AFT v4 numeric features; the family contains mixed numeric scales and explicit special-looking values such as -1.", "unit": null},
+    {"object": "partitioned_scene_features", "file": "input.csv", "name": "pac_v2_x0 … pac_v2_x27", "meaning": "Twenty-eight indexed PAC v2 numeric features on a score-like scale.", "unit": null}
+  ],
+  "structure": [
+    {"description": "The table is record-grained. rowkey identifies rows, flag supplies the partition, scene_code supplies a categorical segment, and apply_date is monthly rather than daily.", "objects": ["partitioned_scene_features"]}
+  ],
+  "uncertainties": [
+    "The label definition and the meanings/calibration of indexed AFT and PAC features are not documented."
+  ],
+  "annotation_notes": [
+    "Do not parse apply_date as YYYYMMDD; it contains only year and month.",
+    "Indexed AFT and PAC columns are grouped as regular high-dimensional families."
+  ]
+}

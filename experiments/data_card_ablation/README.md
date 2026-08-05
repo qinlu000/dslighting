@@ -18,6 +18,9 @@ never exposes annotation-generation skills to the Solving Agent, and varies
 only the reviewed L1 annotation bundle among those generated conditions. See
 [`PERCEPTION_SKILLS.md`](PERCEPTION_SKILLS.md) for its design and commands.
 
+Completed level and perception-skill results are reported only in the
+centralized [`experiments/results`](../results/README.md) directory.
+
 ## Data Card level ablation
 
 This entry runs one benchmark task set under any selected subset of four

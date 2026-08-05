@@ -17,13 +17,9 @@ dslighting.checkpoint, dslighting.state.context, dslighting.error).
 
 from dslighting.utils.defaults import (
     DEFAULT_WORKFLOW,
-    DEFAULT_LLM_MODEL,
-    DEFAULT_TEMPERATURE,
     DEFAULT_MAX_ITERATIONS,
     WORKFLOW_RECOMMENDATIONS,
     DEFAULT_CONFIG,
-    DEFAULT_MAX_RETRIES,
-    DEFAULT_API_BASE,
     DEFAULT_SANDBOX_TIMEOUT,
     DEFAULT_WORKSPACE_DIR,
     DEFAULT_KEEP_WORKSPACE_ON_FAILURE,
@@ -53,9 +49,6 @@ from dslighting.utils.dynamic_import import (
 )
 
 from dslighting.utils.constants import (
-    DEFAULT_MAX_CONCURRENT_PER_KEY,
-    DEFAULT_POOL_SIZE,
-    KEEPALIVE_TIMEOUT_SECONDS,
     DEFAULT_FLUSH_INTERVAL,
     DEFAULT_MAX_BATCH_SIZE,
     DEFAULT_POOL_SIZE_SANDBOX,
@@ -75,7 +68,6 @@ from dslighting.utils.constants import (
     DEFAULT_CACHE_TTL_SECONDS,
     MAX_MEMORY_MB,
     CPU_TIMEOUT_SECONDS,
-    LLM_HTTP_CLIENT_TIMEOUT,
     FINGERPRINT_SCAN_DEPTH,
     DEEP_DISCOVERY_MAX_DIRS,
     DEEP_DISCOVERY_MAX_FILES,
@@ -85,8 +77,6 @@ from dslighting.utils.constants import (
 
 # Re-export configuration defaults from defaults.py
 from dslighting.utils.defaults import (
-    DEFAULT_TEMPERATURE,
-    DEFAULT_NUM_DRAFTS,
     DEFAULT_SANDBOX_TIMEOUT as SANDBOX_TIMEOUT_SECONDS,
 )
 
@@ -114,13 +104,9 @@ from dslighting.utils.file_monitor import (
 __all__ = [
     # defaults
     "DEFAULT_WORKFLOW",
-    "DEFAULT_LLM_MODEL",
-    "DEFAULT_TEMPERATURE",
     "DEFAULT_MAX_ITERATIONS",
     "WORKFLOW_RECOMMENDATIONS",
     "DEFAULT_CONFIG",
-    "DEFAULT_MAX_RETRIES",
-    "DEFAULT_API_BASE",
     "DEFAULT_SANDBOX_TIMEOUT",
     "DEFAULT_WORKSPACE_DIR",
     "DEFAULT_KEEP_WORKSPACE_ON_FAILURE",
@@ -142,9 +128,6 @@ __all__ = [
     "import_workflow_from_string",
     "DynamicImportError",
     # constants
-    "DEFAULT_MAX_CONCURRENT_PER_KEY",
-    "DEFAULT_POOL_SIZE",
-    "KEEPALIVE_TIMEOUT_SECONDS",
     "DEFAULT_FLUSH_INTERVAL",
     "DEFAULT_MAX_BATCH_SIZE",
     "DEFAULT_POOL_SIZE_SANDBOX",
@@ -165,7 +148,6 @@ __all__ = [
     "DEFAULT_CACHE_TTL_SECONDS",
     "MAX_MEMORY_MB",
     "CPU_TIMEOUT_SECONDS",
-    "LLM_HTTP_CLIENT_TIMEOUT",
     "FINGERPRINT_SCAN_DEPTH",
     "DEEP_DISCOVERY_MAX_DIRS",
     "DEEP_DISCOVERY_MAX_FILES",

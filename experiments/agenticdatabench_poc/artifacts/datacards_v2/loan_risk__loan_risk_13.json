@@ -1,0 +1,28 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_13",
+  "data_objects": [
+    {
+      "name": "tenant_product_scores",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Timestamped score events identified by tenant and score-product name."
+    }
+  ],
+  "variables": [
+    {"object": "tenant_product_scores", "file": "input.csv", "name": "gmt_occur", "meaning": "Event timestamp formatted as YYYY-MM-DD HH:MM:SS; the timezone is not stated.", "unit": null},
+    {"object": "tenant_product_scores", "file": "input.csv", "name": "tenant", "meaning": "Categorical tenant identifier encoded as TENANT_ followed by a zero-padded number.", "unit": null},
+    {"object": "tenant_product_scores", "file": "input.csv", "name": "product_name", "meaning": "Chinese-language name of the score product or product version that produced the observation.", "unit": null},
+    {"object": "tenant_product_scores", "file": "input.csv", "name": "score", "meaning": "Numeric product output; values span more than one apparent scale and may include -1 as a special value.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is a timestamped tenant-product score event. product_name is essential context because score scales are not uniform across products.", "objects": ["tenant_product_scores"]}
+  ],
+  "uncertainties": [
+    "The timezone, score calibration, and interpretation of the -1 value are not documented.",
+    "No separate event identifier is present, so row uniqueness may depend on multiple columns."
+  ],
+  "annotation_notes": [
+    "Do not pool score values across product_name categories without accounting for their potentially different scales."
+  ]
+}

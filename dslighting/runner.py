@@ -112,7 +112,7 @@ class RuntimeConfigParser:
 
         Returns:
             A dictionary containing runtime hints (cuda_visible_devices,
-            llm_max_concurrency, extra_env, enable_dag_runtime, etc.).
+            extra_env, enable_dag_runtime, etc.).
             Returns empty dict if payload is malformed or missing runtime.
         """
         payload = self.task.payload
@@ -216,12 +216,6 @@ class RuntimeConfigParser:
                     return run_parameters.get(key)
             return None
 
-        llm_global_cap = self._coerce_positive_int(
-            _first_override("llm_global_max_concurrency", "llm_max_concurrency")
-        )
-        if llm_global_cap is not None:
-            options.llm_global_max_concurrency = llm_global_cap
-
         max_inflight_nodes = self._coerce_positive_int(_first_override("max_inflight_nodes"))
         if max_inflight_nodes is not None:
             options.max_inflight_nodes = max_inflight_nodes
@@ -258,10 +252,6 @@ class RuntimeConfigParser:
         enable_speculative_branches = _first_override("enable_speculative_branches")
         if enable_speculative_branches is not None:
             options.enable_speculative_branches = bool(enable_speculative_branches)
-
-        llm_model_quotas = _first_override("llm_model_quotas")
-        if isinstance(llm_model_quotas, dict):
-            options.llm_model_quotas = dict(llm_model_quotas)
 
         actor_strategy = _first_override("dag_actor_strategy", "dag_runtime_actor_strategy")
         if actor_strategy is not None:
@@ -320,7 +310,6 @@ class RuntimeConfigParser:
         Applies runtime configuration from task.payload to task_config,
         including:
         - CUDA_VISIBLE_DEVICES for GPU allocation
-        - LLM concurrency limits
         - Extra environment variables
 
         Args:
@@ -336,18 +325,10 @@ class RuntimeConfigParser:
             return self.task_config
 
         sandbox_env: dict[str, str] = {}
-        extra_parameters: dict[str, Any] = {}
 
         cuda_visible_devices = runtime_hints.get("cuda_visible_devices")
         if cuda_visible_devices is not None:
             sandbox_env["CUDA_VISIBLE_DEVICES"] = str(cuda_visible_devices)
-
-        llm_max_concurrency = runtime_hints.get("llm_max_concurrency")
-        if llm_max_concurrency is not None:
-            try:
-                extra_parameters["llm_max_concurrency"] = max(1, int(llm_max_concurrency))
-            except (TypeError, ValueError):
-                pass
 
         extra_env = runtime_hints.get("extra_env")
         if isinstance(extra_env, dict):
@@ -355,11 +336,9 @@ class RuntimeConfigParser:
                 if env_value is not None:
                     sandbox_env[str(env_key)] = str(env_value)
 
-        if sandbox_env or extra_parameters:
+        if sandbox_env:
             merged_parameters = dict(self.task_config.run.parameters or {})
-            if sandbox_env:
-                merged_parameters["sandbox_env"] = sandbox_env
-            merged_parameters.update(extra_parameters)
+            merged_parameters["sandbox_env"] = sandbox_env
             self.task_config.run.parameters = merged_parameters
 
         return self.task_config
@@ -499,11 +478,11 @@ class DSLightingRunner:
         signature: tuple[int | None, tuple[tuple[str, int], ...]] | None,
     ) -> dict[str, Any]:
         if signature is None:
-            return {"llm_global_max_concurrency": None, "llm_model_quotas": {}}
+            return {"global_max_concurrency": None, "model_quotas": {}}
         global_cap, model_items = signature
         return {
-            "llm_global_max_concurrency": global_cap,
-            "llm_model_quotas": dict(model_items),
+            "global_max_concurrency": global_cap,
+            "model_quotas": dict(model_items),
         }
 
     def register_workflow(
@@ -729,9 +708,9 @@ class DSLightingRunner:
         task_config = config_parser.update_task_config_from_runtime_hints(runtime_hints)
         task_config = config_parser.apply_agent_task_context()
 
-        dag_runtime_options = config_parser.parse_dag_options(runtime_hints)
         self._configure_llm_runtime_limits(
-            task_id=task.task_id, task_config=task_config, dag_options=dag_runtime_options
+            task_id=task.task_id,
+            task_config=task_config,
         )
         log_resolved_runtime_config(
             logger,
@@ -1022,58 +1001,14 @@ class DSLightingRunner:
         *,
         task_id: str,
         task_config: DSLightingConfig,
-        dag_options: DagRuntimeOptions,
     ) -> None:
-        run_parameters = dict(task_config.run.parameters or {})
-        configured_global_cap = (
-            dag_options.llm_global_max_concurrency
-            or RuntimeConfigParser._coerce_positive_int(run_parameters.get("llm_max_concurrency"))
-        )
-        model_quotas = dict(dag_options.llm_model_quotas or {})
-
-        try:
-            api_keys = task_config.llm.get_api_keys()
-        except Exception:  # pragma: no cover - defensive
-            api_keys = []
-
-        per_key_cap = RuntimeConfigParser._coerce_positive_int(
-            getattr(task_config.llm, "max_concurrent_per_key", None)
-        )
-        theoretical_max = None
-        if api_keys and per_key_cap:
-            theoretical_max = len(api_keys) * per_key_cap
-
-        if theoretical_max is not None:
-            if configured_global_cap is None:
-                global_cap = theoretical_max
-            else:
-                global_cap = min(configured_global_cap, theoretical_max)
-                if global_cap < configured_global_cap:
-                    logger.info(
-                        "Clamping llm_global_max_concurrency from %s to %s based on key pool capacity (%s keys x %s per key).",
-                        configured_global_cap,
-                        global_cap,
-                        len(api_keys),
-                        per_key_cap,
-                    )
-        else:
-            global_cap = configured_global_cap
-
-        normalized_global_cap, normalized_model_quotas = LLMService.normalize_concurrency_limits(
-            global_max_concurrency=global_cap,
-            model_quotas=model_quotas,
-        )
-        signature = (
-            normalized_global_cap,
-            tuple(sorted(normalized_model_quotas.items())),
-        )
+        signature = LLMService.concurrency_limit_signature(task_config.llm)
+        normalized_global_cap, model_items = signature
+        normalized_model_quotas = dict(model_items)
 
         with self._llm_runtime_limits_lock:
             if self._llm_runtime_limit_signature is None:
-                LLMService.configure_concurrency_limits(
-                    global_max_concurrency=normalized_global_cap,
-                    model_quotas=normalized_model_quotas,
-                )
+                LLMService.configure_concurrency_limits(task_config.llm)
                 self._llm_runtime_limit_signature = signature
                 self._llm_runtime_limit_source_task = task_id
                 logger.info(
@@ -1100,7 +1035,7 @@ class DSLightingRunner:
                     "conflicting_limits": self._format_llm_runtime_limit_signature(signature),
                 },
                 suggestion=(
-                    "Use a single llm_global_max_concurrency/llm_model_quotas profile per run "
+                    "Use a single DSLightingConfig.llm concurrency profile per run "
                     "or split tasks with different limits into separate runs."
                 ),
             )

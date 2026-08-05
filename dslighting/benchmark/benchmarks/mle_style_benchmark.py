@@ -14,7 +14,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from dslighting.benchmark.core.base import BaseBenchmark
 from dslighting.benchmark.core.config_loader import (
     BaseBenchmarkConfigLoader,
-    create_problem_entry,
 )
 from dslighting.benchmark.evaluation.service import TaskEvaluationService
 from dslighting.benchmark.evaluation.contract_builder import build_task_evaluation_contract
@@ -369,12 +368,6 @@ class MLEStyleBenchmark(BaseBenchmark):
         judge_model = self._resolve_llm_judge_model()
         llm_config = ConfigBuilder().build_config(model=judge_model).llm
 
-        # Compatibility: keep supporting OPENAI_API_KEY-only setups.
-        if not llm_config.get_api_keys():
-            openai_api_key = os.environ.get("OPENAI_API_KEY")
-            if openai_api_key:
-                llm_config.api_key = openai_api_key
-
         return LLMService(llm_config), llm_config.model
 
     async def _grade_open_ended(self, artifacts_path: Path, competition_id: str, mode: str) -> float:
@@ -498,8 +491,6 @@ Respond ONLY with the JSON object, no additional text.
 
                 # Parse JSON response with improved handling for nested objects
                 import json
-                import re
-
                 # Try direct parse first (fastest path)
                 try:
                     result = json.loads(llm_response.strip())

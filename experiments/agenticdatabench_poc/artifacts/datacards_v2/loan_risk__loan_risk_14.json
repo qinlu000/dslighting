@@ -1,0 +1,28 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_14",
+  "data_objects": [
+    {
+      "name": "mobile_tenant_scores",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Timestamped score events associated with an anonymized mobile identifier and tenant."
+    }
+  ],
+  "variables": [
+    {"object": "mobile_tenant_scores", "file": "input.csv", "name": "gmt_occur", "meaning": "Event timestamp formatted as YYYY-MM-DD HH:MM:SS; the timezone is not stated.", "unit": null},
+    {"object": "mobile_tenant_scores", "file": "input.csv", "name": "mobile_md5", "meaning": "Anonymized mobile identifier represented by PHONE_ followed by a zero-padded number, despite the md5-oriented column name.", "unit": null},
+    {"object": "mobile_tenant_scores", "file": "input.csv", "name": "tenant", "meaning": "Categorical tenant identifier encoded as TENANT_ followed by a zero-padded number.", "unit": null},
+    {"object": "mobile_tenant_scores", "file": "input.csv", "name": "score", "meaning": "Numeric score on an undocumented scale; -1 appears to be a possible special value.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is a timestamped mobile-tenant score event; mobile_md5 can recur and is the entity-linking field.", "objects": ["mobile_tenant_scores"]}
+  ],
+  "uncertainties": [
+    "The timezone, score calibration, and interpretation of -1 are not documented.",
+    "The file does not state whether repeated mobile identifiers represent repeated requests or distinct applications."
+  ],
+  "annotation_notes": [
+    "mobile_md5 should be handled as an opaque categorical identifier, not parsed as a number."
+  ]
+}

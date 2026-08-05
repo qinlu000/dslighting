@@ -5,9 +5,14 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Sequence
+
+from dotenv import load_dotenv
+
+from dslighting.core.config.llm_resolution import build_llm_config
 
 from .runner import (
     DEFAULT_DATASETS_RELATIVE_PATH,
@@ -28,6 +33,7 @@ WORKFLOWS = (
     "deepanalyze",
     "autokaggle",
     "aflow",
+    "mini_swe_agent",
 )
 
 
@@ -57,8 +63,46 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--provider")
     parser.add_argument("--api-base")
     parser.add_argument("--temperature", type=float, default=0.0)
-    parser.add_argument("--max-steps", type=int, default=80)
-    parser.add_argument("--concurrency", type=int, default=1)
+    thinking = parser.add_mutually_exclusive_group()
+    thinking.add_argument(
+        "--thinking",
+        dest="thinking",
+        action="store_true",
+        help="Explicitly enable provider reasoning mode",
+    )
+    thinking.add_argument(
+        "--no-thinking",
+        dest="thinking",
+        action="store_false",
+        help="Explicitly disable provider reasoning mode (default)",
+    )
+    parser.set_defaults(thinking=False)
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=30,
+        help="Maximum transport attempts for each LLM call (default: 30)",
+    )
+    parser.add_argument("--max-steps", type=int, default=30)
+    parser.add_argument(
+        "--max-history-chars",
+        type=int,
+        default=48000,
+        help="Maximum ReAct prompt-history characters (default: 48000)",
+    )
+    parser.add_argument(
+        "--keep-recent-turns",
+        type=int,
+        default=14,
+        help="Number of recent ReAct turns retained verbatim (default: 14)",
+    )
+    parser.add_argument(
+        "--summary-trigger-turns",
+        type=int,
+        default=18,
+        help="Turn count that enables historical summarization (default: 18)",
+    )
+    parser.add_argument("--concurrency", type=int, default=30)
     parser.add_argument("--timeout-seconds", type=int, default=3600)
     parser.add_argument(
         "--sandbox-backend",
@@ -75,10 +119,40 @@ def _parser() -> argparse.ArgumentParser:
         default="bubblewrap",
     )
     parser.add_argument("--allow-network", action="store_true")
+    parser.add_argument(
+        "--perception",
+        action="store_true",
+        help="Enable the Perception treatment (ReAct with offline Docker only)",
+    )
+    parser.add_argument(
+        "--datacard-dir",
+        type=Path,
+        help="Add one validated, task-independent Datacard per visible domain root",
+    )
+    parser.add_argument("--skill-file", type=Path)
+    parser.add_argument(
+        "--llm-debug-logging",
+        action="store_true",
+        help="Enable verbose provider SDK logging to diagnose LLM retry causes.",
+    )
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--retry-failed", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     return parser
+
+
+def _enable_llm_debug_logging() -> None:
+    logging.getLogger().setLevel(logging.DEBUG)
+    for logger_name in (
+        "openai",
+        "openai._base_client",
+        "httpx",
+        "httpcore",
+        "litellm",
+    ):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.DEBUG)
+        logger.propagate = True
 
 
 def _resolve_paths(args: argparse.Namespace) -> tuple[Path, Path, Path, Path, Path, Path]:
@@ -108,6 +182,7 @@ def _resolve_paths(args: argparse.Namespace) -> tuple[Path, Path, Path, Path, Pa
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=False)
     args = _parser().parse_args(argv)
     try:
         (
@@ -129,6 +204,34 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ValueError("--sandbox-backend docker requires --docker-image")
         if args.concurrency <= 0:
             raise ValueError("--concurrency must be positive")
+        if args.max_retries <= 0:
+            raise ValueError("--max-retries must be positive")
+        if args.max_history_chars <= 0:
+            raise ValueError("--max-history-chars must be positive")
+        if args.keep_recent_turns <= 0:
+            raise ValueError("--keep-recent-turns must be positive")
+        if args.summary_trigger_turns < args.keep_recent_turns:
+            raise ValueError("--summary-trigger-turns must be >= --keep-recent-turns")
+        if args.perception and (
+            args.workflow != "react" or args.sandbox_backend != "docker" or args.allow_network
+        ):
+            raise ValueError(
+                "--perception requires --workflow react, --sandbox-backend docker, "
+                "and networking disabled"
+            )
+        if args.perception and args.datacard_dir is not None:
+            raise ValueError("--perception and --datacard-dir are separate treatments")
+
+        llm_config = build_llm_config(
+            model=args.model,
+            provider=args.provider,
+            api_base=args.api_base,
+            temperature=args.temperature,
+            thinking=args.thinking,
+            max_retries=args.max_retries,
+            max_concurrent_per_key=args.concurrency,
+            global_max_concurrency=args.concurrency,
+        )
 
         if args.dry_run:
             plan = {
@@ -136,8 +239,27 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "dataset_root": str(dataset_root),
                 "output_dir": str(output_dir),
                 "workflow": args.workflow,
-                "model": args.model,
+                "model": llm_config.model,
+                "thinking": llm_config.thinking,
                 "concurrency": args.concurrency,
+                "max_retries": args.max_retries,
+                "max_steps": args.max_steps,
+                "max_history_chars": args.max_history_chars,
+                "keep_recent_turns": args.keep_recent_turns,
+                "summary_trigger_turns": args.summary_trigger_turns,
+                "timeout_seconds": args.timeout_seconds,
+                "perception_enabled": args.perception,
+                "datacard_enabled": args.datacard_dir is not None,
+                "datacard_dir": (
+                    str(args.datacard_dir.expanduser().resolve())
+                    if args.datacard_dir is not None
+                    else None
+                ),
+                "skill_file": (
+                    str(args.skill_file.expanduser().resolve())
+                    if args.skill_file is not None
+                    else None
+                ),
                 "sandbox_backend": args.sandbox_backend,
                 "docker_image": args.docker_image,
                 "tasks": [
@@ -152,19 +274,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps(plan, ensure_ascii=False, indent=2))
             return 0
 
+        if args.llm_debug_logging:
+            _enable_llm_debug_logging()
+
         settings = RunSettings(
             benchmark_root=benchmark_root,
-            tasks_file=tasks_file,
             dataset_root=dataset_root,
             output_dir=output_dir,
             workspace_dir=workspace_dir,
             staging_dir=staging_dir,
             workflow=args.workflow,
-            model=args.model,
-            provider=args.provider,
-            api_base=args.api_base,
-            temperature=args.temperature,
+            llm=llm_config,
             max_steps=args.max_steps,
+            max_history_chars=args.max_history_chars,
+            keep_recent_turns=args.keep_recent_turns,
+            summary_trigger_turns=args.summary_trigger_turns,
             concurrency=args.concurrency,
             timeout_seconds=args.timeout_seconds,
             sandbox_backend=args.sandbox_backend,
@@ -174,6 +298,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             pids_limit=args.pids_limit,
             local_isolation=args.local_isolation,
             disable_network=not args.allow_network,
+            perception_enabled=args.perception,
+            datacard_dir=(
+                args.datacard_dir.expanduser().resolve() if args.datacard_dir is not None else None
+            ),
+            skill_file=(
+                args.skill_file.expanduser().resolve() if args.skill_file is not None else None
+            ),
             overwrite=args.overwrite,
             retry_failed=args.retry_failed,
         )

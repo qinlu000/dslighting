@@ -9,7 +9,15 @@ from pathlib import Path
 from typing import Any, List, Optional, TYPE_CHECKING, Union
 from abc import ABC, abstractmethod
 
-from dslighting.config import DSLightingConfig, DataAnalysisConfig, RunConfig, SandboxConfig, WorkflowConfig
+from dslighting.config import (
+    DSLightingConfig,
+    DataAnalysisConfig,
+    LLMConfig,
+    RunConfig,
+    SandboxConfig,
+    WorkflowConfig,
+)
+from dslighting.core.config.llm_resolution import build_llm_config
 from dslighting.core.visualization_policy import consume_visualization_policy
 from dslighting.core.config.runtime_logging import log_resolved_runtime_config
 from dslighting.core.data import TaskContext
@@ -39,12 +47,13 @@ class BaseWorkflowFactory(WorkflowFactoryInterface, ABC):
 
     def __init__(
         self,
-        model: str = "gpt-4o",
+        model: str | None = None,
         api_key: Union[str, List[str], None] = None,
         api_keys: Optional[List[str]] = None,
         api_base: str = None,
         provider: str = None,
         temperature: float = None,
+        llm_config: LLMConfig | None = None,
         timeout: int = 300,
         keep_workspace: bool = False,
         **agent_init_kwargs
@@ -74,21 +83,32 @@ class BaseWorkflowFactory(WorkflowFactoryInterface, ABC):
             ...     use_data_insights=True
             ... )
         """
-        self.model = model
         self.timeout = timeout
         self.keep_workspace = keep_workspace
         self._agent_init_kwargs = agent_init_kwargs
 
-        # Use DSLighting's ConfigBuilder to automatically read config from environment variables
+        if llm_config is not None and any(
+            value is not None
+            for value in (model, api_key, api_keys, api_base, provider, temperature)
+        ):
+            raise ValueError("`llm_config` cannot be combined with individual LLM arguments")
+        resolved_llm_config = (
+            llm_config.model_copy(deep=True)
+            if llm_config is not None
+            else build_llm_config(
+                model=model,
+                api_key=api_key,
+                api_keys=api_keys,
+                api_base=api_base,
+                provider=provider,
+                temperature=temperature,
+            )
+        )
+
         from dslighting.core import ConfigBuilder
         config_builder = ConfigBuilder()
         config = config_builder.build_config(
-            model=model,
-            api_key=api_key,
-            api_keys=api_keys,
-            api_base=api_base,
-            provider=provider,
-            temperature=temperature,
+            llm_config=resolved_llm_config,
             data_analysis=agent_init_kwargs.get("data_analysis"),
         )
         self._base_config = config
@@ -261,12 +281,12 @@ class BaseWorkflowFactory(WorkflowFactoryInterface, ABC):
             # Check data type
             if isinstance(data, TaskContext):
                 # TaskContext object
-                logger.info(f"Detected TaskContext object")
+                logger.info("Detected TaskContext object")
                 task_id = data.task_id
                 data_dir = data.data_dir
             elif isinstance(data, dict) and 'data_dir' in data:
                 # dataset dict/dictionary (from dslighting.datasets.load_xxx())
-                logger.info(f"Detected dataset dict/dictionary")
+                logger.info("Detected dataset dict/dictionary")
                 data_dir = Path(data['data_dir'])
                 task_id = task_id or data.get('task_id')
             else:
@@ -278,7 +298,7 @@ class BaseWorkflowFactory(WorkflowFactoryInterface, ABC):
         # Case 2: only task_id was provided
         elif task_id is not None and data_dir is None:
             # Automatically find data_dir from registry
-            logger.info(f"Only task_id provided, will look up data_dir from registry")
+            logger.info("Only task_id provided, will look up data_dir from registry")
             # Call run_with_task_id, let its internal logic handle data_dir lookup
             return await self.run_with_task_id(task_id=task_id, **kwargs)
 

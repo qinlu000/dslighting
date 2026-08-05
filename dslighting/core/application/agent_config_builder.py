@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 
 from dslighting.config import (
     AgentRuntimeConfig,
     DSLightingConfig,
     DataAnalysisConfig,
+    LLMConfig,
     OutputContractConfig,
     RunConfig,
     SandboxConfig,
     TaskContextConfig,
     WorkflowConfig,
 )
-from dslighting.core.config.llm_resolution import build_llm_config
 from dslighting.core.config.runtime_params import (
     LEGACY_REACT_RUNTIME_KEYS,
     normalize_agent_runtime_params,
@@ -39,12 +39,7 @@ class AgentConfigBuilder:
         self,
         *,
         workflow_name: str,
-        model: str,
-        api_key: Optional[Union[str, List[str]]],
-        api_keys: Optional[List[str]],
-        api_base: Optional[str],
-        provider: Optional[str],
-        temperature: Optional[float],
+        llm_config: LLMConfig,
         timeout: int,
         keep_workspace: bool,
         sandbox_backend: Optional[str],
@@ -54,12 +49,7 @@ class AgentConfigBuilder:
         init_kwargs: Dict[str, Any],
     ) -> None:
         self.workflow_name = workflow_name
-        self.model = model
-        self.api_key = api_key
-        self.api_keys = api_keys
-        self.api_base = api_base
-        self.provider = provider
-        self.temperature = temperature
+        self.llm_config = llm_config.model_copy(deep=True)
         self.timeout = timeout
         self.keep_workspace = keep_workspace
         self.sandbox_backend = sandbox_backend
@@ -69,21 +59,6 @@ class AgentConfigBuilder:
         self.init_kwargs = dict(init_kwargs)
 
     def build(self, *, task_id: str, run_kwargs: Dict[str, Any]) -> DSLightingConfig:
-        if self.api_key is not None and self.api_keys is not None:
-            raise ConfigurationError(
-                "Only one of `api_key` or `api_keys` may be provided.",
-                error_code="CFG-002",
-            )
-
-        llm_config = build_llm_config(
-            model=self.model,
-            api_key=self.api_key,
-            api_keys=self.api_keys,
-            api_base=self.api_base,
-            provider=self.provider,
-            temperature=self.temperature,
-        )
-
         config = DSLightingConfig(
             run=RunConfig(
                 run_name=f"agent_{self.workflow_name}",
@@ -91,7 +66,7 @@ class AgentConfigBuilder:
                 keep_workspace_on_failure=self.keep_workspace,
             ),
             workflow=WorkflowConfig(name=self.workflow_name, params={}),
-            llm=llm_config,
+            llm=self.llm_config.model_copy(deep=True),
             sandbox=SandboxConfig(timeout=self.timeout),
         )
 

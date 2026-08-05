@@ -1,0 +1,138 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "transportation",
+  "data_objects": [
+    {
+      "name": "us_commute_tracts",
+      "files": ["NTAD_Means_of_Transportation_to_Work_-1194660124623303343.gpkg"],
+      "kind": "geospatial",
+      "meaning": "GeoPackage layer of US census tracts with commute-mode counts and percentages.",
+      "notes": "Layer Means_of_Transportation_to_Work uses multipolygon geometry with EPSG:4326."
+    },
+    {
+      "name": "ncr_ride_bookings",
+      "files": ["ncr_ride_bookings.csv"],
+      "kind": "table",
+      "meaning": "Ride-booking records for NCR locations with booking status, vehicle and route, arrival measures, cancellation/incomplete fields, value, distance, ratings, and payment method."
+    },
+    {
+      "name": "nyc_taxi_zones",
+      "files": ["taxi_zones.zip"],
+      "kind": "archive",
+      "meaning": "ZIP archive containing one ESRI Shapefile of NYC taxi-zone polygons and lookup attributes.",
+      "notes": "The archive contains .shp, .shx, .dbf, .prj, and .cpg components under taxi_zones/; declared CRS is EPSG:2263."
+    },
+    {
+      "name": "nyc_yellow_taxi_trips",
+      "files": [
+        "yellow_tripdata/yellow_tripdata_2024-01.parquet",
+        "yellow_tripdata/yellow_tripdata_2024-02.parquet",
+        "yellow_tripdata/yellow_tripdata_2024-03.parquet",
+        "yellow_tripdata/yellow_tripdata_2024-04.parquet",
+        "yellow_tripdata/yellow_tripdata_2024-05.parquet",
+        "yellow_tripdata/yellow_tripdata_2024-06.parquet",
+        "yellow_tripdata/yellow_tripdata_2024-07.parquet",
+        "yellow_tripdata/yellow_tripdata_2024-08.parquet",
+        "yellow_tripdata/yellow_tripdata_2024-09.parquet"
+      ],
+      "kind": "table",
+      "meaning": "Monthly Parquet partitions of NYC yellow-taxi trip records for January through September 2024.",
+      "notes": "All nine partitions share the same 19-column Arrow schema."
+    }
+  ],
+  "variables": [
+    {"object": "us_commute_tracts", "name": "OBJECTID", "meaning": "Layer object identifier.", "unit": null},
+    {"object": "us_commute_tracts", "name": "SHAPE", "meaning": "Census-tract multipolygon geometry.", "unit": null},
+    {"object": "us_commute_tracts", "name": "GEOID", "meaning": "Full 11-character census-tract GEOID.", "unit": null},
+    {"object": "us_commute_tracts", "name": "ALAND", "meaning": "Land area.", "unit": "square metres"},
+    {"object": "us_commute_tracts", "name": "AWATER", "meaning": "Water area.", "unit": "square metres"},
+    {"object": "us_commute_tracts", "name": "STATEFP", "meaning": "Two-character state FIPS code.", "unit": null},
+    {"object": "us_commute_tracts", "name": "COUNTYFP", "meaning": "Three-character county FIPS code within state.", "unit": null},
+    {"object": "us_commute_tracts", "name": "TRACTCE", "meaning": "Six-character census-tract code.", "unit": null},
+    {"object": "us_commute_tracts", "name": "TRACTID", "meaning": "Display tract identifier.", "unit": null},
+    {"object": "us_commute_tracts", "name": "NAMELSAD", "meaning": "Legal/statistical area description such as Census Tract 9450.01.", "unit": null},
+    {"object": "us_commute_tracts", "name": "NAME", "meaning": "Long tract name including county and state.", "unit": null},
+    {"object": "us_commute_tracts", "name": "TOTAL", "meaning": "Total workers represented by commute-mode estimates.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "CT", "meaning": "Workers commuting by car, truck, or van, including alone and carpool.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "CA", "meaning": "Workers driving alone by car, truck, or van.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "CC", "meaning": "Workers carpooling by car, truck, or van.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "PT", "meaning": "Workers using public transportation.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "BC", "meaning": "Workers commuting by bicycle.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "WL", "meaning": "Workers walking to work.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "OTHER", "meaning": "Workers using other commute means.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "WFH", "meaning": "Workers working from home.", "unit": "people"},
+    {"object": "us_commute_tracts", "name": "CT_P", "meaning": "Car/truck/van share of TOTAL.", "unit": "percent"},
+    {"object": "us_commute_tracts", "name": "CA_P", "meaning": "Drive-alone share of TOTAL.", "unit": "percent"},
+    {"object": "us_commute_tracts", "name": "CC_P", "meaning": "Carpool share of TOTAL.", "unit": "percent"},
+    {"object": "us_commute_tracts", "name": "PT_P", "meaning": "Public-transportation share of TOTAL.", "unit": "percent"},
+    {"object": "us_commute_tracts", "name": "BC_P", "meaning": "Bicycle share of TOTAL.", "unit": "percent"},
+    {"object": "us_commute_tracts", "name": "WL_P", "meaning": "Walking share of TOTAL.", "unit": "percent"},
+    {"object": "us_commute_tracts", "name": "OTHER_P", "meaning": "Other-means share of TOTAL.", "unit": "percent"},
+    {"object": "us_commute_tracts", "name": "WFH_P", "meaning": "Work-from-home share of TOTAL.", "unit": "percent"},
+
+    {"object": "ncr_ride_bookings", "name": "Date", "meaning": "Booking date in YYYY-MM-DD form.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Time", "meaning": "Booking time in HH:MM:SS form.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Booking ID", "meaning": "Booking identifier; source values can retain embedded quote characters.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Booking Status", "meaning": "Booking outcome/status such as completed, incomplete, cancelled, or no driver found.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Customer ID", "meaning": "Customer identifier; source values can retain embedded quote characters.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Vehicle Type", "meaning": "Requested or assigned vehicle category.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Pickup Location", "meaning": "Pickup locality label.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Drop Location", "meaning": "Drop-off locality label.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Avg VTAT", "meaning": "Average vehicle time-to-arrival measure as stored.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Avg CTAT", "meaning": "Average customer time-to-arrival measure as stored.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Cancelled Rides by Customer", "meaning": "Customer-cancellation indicator/count; populated conditionally.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Reason for cancelling by Customer", "meaning": "Reason for customer cancellation; otherwise missing.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Cancelled Rides by Driver", "meaning": "Driver-cancellation indicator/count; populated conditionally.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Driver Cancellation Reason", "meaning": "Reason for driver cancellation; otherwise missing.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Incomplete Rides", "meaning": "Incomplete-ride indicator/count; populated conditionally.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Incomplete Rides Reason", "meaning": "Reason for an incomplete ride; otherwise missing.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Booking Value", "meaning": "Monetary booking value; unavailable for some statuses.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Ride Distance", "meaning": "Ride distance as supplied; unavailable for some statuses.", "unit": null},
+    {"object": "ncr_ride_bookings", "name": "Driver Ratings", "meaning": "Driver rating; populated only where applicable.", "unit": "rating points"},
+    {"object": "ncr_ride_bookings", "name": "Customer Rating", "meaning": "Customer rating; populated only where applicable.", "unit": "rating points"},
+    {"object": "ncr_ride_bookings", "name": "Payment Method", "meaning": "Payment-method category; may be missing for unsuccessful bookings.", "unit": null},
+
+    {"object": "nyc_taxi_zones", "name": "OBJECTID", "meaning": "Shapefile object identifier.", "unit": null},
+    {"object": "nyc_taxi_zones", "name": "Shape_Leng", "meaning": "Stored polygon-length attribute.", "unit": null},
+    {"object": "nyc_taxi_zones", "name": "Shape_Area", "meaning": "Stored polygon-area attribute.", "unit": null},
+    {"object": "nyc_taxi_zones", "name": "zone", "meaning": "Taxi-zone name.", "unit": null},
+    {"object": "nyc_taxi_zones", "name": "LocationID", "meaning": "Taxi-zone location identifier; joins to trip pickup/drop-off IDs.", "unit": null},
+    {"object": "nyc_taxi_zones", "name": "borough", "meaning": "NYC borough or EWR label.", "unit": null},
+    {"object": "nyc_taxi_zones", "name": "geometry", "meaning": "Taxi-zone polygon geometry.", "unit": null},
+
+    {"object": "nyc_yellow_taxi_trips", "name": "VendorID", "meaning": "Code for the trip-record provider.", "unit": null},
+    {"object": "nyc_yellow_taxi_trips", "name": "tpep_pickup_datetime", "meaning": "Metered trip pickup timestamp.", "unit": null},
+    {"object": "nyc_yellow_taxi_trips", "name": "tpep_dropoff_datetime", "meaning": "Metered trip drop-off timestamp.", "unit": null},
+    {"object": "nyc_yellow_taxi_trips", "name": "passenger_count", "meaning": "Driver-entered passenger count; may be missing.", "unit": "passengers"},
+    {"object": "nyc_yellow_taxi_trips", "name": "trip_distance", "meaning": "Meter-reported trip distance.", "unit": "miles"},
+    {"object": "nyc_yellow_taxi_trips", "name": "RatecodeID", "meaning": "Rate-code category at trip end.", "unit": null},
+    {"object": "nyc_yellow_taxi_trips", "name": "store_and_fwd_flag", "meaning": "Y/N flag indicating temporary in-vehicle storage before transmission.", "unit": null},
+    {"object": "nyc_yellow_taxi_trips", "name": "PULocationID", "meaning": "Pickup taxi-zone LocationID.", "unit": null},
+    {"object": "nyc_yellow_taxi_trips", "name": "DOLocationID", "meaning": "Drop-off taxi-zone LocationID.", "unit": null},
+    {"object": "nyc_yellow_taxi_trips", "name": "payment_type", "meaning": "Numeric payment-method code.", "unit": null},
+    {"object": "nyc_yellow_taxi_trips", "name": "fare_amount", "meaning": "Metered fare amount.", "unit": "US dollars"},
+    {"object": "nyc_yellow_taxi_trips", "name": "extra", "meaning": "Miscellaneous extras and surcharges.", "unit": "US dollars"},
+    {"object": "nyc_yellow_taxi_trips", "name": "mta_tax", "meaning": "MTA tax amount.", "unit": "US dollars"},
+    {"object": "nyc_yellow_taxi_trips", "name": "tip_amount", "meaning": "Recorded tip amount; cash tips may not be captured.", "unit": "US dollars"},
+    {"object": "nyc_yellow_taxi_trips", "name": "tolls_amount", "meaning": "Total tolls.", "unit": "US dollars"},
+    {"object": "nyc_yellow_taxi_trips", "name": "improvement_surcharge", "meaning": "Improvement surcharge.", "unit": "US dollars"},
+    {"object": "nyc_yellow_taxi_trips", "name": "total_amount", "meaning": "Total charged amount as stored.", "unit": "US dollars"},
+    {"object": "nyc_yellow_taxi_trips", "name": "congestion_surcharge", "meaning": "Congestion surcharge.", "unit": "US dollars"},
+    {"object": "nyc_yellow_taxi_trips", "name": "Airport_fee", "meaning": "Airport pickup/drop-off fee.", "unit": "US dollars"}
+  ],
+  "structure": [
+    {"description": "The nine yellow-taxi Parquet files are monthly partitions with an identical schema; filename month supplies the intended partition label.", "objects": ["nyc_yellow_taxi_trips"]},
+    {"description": "Yellow-taxi PULocationID and DOLocationID join to taxi_zones.LocationID for pickup and drop-off geography.", "objects": ["nyc_taxi_zones", "nyc_yellow_taxi_trips"]},
+    {"description": "In the commute layer, CT is the car/truck/van total and is composed of CA plus CC; percentage fields correspond to their count fields relative to TOTAL.", "objects": ["us_commute_tracts"]},
+    {"description": "The commute layer, NCR bookings, and NYC taxi collections describe separate geographies and populations with no declared row-level key between them.", "objects": ["ncr_ride_bookings", "nyc_yellow_taxi_trips", "us_commute_tracts"]}
+  ],
+  "uncertainties": [
+    "The NCR table does not declare units for arrival-time measures, booking value, or ride distance.",
+    "Taxi categorical code mappings are not embedded in the Parquet schema and should not be guessed from numeric values.",
+    "Filename-based month partitions can still contain timestamp anomalies near or outside nominal month boundaries.",
+    "The stored Shape_Leng and Shape_Area attribute units are not declared and need not match geometry CRS units."
+  ],
+  "annotation_notes": [
+    "All source attributes are listed separately; the Shapefile geometry is also named explicitly."
+  ]
+}

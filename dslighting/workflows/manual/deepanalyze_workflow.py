@@ -270,7 +270,6 @@ Please begin the first round of analysis."""
             while True:
                 response = await self.llm_service.call_messages(
                     messages=self._build_llm_messages(conversation_history),
-                    max_retries=self.llm_service.config.max_retries,
                 )
                 llm_response = response.choices[0].message.content
                 logger.debug("DeepAnalyze raw response: %s", llm_response)

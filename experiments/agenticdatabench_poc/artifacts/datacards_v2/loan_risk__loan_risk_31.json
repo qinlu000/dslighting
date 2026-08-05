@@ -1,0 +1,29 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_31",
+  "data_objects": [
+    {
+      "name": "partitioned_mob3_scores",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Dated score records with optional split assignment and an optional three-month outcome label."
+    }
+  ],
+  "variables": [
+    {"object": "partitioned_mob3_scores", "file": "input.csv", "name": "uniq_id", "meaning": "Opaque record identifier; values include a long hash-like component and a date-like suffix.", "unit": null},
+    {"object": "partitioned_mob3_scores", "file": "input.csv", "name": "split_flag", "meaning": "Nullable partition code with observed nonblank values 1.train, 2.valid, and 3.oot.", "unit": null},
+    {"object": "partitioned_mob3_scores", "file": "input.csv", "name": "score", "meaning": "Continuous model score on an undocumented scale.", "unit": null},
+    {"object": "partitioned_mob3_scores", "file": "input.csv", "name": "apply_date", "meaning": "Application calendar date encoded as YYYYMMDD.", "unit": null},
+    {"object": "partitioned_mob3_scores", "file": "input.csv", "name": "raw_label_mob3", "meaning": "Nullable binary 0.0/1.0 raw outcome labeled for a three-month-on-book horizon by the column name.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is one scored application record. split_flag provides train, validation, and out-of-time groupings where present.", "objects": ["partitioned_mob3_scores"]}
+  ],
+  "uncertainties": [
+    "The positive-class event and score calibration are not defined.",
+    "Rows with blank split_flag also have blank raw_label_mob3, but the source does not explain this subset."
+  ],
+  "annotation_notes": [
+    "Blank split and label fields are true missing values, not additional string categories."
+  ]
+}

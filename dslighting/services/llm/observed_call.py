@@ -10,6 +10,7 @@ import time
 import uuid
 from typing import Any
 
+from dslighting.config import LLMConfig
 from dslighting.debug.api import get_debug_session
 from dslighting.debug.context import debug_scope, get_effective_debug_context
 from dslighting.debug.events import DebugEvent
@@ -259,13 +260,9 @@ def emit_llm_event_sync(
 
 def completion_with_observability(
     *,
-    model: str,
-    provider: str | None,
-    api_base: str | None,
-    api_key: str | None,
+    llm_config: LLMConfig,
     messages: list[dict[str, Any]],
     response_format: dict[str, Any] | None = None,
-    temperature: float | None = None,
     max_tokens: int | None = None,
     response_mode: str = "text",
     llm_context: LLMCallContext | None = None,
@@ -273,7 +270,11 @@ def completion_with_observability(
 ) -> ObservedCompletionResult:
     import litellm
 
-    context = llm_context or build_llm_context(model=model, provider=provider, response_mode=response_mode)
+    context = llm_context or build_llm_context(
+        model=llm_config.model,
+        provider=llm_config.provider,
+        response_mode=response_mode,
+    )
     emit_llm_event_sync("llm.call.started", "LLM call started", llm_context=context)
     emit_llm_event_sync(
         "llm.request.prepared",
@@ -281,9 +282,9 @@ def completion_with_observability(
         llm_context=context,
         payloads={"request_messages": ("request_messages", sanitize_messages_for_debug(messages))},
         tags=_request_tags(
-            provider=provider,
-            api_base=api_base,
-            temperature=temperature,
+            provider=llm_config.provider,
+            api_base=llm_config.api_base,
+            temperature=llm_config.temperature,
             response_format=response_format,
             max_tokens=max_tokens,
             extra_tags=extra_tags,
@@ -297,13 +298,9 @@ def completion_with_observability(
     )
 
     kwargs = _build_completion_kwargs(
-        model=model,
-        provider=provider,
-        api_base=api_base,
-        api_key=api_key,
+        llm_config=llm_config,
         messages=messages,
         response_format=response_format,
-        temperature=temperature,
         max_tokens=max_tokens,
     )
     attach_debug_metadata(kwargs=kwargs, llm_context=context)
@@ -347,13 +344,9 @@ def completion_with_observability(
 
 async def acompletion_with_observability(
     *,
-    model: str,
-    provider: str | None,
-    api_base: str | None,
-    api_key: str | None,
+    llm_config: LLMConfig,
     messages: list[dict[str, Any]],
     response_format: dict[str, Any] | None = None,
-    temperature: float | None = None,
     max_tokens: int | None = None,
     response_mode: str = "text",
     llm_context: LLMCallContext | None = None,
@@ -361,7 +354,11 @@ async def acompletion_with_observability(
 ) -> ObservedCompletionResult:
     import litellm
 
-    context = llm_context or build_llm_context(model=model, provider=provider, response_mode=response_mode)
+    context = llm_context or build_llm_context(
+        model=llm_config.model,
+        provider=llm_config.provider,
+        response_mode=response_mode,
+    )
     await emit_llm_event("llm.call.started", "LLM call started", llm_context=context)
     await emit_llm_event(
         "llm.request.prepared",
@@ -369,9 +366,9 @@ async def acompletion_with_observability(
         llm_context=context,
         payloads={"request_messages": ("request_messages", sanitize_messages_for_debug(messages))},
         tags=_request_tags(
-            provider=provider,
-            api_base=api_base,
-            temperature=temperature,
+            provider=llm_config.provider,
+            api_base=llm_config.api_base,
+            temperature=llm_config.temperature,
             response_format=response_format,
             max_tokens=max_tokens,
             extra_tags=extra_tags,
@@ -385,13 +382,9 @@ async def acompletion_with_observability(
     )
 
     kwargs = _build_completion_kwargs(
-        model=model,
-        provider=provider,
-        api_base=api_base,
-        api_key=api_key,
+        llm_config=llm_config,
         messages=messages,
         response_format=response_format,
-        temperature=temperature,
         max_tokens=max_tokens,
     )
     attach_debug_metadata(kwargs=kwargs, llm_context=context)
@@ -435,31 +428,33 @@ async def acompletion_with_observability(
 
 def _build_completion_kwargs(
     *,
-    model: str,
-    provider: str | None,
-    api_base: str | None,
-    api_key: str | None,
+    llm_config: LLMConfig,
     messages: list[dict[str, Any]],
     response_format: dict[str, Any] | None,
-    temperature: float | None,
     max_tokens: int | None,
 ) -> dict[str, Any]:
     kwargs: dict[str, Any] = {
-        "model": model,
+        "model": llm_config.model,
         "messages": messages,
     }
-    if provider:
-        kwargs["custom_llm_provider"] = provider
-    if api_base:
-        kwargs["api_base"] = api_base
-    if api_key:
-        kwargs["api_key"] = api_key
+    if llm_config.provider:
+        kwargs["custom_llm_provider"] = llm_config.provider
+    if llm_config.api_base:
+        kwargs["api_base"] = llm_config.api_base
+    api_keys = llm_config.get_api_keys()
+    if api_keys:
+        kwargs["api_key"] = api_keys[0]
     if response_format is not None:
         kwargs["response_format"] = response_format
-    if temperature is not None:
-        kwargs["temperature"] = temperature
+    kwargs["temperature"] = llm_config.temperature
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+    kwargs["timeout"] = llm_config.request_timeout_seconds
+    kwargs["num_retries"] = llm_config.sdk_max_retries
+    if llm_config.thinking is not None:
+        kwargs["extra_body"] = {
+            "thinking": {"type": "enabled" if llm_config.thinking else "disabled"}
+        }
     return kwargs
 
 

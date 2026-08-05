@@ -1,0 +1,94 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "marketing",
+  "data_objects": [
+    {
+      "name": "coupon_response",
+      "files": ["coupon_response_data.csv"],
+      "kind": "table",
+      "meaning": "Coupon-response examples with a client/instance code, binary label, month, usage split, and 503 anonymous scalar features."
+    },
+    {
+      "name": "insurance_marketing",
+      "files": ["insurance_marketing_data.csv"],
+      "kind": "table",
+      "meaning": "Insurance-marketing examples with dated click/payment indicators, split labels, scalar key-value features, and serialized feature vectors."
+    },
+    {
+      "name": "loan_marketing",
+      "files": ["loan_marketing_data.csv"],
+      "kind": "table",
+      "meaning": "Loan-marketing examples with dated funnel-stage indicators, split labels, scalar key-value features, and serialized feature vectors."
+    },
+    {
+      "name": "user_behavior",
+      "files": ["user_behavior_data.csv"],
+      "kind": "table",
+      "meaning": "Dated user-behavior examples with click, payment, and upgrade indicators plus a sparse key:value feature string."
+    }
+  ],
+  "variables": [
+    {"object": "coupon_response", "name": "instid", "meaning": "Client or instance-group code stored as text.", "unit": null},
+    {"object": "coupon_response", "name": "label", "meaning": "Binary coupon-response label.", "unit": null},
+    {"object": "coupon_response", "name": "feature_1-feature_503", "meaning": "Regular family of 503 anonymous source feature columns with exact names feature_1 through feature_503.", "unit": null},
+    {"object": "coupon_response", "name": "dt", "meaning": "Month encoded as YYYYMM.", "unit": null},
+    {"object": "coupon_response", "name": "usage", "meaning": "Dataset-use partition label such as dev.", "unit": null},
+
+    {"object": "insurance_marketing", "name": "dt", "meaning": "Observation date encoded as YYYYMMDD.", "unit": null},
+    {"object": "insurance_marketing", "name": "label_click", "meaning": "Binary click-stage indicator.", "unit": null},
+    {"object": "insurance_marketing", "name": "label_pay", "meaning": "Binary payment-stage indicator.", "unit": null},
+    {"object": "insurance_marketing", "name": "feature_1", "meaning": "Space-separated numeric vector stored inside one CSV field.", "unit": null},
+    {"object": "insurance_marketing", "name": "feature_2", "meaning": "Space-separated numeric vector stored inside one CSV field.", "unit": null},
+    {"object": "insurance_marketing", "name": "kv_1-kv_23", "meaning": "Regular family of 23 anonymous scalar source columns with exact names kv_1 through kv_23.", "unit": null},
+    {"object": "insurance_marketing", "name": "external_1", "meaning": "Space-separated external numeric feature vector stored as text.", "unit": null},
+    {"object": "insurance_marketing", "name": "external_2", "meaning": "Space-separated external numeric feature vector stored as text.", "unit": null},
+    {"object": "insurance_marketing", "name": "external_3", "meaning": "Space-separated external numeric feature vector stored as text.", "unit": null},
+    {"object": "insurance_marketing", "name": "data_split", "meaning": "Explicit dataset partition label such as train.", "unit": null},
+
+    {"object": "loan_marketing", "name": "dt", "meaning": "Observation date encoded as YYYYMMDD.", "unit": null},
+    {"object": "loan_marketing", "name": "label_click", "meaning": "Binary click-stage indicator.", "unit": null},
+    {"object": "loan_marketing", "name": "label_register", "meaning": "Binary registration-stage indicator.", "unit": null},
+    {"object": "loan_marketing", "name": "label_apply", "meaning": "Binary application-stage indicator.", "unit": null},
+    {"object": "loan_marketing", "name": "label_approve", "meaning": "Binary approval-stage indicator.", "unit": null},
+    {"object": "loan_marketing", "name": "feature_1", "meaning": "Space-separated numeric vector stored inside one CSV field.", "unit": null},
+    {"object": "loan_marketing", "name": "feature_2", "meaning": "Space-separated numeric vector stored inside one CSV field.", "unit": null},
+    {"object": "loan_marketing", "name": "kv_1-kv_23", "meaning": "Regular family of 23 anonymous scalar source columns with exact names kv_1 through kv_23.", "unit": null},
+    {"object": "loan_marketing", "name": "external_1", "meaning": "Space-separated external numeric feature vector stored as text.", "unit": null},
+    {"object": "loan_marketing", "name": "external_2", "meaning": "Space-separated external numeric feature vector stored as text.", "unit": null},
+    {"object": "loan_marketing", "name": "external_3", "meaning": "Space-separated external numeric feature vector stored as text.", "unit": null},
+    {"object": "loan_marketing", "name": "data_split", "meaning": "Explicit dataset partition label such as train.", "unit": null},
+
+    {"object": "user_behavior", "name": "dt", "meaning": "Observation date encoded as YYYY-MM-DD text.", "unit": null},
+    {"object": "user_behavior", "name": "label_click", "meaning": "Binary click-stage indicator.", "unit": null},
+    {"object": "user_behavior", "name": "label_pay", "meaning": "Binary payment-stage indicator.", "unit": null},
+    {"object": "user_behavior", "name": "label_upgrade", "meaning": "Binary upgrade-stage indicator.", "unit": null},
+    {"object": "user_behavior", "name": "kv_feature", "meaning": "Sparse feature vector encoded as space-separated integer key:value pairs.", "unit": null},
+    {"object": "user_behavior", "name": "data_split", "meaning": "Explicit dataset partition label such as train or eval.", "unit": null}
+  ],
+  "structure": [
+    {
+      "description": "Each file is an independent row-level marketing example table; no shared person or campaign identifier is declared across files.",
+      "objects": ["coupon_response", "insurance_marketing", "loan_marketing", "user_behavior"]
+    },
+    {
+      "description": "Insurance and loan marketing share the same feature_1, feature_2, kv_1-kv_23, external_1-external_3, dt, and data_split layout, while their label columns differ by funnel.",
+      "objects": ["insurance_marketing", "loan_marketing"]
+    },
+    {
+      "description": "Feature-vector fields are serialized inside individual CSV cells; their positions are not separate CSV columns.",
+      "objects": ["insurance_marketing", "loan_marketing", "user_behavior"]
+    },
+    {
+      "description": "The dt encoding is not uniform: coupon_response uses YYYYMM, insurance/loan use YYYYMMDD, and user_behavior uses YYYY-MM-DD.",
+      "objects": ["coupon_response", "insurance_marketing", "loan_marketing", "user_behavior"]
+    }
+  ],
+  "uncertainties": [
+    "Anonymous scalar and vector feature dimensions have no public semantic names or units.",
+    "The source headers do not define whether rows are unique entities, repeated entity observations, or sampled events.",
+    "Split labels should be treated as supplied partitions rather than inferred from row order."
+  ],
+  "annotation_notes": [
+    "Regular high-dimensional feature families are grouped; every ordinary column is listed separately."
+  ]
+}

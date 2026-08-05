@@ -1,0 +1,30 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_36",
+  "data_objects": [
+    {
+      "name": "dated_v5_feature_labels",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Identified application records with AFT v5 and PAC v5 numeric feature families and a nullable 6PD/30-named label."
+    }
+  ],
+  "variables": [
+    {"object": "dated_v5_feature_labels", "file": "input.csv", "name": "uniq_id", "meaning": "Opaque hexadecimal-like record identifier.", "unit": null},
+    {"object": "dated_v5_feature_labels", "file": "input.csv", "name": "apply_date", "meaning": "Application calendar date encoded as YYYYMMDD.", "unit": null},
+    {"object": "dated_v5_feature_labels", "file": "input.csv", "name": "aft_v5_f0 … aft_v5_f79", "meaning": "Eighty indexed AFT v5 numeric features with mixed scales; explicit special-looking values such as -1 occur within the family.", "unit": null},
+    {"object": "dated_v5_feature_labels", "file": "input.csv", "name": "pac_v5_x0 … pac_v5_x30", "meaning": "Thirty-one indexed PAC v5 numeric features on a mostly score-like scale.", "unit": null},
+    {"object": "dated_v5_feature_labels", "file": "input.csv", "name": "label_6pd_30", "meaning": "Nullable binary 0.0/1.0 outcome whose name references a 6PD/30 definition; the underlying event definition is not included.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is one identified dated feature vector. The label is absent for a substantial subset, while feature columns remain populated.", "objects": ["dated_v5_feature_labels"]}
+  ],
+  "uncertainties": [
+    "The 6PD/30 event definition and indexed-feature semantics are not documented.",
+    "Special numeric values in AFT features are not explicitly identified as sentinels versus valid codes."
+  ],
+  "annotation_notes": [
+    "Blank label_6pd_30 cells are missing outcomes, not class 0.",
+    "Indexed AFT and PAC columns are grouped as regular high-dimensional families."
+  ]
+}

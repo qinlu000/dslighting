@@ -7,13 +7,17 @@ from pathlib import Path
 import pytest
 
 from dslighting.benchmark.grading.models import SubmissionArtifactContract
+from dslighting.config import LLMConfig
 from experiments.agenticdatabench_poc.cli import main
 from experiments.agenticdatabench_poc.runner import (
     AgenticDataBenchTask,
     RunSettings,
     build_task_definition,
+    datacard_artifact_id,
+    load_datacards,
     load_tasks,
     prepare_agent_visible_dir,
+    render_datacard,
     required_output_names,
     run_tasks,
     select_tasks,
@@ -100,6 +104,104 @@ def test_direct_execution_spec_excludes_gold_and_evaluator(tmp_path: Path) -> No
     assert "hidden solver label" not in serialized
 
 
+def _write_datacard(path: Path, *, dataset_id: str = "agriculture") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": "l1_semantic_map_v1",
+                "dataset_id": dataset_id,
+                "data_objects": [
+                    {
+                        "name": "records",
+                        "files": ["data.csv"],
+                        "kind": "table",
+                        "meaning": "Tabular observations.",
+                    }
+                ],
+                "variables": [
+                    {
+                        "object": "records",
+                        "file": "data.csv",
+                        "name": "x",
+                        "meaning": "Recorded value.",
+                        "unit": None,
+                    }
+                ],
+                "structure": [
+                    {
+                        "description": "Each row represents one observation.",
+                        "objects": ["records"],
+                    }
+                ],
+                "uncertainties": [],
+                "annotation_notes": [],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def test_datacard_is_neutral_and_added_before_plot_instructions(tmp_path: Path) -> None:
+    task = AgenticDataBenchTask.from_payload(_payload("agriculture_14", plot=True))
+    domain = tmp_path / "datasets" / "agriculture"
+    domain.mkdir(parents=True)
+    (domain / "data.csv").write_text("x\n1\n", encoding="utf-8")
+    artifact_dir = tmp_path / "datacards"
+    _write_datacard(artifact_dir / "agriculture.json")
+    artifact = load_datacards(
+        [task],
+        dataset_root=tmp_path / "datasets",
+        artifact_dir=artifact_dir,
+    )["agriculture"]
+
+    definition = build_task_definition(
+        task,
+        agent_visible_dir=tmp_path / "datasets" / "agriculture",
+        output_dir=tmp_path / "output",
+        datacard=artifact,
+    )
+    description = definition.payload["execution_spec"]["description_text"]
+
+    assert "## Dataset Information" in description
+    assert "### Data Objects" in description
+    assert "### Variables" in description
+    assert "### Structure" in description
+    assert "Level 1" not in description
+    assert "l1_semantic_map_v1" not in description
+    assert description.index("## Dataset Information") < description.index(
+        "## Plot instrumentation"
+    )
+
+
+def test_load_datacards_validates_identity_and_public_coverage(tmp_path: Path) -> None:
+    task = AgenticDataBenchTask.from_payload(_payload("agriculture_02"))
+    domain = tmp_path / "datasets" / "agriculture"
+    domain.mkdir(parents=True)
+    (domain / "data.csv").write_text("x\n1\n", encoding="utf-8")
+    artifact_dir = tmp_path / "datacards"
+    _write_datacard(artifact_dir / "agriculture.json")
+
+    loaded = load_datacards(
+        [task],
+        dataset_root=tmp_path / "datasets",
+        artifact_dir=artifact_dir,
+    )
+
+    assert set(loaded) == {"agriculture"}
+    assert datacard_artifact_id("loan_risk/loan_risk_1") == "loan_risk__loan_risk_1"
+    assert "Level 1" not in render_datacard(loaded["agriculture"])
+
+    _write_datacard(artifact_dir / "agriculture.json", dataset_id="wrong")
+    with pytest.raises(ValueError, match="does not match expected"):
+        load_datacards(
+            [task],
+            dataset_root=tmp_path / "datasets",
+            artifact_dir=artifact_dir,
+        )
+
+
 def test_selected_task_config_preserves_only_official_selected_records(
     tmp_path: Path,
 ) -> None:
@@ -107,7 +209,8 @@ def test_selected_task_config_preserves_only_official_selected_records(
     _write_tasks(source)
     destination = tmp_path / "run" / "agenticdatabench_tasks.jsonl"
 
-    saved = write_selected_task_config(source, ["agriculture_14"], destination)
+    tasks = load_tasks(source)
+    saved = write_selected_task_config([tasks[1]], destination)
     records = [json.loads(line) for line in saved.read_text(encoding="utf-8").splitlines()]
 
     assert [record["id"] for record in records] == ["agriculture_14"]
@@ -132,9 +235,34 @@ def test_staging_links_domain_and_copies_plot_helper(tmp_path: Path) -> None:
     )
 
     assert (stage / "data.csv").read_text(encoding="utf-8") == "x\n1\n"
-    assert (stage / "image.py").read_text(encoding="utf-8") == helper.read_text(
-        encoding="utf-8"
+    assert (stage / "data.csv").is_symlink()
+    assert (stage / "image.py").read_text(encoding="utf-8") == helper.read_text(encoding="utf-8")
+    assert not (stage / "image.py").is_symlink()
+
+
+def test_staging_does_not_copy_dataset_when_symlinking_fails(tmp_path: Path, monkeypatch) -> None:
+    task = AgenticDataBenchTask.from_payload(_payload("agriculture_02"))
+    dataset_root = tmp_path / "datasets"
+    domain = dataset_root / "agriculture"
+    domain.mkdir(parents=True)
+    (domain / "large.csv").write_text("x\n1\n", encoding="utf-8")
+
+    def reject_symlink(*args, **kwargs):
+        raise OSError("symlinks unavailable")
+
+    monkeypatch.setattr(
+        "experiments.agenticdatabench_poc.runner.os.symlink",
+        reject_symlink,
     )
+
+    with pytest.raises(OSError, match="symlinks unavailable"):
+        prepare_agent_visible_dir(
+            task,
+            dataset_root=dataset_root,
+            staging_root=tmp_path / "staging",
+            plot_helper=tmp_path / "unused.py",
+        )
+    assert not (tmp_path / "staging" / task.task_id / "large.csv").exists()
 
 
 def test_upstream_result_reports_missing_outputs_and_messages(tmp_path: Path) -> None:
@@ -172,6 +300,42 @@ def test_upstream_result_reports_missing_outputs_and_messages(tmp_path: Path) ->
     assert saved["dslighting"]["cost"] == 0.25
 
 
+def test_upstream_result_reads_official_minisweagent_trajectory(
+    tmp_path: Path,
+) -> None:
+    task = AgenticDataBenchTask.from_payload(_payload("agriculture_02"))
+    output_dir = tmp_path / "output" / task.task_id
+    output_dir.mkdir(parents=True)
+    (output_dir / "output.csv").write_text("value\n1\n", encoding="utf-8")
+    workspace = tmp_path / "workspace"
+    artifacts = workspace / "artifacts"
+    artifacts.mkdir(parents=True)
+    messages = [
+        {"role": "user", "content": "task"},
+        {"role": "assistant", "content": "use bash"},
+        {"role": "exit", "content": "done"},
+    ]
+    (artifacts / "minisweagent_trajectory.json").write_text(
+        json.dumps({"messages": messages}),
+        encoding="utf-8",
+    )
+
+    payload = write_upstream_result(
+        task,
+        output_dir=output_dir,
+        result=output_dir,
+        cost=0.1,
+        usage={},
+        record={
+            "task_id": task.task_id,
+            "workspace_dir": str(workspace),
+        },
+    )
+
+    assert payload["steps"] == 1
+    assert payload["trajectory"] == messages
+
+
 def test_cli_dry_run_is_explicit_and_does_not_require_datasets(tmp_path: Path, capsys) -> None:
     benchmark = tmp_path / "AgenticDataBench"
     tasks_file = benchmark / "testbed" / "tasks" / "dev.jsonl"
@@ -200,8 +364,52 @@ def test_cli_dry_run_is_explicit_and_does_not_require_datasets(tmp_path: Path, c
         "output.json",
         "output.npy",
     ]
-    assert plan["concurrency"] == 1
+    assert plan["concurrency"] == 30
+    assert plan["thinking"] is False
+    assert plan["max_retries"] == 30
+    assert plan["max_steps"] == 30
+    assert plan["max_history_chars"] == 48000
+    assert plan["keep_recent_turns"] == 14
+    assert plan["summary_trigger_turns"] == 18
+    assert plan["timeout_seconds"] == 3600
+    assert plan["perception_enabled"] is False
+    assert plan["datacard_enabled"] is False
     assert not output_dir.exists()
+
+
+def test_cli_accepts_minisweagent_with_benchmark_docker_image(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    benchmark = tmp_path / "AgenticDataBench"
+    tasks_file = benchmark / "testbed" / "tasks" / "dev.jsonl"
+    _write_tasks(tasks_file)
+
+    exit_code = main(
+        [
+            "--benchmark-root",
+            str(benchmark),
+            "--output-dir",
+            str(tmp_path / "output"),
+            "--task",
+            "agriculture_02",
+            "--workflow",
+            "mini_swe_agent",
+            "--model",
+            "test/model",
+            "--sandbox-backend",
+            "docker",
+            "--docker-image",
+            "dslighting-agenticdatabench@sha256:abc",
+            "--dry-run",
+        ]
+    )
+
+    assert exit_code == 0
+    plan = json.loads(capsys.readouterr().out)
+    assert plan["workflow"] == "mini_swe_agent"
+    assert plan["sandbox_backend"] == "docker"
+    assert plan["docker_image"] == "dslighting-agenticdatabench@sha256:abc"
 
 
 def test_cli_requires_image_for_docker_backend(tmp_path: Path, capsys) -> None:
@@ -229,6 +437,75 @@ def test_cli_requires_image_for_docker_backend(tmp_path: Path, capsys) -> None:
     assert "--docker-image" in capsys.readouterr().err
 
 
+def test_cli_perception_is_explicit_and_requires_offline_react_docker(
+    tmp_path: Path, capsys
+) -> None:
+    benchmark = tmp_path / "AgenticDataBench"
+    tasks_file = benchmark / "testbed" / "tasks" / "dev.jsonl"
+    _write_tasks(tasks_file)
+    common = [
+        "--benchmark-root",
+        str(benchmark),
+        "--output-dir",
+        str(tmp_path / "output"),
+        "--task",
+        "agriculture_02",
+        "--model",
+        "test/model",
+        "--perception",
+        "--dry-run",
+    ]
+
+    assert main(common) == 2
+    assert "--perception requires" in capsys.readouterr().err
+
+    assert (
+        main(
+            common[:-1]
+            + [
+                "--sandbox-backend",
+                "docker",
+                "--docker-image",
+                "agenticdatabench:test",
+                "--dry-run",
+            ]
+        )
+        == 0
+    )
+    plan = json.loads(capsys.readouterr().out)
+    assert plan["perception_enabled"] is True
+
+
+def test_cli_rejects_combined_perception_and_datacard(tmp_path: Path, capsys) -> None:
+    benchmark = tmp_path / "AgenticDataBench"
+    tasks_file = benchmark / "testbed" / "tasks" / "dev.jsonl"
+    _write_tasks(tasks_file)
+
+    exit_code = main(
+        [
+            "--benchmark-root",
+            str(benchmark),
+            "--output-dir",
+            str(tmp_path / "output"),
+            "--task",
+            "agriculture_02",
+            "--model",
+            "test/model",
+            "--sandbox-backend",
+            "docker",
+            "--docker-image",
+            "agenticdatabench:test",
+            "--perception",
+            "--datacard-dir",
+            str(tmp_path / "datacards"),
+            "--dry-run",
+        ]
+    )
+
+    assert exit_code == 2
+    assert "separate treatments" in capsys.readouterr().err
+
+
 @pytest.mark.asyncio
 async def test_run_tasks_writes_evaluator_layout_without_registry(
     tmp_path: Path, monkeypatch
@@ -240,10 +517,20 @@ async def test_run_tasks_writes_evaluator_layout_without_registry(
     domain = benchmark / "testbed" / "datasets" / "agriculture"
     domain.mkdir(parents=True)
     (domain / "data.csv").write_text("x\n1\n", encoding="utf-8")
-    tasks_file = benchmark / "testbed" / "tasks" / "dev.jsonl"
-    _write_tasks(tasks_file)
 
     def fake_get_eval_function(self):
+        assert self.config.llm.thinking is False
+        assert self.config.llm.max_retries == 30
+        assert self.config.agent_runtime.perception_enabled is False
+        assert self.config.agent_runtime.context.max_history_chars == 48000
+        assert self.config.agent_runtime.context.keep_recent_turns == 14
+        assert self.config.agent_runtime.context.summary_trigger_turns == 18
+        assert self.config.agent_runtime.skill_path == str(skill_file.resolve())
+        assert self.config.sandbox.backend == "docker"
+        assert self.config.sandbox.docker_image == "agenticdatabench:test"
+        assert self.config.sandbox.environment_policy == "allowlist"
+        assert self.config.sandbox.network_policy == "disabled"
+
         async def evaluate(definition):
             spec = definition.payload["execution_spec"]
             output = Path(spec["output_path"])
@@ -255,21 +542,30 @@ async def test_run_tasks_writes_evaluator_layout_without_registry(
 
     monkeypatch.setattr(DSLightingRunner, "get_eval_function", fake_get_eval_function)
     output_root = tmp_path / "runs" / "dslighting-react-smoke"
+    skill_file = tmp_path / "SKILL.md"
+    skill_file.write_text("# AgenticDataBench Skill\n", encoding="utf-8")
     settings = RunSettings(
         benchmark_root=benchmark,
-        tasks_file=tasks_file,
         dataset_root=benchmark / "testbed" / "datasets",
         output_dir=output_root,
         workspace_dir=tmp_path / "runs" / "workspaces",
         staging_dir=tmp_path / "runs" / "staging",
         workflow="react",
-        model="test/model",
-        local_isolation="process",
+        llm=LLMConfig(model="test/model", thinking=False, max_retries=30),
+        sandbox_backend="docker",
+        docker_image="agenticdatabench:test",
+        disable_network=True,
+        skill_file=skill_file,
     )
 
     summary = await run_tasks([task], settings)
 
     assert summary["completed"] == 1
+    assert summary["thinking"] is False
+    assert summary["max_history_chars"] == 48000
+    assert summary["keep_recent_turns"] == 14
+    assert summary["summary_trigger_turns"] == 18
+    assert summary["skill_file"] == str(skill_file.resolve())
     result_path = output_root / task.task_id / "dabench" / "result.json"
     result = json.loads(result_path.read_text(encoding="utf-8"))
     assert result["finished"] is True
@@ -283,6 +579,43 @@ async def test_run_tasks_writes_evaluator_layout_without_registry(
 
 
 @pytest.mark.asyncio
+async def test_run_tasks_fails_fast_on_adapter_errors(tmp_path: Path, monkeypatch) -> None:
+    from dslighting.runner import DSLightingRunner
+
+    task = AgenticDataBenchTask.from_payload(_payload("agriculture_02"))
+
+    def fake_get_eval_function(self):
+        async def evaluate(definition):
+            raise AssertionError("evaluation should not start")
+
+        return evaluate
+
+    def reject_staging(*args, **kwargs):
+        raise OSError("staging failed")
+
+    monkeypatch.setattr(DSLightingRunner, "get_eval_function", fake_get_eval_function)
+    monkeypatch.setattr(
+        "experiments.agenticdatabench_poc.runner.prepare_agent_visible_dir",
+        reject_staging,
+    )
+    output_root = tmp_path / "runs" / "output"
+    settings = RunSettings(
+        benchmark_root=tmp_path / "AgenticDataBench",
+        dataset_root=tmp_path / "datasets",
+        output_dir=output_root,
+        workspace_dir=tmp_path / "runs" / "workspaces",
+        staging_dir=tmp_path / "runs" / "staging",
+        workflow="react",
+        llm=LLMConfig(model="test/model"),
+        local_isolation="process",
+    )
+
+    with pytest.raises(OSError, match="staging failed"):
+        await run_tasks([task], settings)
+    assert not (output_root / task.task_id / "dabench" / "result.json").exists()
+
+
+@pytest.mark.asyncio
 async def test_run_tasks_honors_task_concurrency(tmp_path: Path, monkeypatch) -> None:
     from dslighting.runner import DSLightingRunner
 
@@ -292,16 +625,12 @@ async def test_run_tasks_honors_task_concurrency(tmp_path: Path, monkeypatch) ->
     domain = benchmark / "testbed" / "datasets" / "agriculture"
     domain.mkdir(parents=True)
     (domain / "data.csv").write_text("x\n1\n", encoding="utf-8")
-    tasks_file = benchmark / "testbed" / "tasks" / "dev.jsonl"
-    tasks_file.parent.mkdir(parents=True)
-    tasks_file.write_text(
-        "".join(json.dumps(payload) + "\n" for payload in payloads),
-        encoding="utf-8",
-    )
     active = 0
     max_active = 0
 
     def fake_get_eval_function(self):
+        assert self.config.agent_runtime.perception_enabled is False
+
         async def evaluate(definition):
             nonlocal active, max_active
             active += 1
@@ -321,13 +650,12 @@ async def test_run_tasks_honors_task_concurrency(tmp_path: Path, monkeypatch) ->
     output_root = tmp_path / "runs" / "output"
     settings = RunSettings(
         benchmark_root=benchmark,
-        tasks_file=tasks_file,
         dataset_root=benchmark / "testbed" / "datasets",
         output_dir=output_root,
         workspace_dir=tmp_path / "runs" / "workspaces",
         staging_dir=tmp_path / "runs" / "staging",
         workflow="react",
-        model="test/model",
+        llm=LLMConfig(model="test/model"),
         concurrency=2,
         local_isolation="process",
     )

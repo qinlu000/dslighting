@@ -1,11 +1,10 @@
 # pool.py
 
 """
-API key pool and connection pool management for LLM services.
+API key pool management for LLM services.
 
 Provides:
 - GlobalAPIKeyPool: Manages multiple API keys with load balancing and concurrency limits
-- LLMConnectionPool: Manages HTTP connection pooling for LLM API requests
 """
 
 from __future__ import annotations
@@ -17,24 +16,6 @@ import time
 import weakref
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
-
-import litellm
-
-from dslighting.utils.constants import (
-    DEFAULT_MAX_CONCURRENT_PER_KEY,
-    DEFAULT_POOL_SIZE,
-    KEEPALIVE_TIMEOUT_SECONDS,
-    LLM_HTTP_CLIENT_TIMEOUT,
-)
-
-# Try to import aiohttp for connection pooling
-try:
-    import aiohttp
-
-    AIOHTTP_AVAILABLE = True
-except ImportError:
-    AIOHTTP_AVAILABLE = False
-    logging.debug("aiohttp not available, HTTP connection pooling disabled")
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -57,7 +38,7 @@ class GlobalAPIKeyPool:
         self,
         model_name: str,
         keys: list[str],
-        max_concurrent_per_key: int = DEFAULT_MAX_CONCURRENT_PER_KEY,
+        max_concurrent_per_key: int,
     ):
         """
         初始化全局 Key 池。
@@ -109,7 +90,7 @@ class GlobalAPIKeyPool:
         cls,
         model_name: str,
         keys: list[str],
-        max_concurrent_per_key: int = DEFAULT_MAX_CONCURRENT_PER_KEY,
+        max_concurrent_per_key: int,
     ) -> "GlobalAPIKeyPool":
         """
         获取或创建全局 Key 池（单例模式）。
@@ -328,106 +309,3 @@ class GlobalAPIKeyPool:
             },
             "total_active": sum(self.stats.values()),
         }
-
-
-class LLMConnectionPool:
-    """
-    Manages HTTP connection pooling for LLM API requests.
-
-    This class provides connection pooling to reduce the overhead of establishing
-    new HTTP connections for each LLM API call. Connections are reused across
-    multiple requests, improving performance.
-
-    Note: LiteLLM manages its own HTTP sessions internally, so this pool is
-    provided for potential future custom integrations or direct HTTP calls.
-    """
-
-    _instance: "LLMConnectionPool" | None = None
-    _lock = threading.Lock()
-
-    def __init__(
-        self,
-        pool_size: int = DEFAULT_POOL_SIZE,
-        keepalive_timeout: float = KEEPALIVE_TIMEOUT_SECONDS,
-    ):
-        """
-        Initialize the connection pool.
-
-        Args:
-            pool_size: Maximum number of connections to keep in the pool
-            keepalive_timeout: Seconds to keep connections alive (default: 5 minutes)
-        """
-        if not AIOHTTP_AVAILABLE:
-            logger.warning("aiohttp not available, connection pooling disabled")
-            self.connector = None
-            self.session = None
-            return
-
-        self.connector = aiohttp.TCPConnector(
-            limit=pool_size,
-            limit_per_host=pool_size,
-            keepalive_timeout=keepalive_timeout,
-            enable_cleanup_closed=True,
-            force_close=False,
-        )
-        self.session: aiohttp.ClientSession | None = None
-        self._pool_size = pool_size
-        self._keepalive_timeout = keepalive_timeout
-        logger.info(
-            f"LLM connection pool initialized: size={pool_size}, "
-            f"keepalive={keepalive_timeout}s"
-        )
-
-    @classmethod
-    def get_instance(
-        cls,
-        pool_size: int = DEFAULT_POOL_SIZE,
-        keepalive_timeout: float = KEEPALIVE_TIMEOUT_SECONDS,
-    ) -> "LLMConnectionPool":
-        """
-        Get the singleton instance of the connection pool.
-
-        Args:
-            pool_size: Maximum number of connections (only used on first call)
-            keepalive_timeout: Keep-alive timeout in seconds (only used on first call)
-
-        Returns:
-            The singleton LLMConnectionPool instance
-        """
-        if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = cls(pool_size, keepalive_timeout)
-        return cls._instance
-
-    async def get_session(self) -> aiohttp.ClientSession | None:
-        """
-        Get or create the aiohttp session.
-
-        Returns:
-            ClientSession if aiohttp is available, None otherwise
-        """
-        if not AIOHTTP_AVAILABLE or self.connector is None:
-            return None
-
-        if self.session is None or self.session.closed:
-            timeout = aiohttp.ClientTimeout(total=LLM_HTTP_CLIENT_TIMEOUT)
-            self.session = aiohttp.ClientSession(
-                connector=self.connector,
-                timeout=timeout,
-            )
-        return self.session
-
-    async def close(self) -> None:
-        """Close the connection pool and release resources."""
-        if self.session and not self.session.closed:
-            await self.session.close()
-            self.session = None
-        if self.connector:
-            await self.connector.close()
-        logger.info("LLM connection pool closed")
-
-    @property
-    def is_available(self) -> bool:
-        """Check if connection pooling is available."""
-        return AIOHTTP_AVAILABLE and self.connector is not None

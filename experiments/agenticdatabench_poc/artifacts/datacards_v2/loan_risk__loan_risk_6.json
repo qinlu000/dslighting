@@ -1,0 +1,27 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_6",
+  "data_objects": [
+    {
+      "name": "dated_feature_vectors",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Identified records with an application date and a dense vector of one hundred anonymous numeric features."
+    }
+  ],
+  "variables": [
+    {"object": "dated_feature_vectors", "file": "input.csv", "name": "id", "meaning": "Integer row identifier.", "unit": null},
+    {"object": "dated_feature_vectors", "file": "input.csv", "name": "apply_date", "meaning": "Application date encoded as YYYYDDMM: four-digit year, then two-digit day, then two-digit month.", "unit": null},
+    {"object": "dated_feature_vectors", "file": "input.csv", "name": "feature_1 … feature_100", "meaning": "Dense family of one hundred anonymous continuous numeric features.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is one identified feature vector. feature_1 through feature_100 are ordered by their numeric suffix.", "objects": ["dated_feature_vectors"]}
+  ],
+  "uncertainties": [
+    "The meanings, units, scaling, and provenance of the one hundred features are not supplied."
+  ],
+  "annotation_notes": [
+    "apply_date is not YYYYMMDD: values with a middle component above 12 are valid under the observed YYYYDDMM encoding.",
+    "The anonymous feature columns are grouped as a regular high-dimensional family."
+  ]
+}

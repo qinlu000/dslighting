@@ -6,6 +6,9 @@
 DSLighting MoSciBench → DSLighting ReAct → DataCOPE skill → DSLighting ReAct
 ```
 
+最终 held-out 结果统一记录在
+[experiments/results/datacope_ablation.md](../results/datacope_ablation.md)。
+
 不调用 MoSciBench 官方仓库中的 agent 代码，也不修改 DSLighting 的 benchmark 或 ReAct
 实现。Skill 通过现有的 `agent_runtime.skill_path` 注入。
 

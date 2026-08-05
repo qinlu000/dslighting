@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
+from dslighting.config import LLMConfig
+
 COMPLETED_STATUSES = frozenset({"completed", "completed_with_task_failures"})
 
 
@@ -65,12 +67,8 @@ class ConditionRuntime:
     """Runtime values shared by every condition in one protocol."""
 
     workflow: str
-    model: str
+    llm: LLMConfig
     task_concurrency: int
-    llm_global_concurrency: int | None = None
-    llm_per_key_concurrency: int | None = None
-    llm_max_retries: int | None = None
-    llm_thinking: bool | None = None
     sandbox_timeout_seconds: int | None = None
     sandbox_backend: str | None = None
     sandbox_environment_policy: str | None = None
@@ -496,7 +494,7 @@ def build_configs(
         try:
             config = ConfigBuilder().build_config(
                 workflow=runtime.workflow,
-                model=runtime.model,
+                llm_config=runtime.llm,
                 task_context={
                     "policy": condition.task_context_policy,
                     "l1_artifact_dir": (
@@ -522,18 +520,10 @@ def build_configs(
         config.scheduler.run_id = run_id
         config.run.parameters = dict(config.run.parameters)
         config.run.parameters["output_artifact_suffix_seed"] = run_id
-        if runtime.llm_global_concurrency is not None:
-            config.scheduler.llm_max_concurrency = runtime.llm_global_concurrency
         if runtime.device_admission is not None:
             config.scheduler.gpu_policy = runtime.device_admission
         if runtime.checkpoint_resume_enabled is not None:
             config.scheduler.checkpoint_resume_enabled = runtime.checkpoint_resume_enabled
-        if runtime.llm_per_key_concurrency is not None:
-            config.llm.max_concurrent_per_key = runtime.llm_per_key_concurrency
-        if runtime.llm_max_retries is not None:
-            config.llm.max_retries = runtime.llm_max_retries
-        if runtime.llm_thinking is not None:
-            config.llm.thinking = runtime.llm_thinking
         if not dry_run and not config.llm.get_api_keys():
             raise PreflightError(
                 "no LLM API key resolved; configure API_KEY/OPENAI_API_KEY or "

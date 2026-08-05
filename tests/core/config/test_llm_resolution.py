@@ -4,8 +4,14 @@ import json
 
 import pytest
 
+from dslighting.config import LLMConfig
 from dslighting.core import ConfigBuilder
+from dslighting.core.config.llm_resolution import build_llm_config
 from dslighting.error import ConfigurationError
+
+
+def test_global_llm_request_timeout_defaults_to_five_minutes() -> None:
+    assert LLMConfig().request_timeout_seconds == 300.0
 
 
 def test_model_override_beats_global_env(monkeypatch) -> None:
@@ -73,6 +79,41 @@ def test_api_key_list_is_normalized_to_api_keys() -> None:
     assert config.llm.api_keys == ["key-1", "key-2"]
 
 
+def test_openai_api_key_is_only_a_global_fallback(monkeypatch) -> None:
+    monkeypatch.delenv("API_KEY", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "openai-key")
+    assert build_llm_config(model="openai-fallback-test-model").api_key == "openai-key"
+
+    monkeypatch.setenv("API_KEY", "primary-key")
+    assert build_llm_config(model="openai-fallback-test-model").api_key == "primary-key"
+
+
 def test_build_config_rejects_conflicting_api_key_and_api_keys() -> None:
     with pytest.raises(ConfigurationError, match="Only one of `api_key` or `api_keys`"):
         ConfigBuilder().build_config(model="model-a", api_key="k1", api_keys=["k2"])
+
+
+def test_builder_accepts_one_global_llm_config() -> None:
+    llm_config = build_llm_config(
+        model="model-a",
+        api_key="key-a",
+        thinking=False,
+        max_retries=3,
+        request_timeout_seconds=45,
+        sdk_max_retries=0,
+        max_concurrent_per_key=8,
+        global_max_concurrency=6,
+    )
+
+    config = ConfigBuilder().build_config(workflow="react", llm_config=llm_config)
+
+    assert config.llm == llm_config
+    assert config.llm is not llm_config
+
+
+def test_builder_rejects_global_and_local_llm_config_together() -> None:
+    with pytest.raises(ConfigurationError, match="cannot be combined"):
+        ConfigBuilder().build_config(
+            model="local-model",
+            llm_config=LLMConfig(model="global-model"),
+        )

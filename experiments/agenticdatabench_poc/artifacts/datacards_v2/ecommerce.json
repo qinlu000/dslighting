@@ -1,0 +1,224 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "ecommerce",
+  "data_objects": [
+    {
+      "name": "olist_customers",
+      "files": ["Brazilian E-Commerce/olist_customers_dataset.csv"],
+      "kind": "table",
+      "meaning": "Brazilian marketplace customer records at one row per order-specific customer ID."
+    },
+    {
+      "name": "olist_geolocation",
+      "files": ["Brazilian E-Commerce/olist_geolocation_dataset.csv"],
+      "kind": "table",
+      "meaning": "Geographic coordinates and locality labels observed for Brazilian postal-code prefixes.",
+      "notes": "Postal prefixes can appear more than once with different coordinate samples."
+    },
+    {
+      "name": "olist_order_items",
+      "files": ["Brazilian E-Commerce/olist_order_items_dataset.csv"],
+      "kind": "table",
+      "meaning": "Line items sold within marketplace orders, including product, seller, price, and freight."
+    },
+    {
+      "name": "olist_order_payments",
+      "files": ["Brazilian E-Commerce/olist_order_payments_dataset.csv"],
+      "kind": "table",
+      "meaning": "Payment components associated with orders; an order may have sequential payment rows."
+    },
+    {
+      "name": "olist_order_reviews",
+      "files": ["Brazilian E-Commerce/olist_order_reviews_dataset.csv"],
+      "kind": "table",
+      "meaning": "Customer review scores, optional text, and review timing linked to orders."
+    },
+    {
+      "name": "olist_orders",
+      "files": ["Brazilian E-Commerce/olist_orders_dataset.csv"],
+      "kind": "table",
+      "meaning": "Order-level status and purchase, approval, shipping, delivery, and estimated-delivery timestamps."
+    },
+    {
+      "name": "olist_products",
+      "files": ["Brazilian E-Commerce/olist_products_dataset.csv"],
+      "kind": "table",
+      "meaning": "Product catalog attributes, Portuguese category labels, text lengths, photo counts, weight, and dimensions."
+    },
+    {
+      "name": "olist_sellers",
+      "files": ["Brazilian E-Commerce/olist_sellers_dataset.csv"],
+      "kind": "table",
+      "meaning": "Seller identifiers and Brazilian locality information."
+    },
+    {
+      "name": "olist_category_translation",
+      "files": ["Brazilian E-Commerce/product_category_name_translation.csv"],
+      "kind": "table",
+      "meaning": "Mapping from Portuguese product-category labels to English labels."
+    },
+    {
+      "name": "amazon_cell_phone_reviews",
+      "files": ["Cell_Phones_and_Accessories.json"],
+      "kind": "table",
+      "meaning": "Line-delimited Amazon review records for cell phones and accessories."
+    },
+    {
+      "name": "ebay_laptop_listings",
+      "files": ["EbayPcLaptopsAndNetbooksUnclean.csv"],
+      "kind": "table",
+      "meaning": "Uncleaned eBay laptop and netbook listing attributes with values often embedded in display strings."
+    },
+    {
+      "name": "amazon_cell_phone_metadata",
+      "files": ["meta_Cell_Phones_and_Accessories.json"],
+      "kind": "table",
+      "meaning": "Line-delimited Amazon product metadata for cell phones and accessories."
+    }
+  ],
+  "variables": [
+    {"object": "olist_customers", "name": "customer_id", "meaning": "Order-specific customer identifier; joins to orders.customer_id.", "unit": null},
+    {"object": "olist_customers", "name": "customer_unique_id", "meaning": "Identifier intended to link repeated purchases by the same customer.", "unit": null},
+    {"object": "olist_customers", "name": "customer_zip_code_prefix", "meaning": "Customer postal-code prefix.", "unit": null},
+    {"object": "olist_customers", "name": "customer_city", "meaning": "Customer city label.", "unit": null},
+    {"object": "olist_customers", "name": "customer_state", "meaning": "Two-letter Brazilian state code.", "unit": null},
+
+    {"object": "olist_geolocation", "name": "geolocation_zip_code_prefix", "meaning": "Postal-code prefix usable with customer and seller postal prefixes.", "unit": null},
+    {"object": "olist_geolocation", "name": "geolocation_lat", "meaning": "Latitude.", "unit": "decimal degrees"},
+    {"object": "olist_geolocation", "name": "geolocation_lng", "meaning": "Longitude.", "unit": "decimal degrees"},
+    {"object": "olist_geolocation", "name": "geolocation_city", "meaning": "City label for the coordinate sample.", "unit": null},
+    {"object": "olist_geolocation", "name": "geolocation_state", "meaning": "Two-letter Brazilian state code.", "unit": null},
+
+    {"object": "olist_order_items", "name": "order_id", "meaning": "Order identifier; joins to order-level tables.", "unit": null},
+    {"object": "olist_order_items", "name": "order_item_id", "meaning": "One-based line-item sequence within an order.", "unit": null},
+    {"object": "olist_order_items", "name": "product_id", "meaning": "Product identifier; joins to the product catalog.", "unit": null},
+    {"object": "olist_order_items", "name": "seller_id", "meaning": "Seller identifier; joins to seller records.", "unit": null},
+    {"object": "olist_order_items", "name": "shipping_limit_date", "meaning": "Timestamp by which the seller should hand off the item for shipping.", "unit": null},
+    {"object": "olist_order_items", "name": "price", "meaning": "Item sale price stored as a decimal monetary amount.", "unit": null},
+    {"object": "olist_order_items", "name": "freight_value", "meaning": "Freight amount assigned to the item.", "unit": null},
+
+    {"object": "olist_order_payments", "name": "order_id", "meaning": "Order identifier.", "unit": null},
+    {"object": "olist_order_payments", "name": "payment_sequential", "meaning": "Sequence number of a payment component within an order.", "unit": null},
+    {"object": "olist_order_payments", "name": "payment_type", "meaning": "Payment-method category such as credit card, boleto, voucher, or debit card.", "unit": null},
+    {"object": "olist_order_payments", "name": "payment_installments", "meaning": "Number of installments recorded for the payment.", "unit": "installments"},
+    {"object": "olist_order_payments", "name": "payment_value", "meaning": "Value of the payment component.", "unit": null},
+
+    {"object": "olist_order_reviews", "name": "review_id", "meaning": "Review identifier.", "unit": null},
+    {"object": "olist_order_reviews", "name": "order_id", "meaning": "Reviewed order identifier.", "unit": null},
+    {"object": "olist_order_reviews", "name": "review_score", "meaning": "Ordinal customer rating.", "unit": "1-5 score"},
+    {"object": "olist_order_reviews", "name": "review_comment_title", "meaning": "Optional review title; missing values are common.", "unit": null},
+    {"object": "olist_order_reviews", "name": "review_comment_message", "meaning": "Optional review body; missing values are common.", "unit": null},
+    {"object": "olist_order_reviews", "name": "review_creation_date", "meaning": "Review creation date-time.", "unit": null},
+    {"object": "olist_order_reviews", "name": "review_answer_timestamp", "meaning": "Timestamp when the review response was recorded.", "unit": null},
+
+    {"object": "olist_orders", "name": "order_id", "meaning": "Order identifier.", "unit": null},
+    {"object": "olist_orders", "name": "customer_id", "meaning": "Order-specific customer identifier.", "unit": null},
+    {"object": "olist_orders", "name": "order_status", "meaning": "Order lifecycle status.", "unit": null},
+    {"object": "olist_orders", "name": "order_purchase_timestamp", "meaning": "Customer purchase timestamp.", "unit": null},
+    {"object": "olist_orders", "name": "order_approved_at", "meaning": "Payment/order approval timestamp; may be missing.", "unit": null},
+    {"object": "olist_orders", "name": "order_delivered_carrier_date", "meaning": "Timestamp when the order was handed to the carrier; may be missing.", "unit": null},
+    {"object": "olist_orders", "name": "order_delivered_customer_date", "meaning": "Actual customer-delivery timestamp; may be missing.", "unit": null},
+    {"object": "olist_orders", "name": "order_estimated_delivery_date", "meaning": "Estimated delivery date.", "unit": null},
+
+    {"object": "olist_products", "name": "product_id", "meaning": "Product identifier.", "unit": null},
+    {"object": "olist_products", "name": "product_category_name", "meaning": "Portuguese product-category key.", "unit": null},
+    {"object": "olist_products", "name": "product_name_lenght", "meaning": "Stored length of the product name; source spelling is retained.", "unit": "characters"},
+    {"object": "olist_products", "name": "product_description_lenght", "meaning": "Stored length of the product description; source spelling is retained.", "unit": "characters"},
+    {"object": "olist_products", "name": "product_photos_qty", "meaning": "Number of product photos.", "unit": "photos"},
+    {"object": "olist_products", "name": "product_weight_g", "meaning": "Product weight.", "unit": "grams"},
+    {"object": "olist_products", "name": "product_length_cm", "meaning": "Product length.", "unit": "centimetres"},
+    {"object": "olist_products", "name": "product_height_cm", "meaning": "Product height.", "unit": "centimetres"},
+    {"object": "olist_products", "name": "product_width_cm", "meaning": "Product width.", "unit": "centimetres"},
+
+    {"object": "olist_sellers", "name": "seller_id", "meaning": "Seller identifier.", "unit": null},
+    {"object": "olist_sellers", "name": "seller_zip_code_prefix", "meaning": "Seller postal-code prefix.", "unit": null},
+    {"object": "olist_sellers", "name": "seller_city", "meaning": "Seller city label.", "unit": null},
+    {"object": "olist_sellers", "name": "seller_state", "meaning": "Two-letter Brazilian state code.", "unit": null},
+
+    {"object": "olist_category_translation", "name": "product_category_name", "meaning": "Portuguese category key.", "unit": null},
+    {"object": "olist_category_translation", "name": "product_category_name_english", "meaning": "English category label.", "unit": null},
+
+    {"object": "amazon_cell_phone_reviews", "name": "reviewerID", "meaning": "Reviewer identifier.", "unit": null},
+    {"object": "amazon_cell_phone_reviews", "name": "asin", "meaning": "Amazon product identifier; joins to product metadata.", "unit": null},
+    {"object": "amazon_cell_phone_reviews", "name": "reviewerName", "meaning": "Display name of the reviewer when present.", "unit": null},
+    {"object": "amazon_cell_phone_reviews", "name": "helpful", "meaning": "Two-element array holding helpful-vote counts as stored.", "unit": "votes"},
+    {"object": "amazon_cell_phone_reviews", "name": "reviewText", "meaning": "Review body text.", "unit": null},
+    {"object": "amazon_cell_phone_reviews", "name": "overall", "meaning": "Overall product rating.", "unit": "1-5 score"},
+    {"object": "amazon_cell_phone_reviews", "name": "summary", "meaning": "Short review summary.", "unit": null},
+    {"object": "amazon_cell_phone_reviews", "name": "unixReviewTime", "meaning": "Review time represented as a Unix timestamp.", "unit": "seconds since Unix epoch"},
+    {"object": "amazon_cell_phone_reviews", "name": "reviewTime", "meaning": "Human-readable review date string.", "unit": null},
+
+    {"object": "amazon_cell_phone_metadata", "name": "category", "meaning": "Hierarchical category path stored as an array.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "tech1", "meaning": "First free-form technical-details field.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "description", "meaning": "Product description fragments stored as an array.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "fit", "meaning": "Free-form fit or compatibility information.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "title", "meaning": "Product title.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "also_buy", "meaning": "Array of related ASINs marked as also bought.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "tech2", "meaning": "Second free-form technical-details field.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "brand", "meaning": "Product brand.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "feature", "meaning": "Array of product feature strings.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "rank", "meaning": "Free-form sales-rank text.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "also_view", "meaning": "Array of related ASINs marked as also viewed.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "details", "meaning": "Nested key-value product details.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "main_cat", "meaning": "Main category label.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "similar_item", "meaning": "Free-form similar-item content.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "date", "meaning": "Product date string when present.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "price", "meaning": "Price stored as display text and often blank.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "asin", "meaning": "Amazon product identifier.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "imageURL", "meaning": "Array of image URLs.", "unit": null},
+    {"object": "amazon_cell_phone_metadata", "name": "imageURLHighRes", "meaning": "Array of high-resolution image URLs.", "unit": null},
+
+    {"object": "ebay_laptop_listings", "name": "Brand", "meaning": "Listing brand.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Price", "meaning": "Display price text, which can contain currency symbols or ranges.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Rating", "meaning": "Listing or seller rating as stored.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Ratings Count", "meaning": "Count associated with Rating.", "unit": "ratings"},
+    {"object": "ebay_laptop_listings", "name": "Condition", "meaning": "Long-form listing condition text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Seller Note", "meaning": "Optional seller-supplied note.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Processor", "meaning": "Processor description.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Screen Size", "meaning": "Screen size stored as display text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Manufacturer Color", "meaning": "Manufacturer-defined color text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Color", "meaning": "Listing color.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Ram Size", "meaning": "RAM capacity stored as display text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "SSD Capacity", "meaning": "SSD capacity or compatibility text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "GPU", "meaning": "Graphics processor description.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Processor Speed", "meaning": "Processor speed stored as display text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Type", "meaning": "Device type.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Release Year", "meaning": "Release year or refurbishment text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Maximum Resolution", "meaning": "Maximum display resolution text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Model", "meaning": "Model description.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "OS", "meaning": "Operating-system description.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Features", "meaning": "Delimited feature text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Hard Drive Capacity", "meaning": "Drive capacity stored as display text.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Country Region Of Manufacture", "meaning": "Manufacturing country or region.", "unit": null},
+    {"object": "ebay_laptop_listings", "name": "Storage Type", "meaning": "Storage medium description.", "unit": null}
+  ],
+  "structure": [
+    {
+      "description": "The Olist tables form a relational marketplace bundle centered on order_id; customer_id, product_id, and seller_id connect orders to their respective entities.",
+      "objects": ["olist_customers", "olist_order_items", "olist_order_payments", "olist_order_reviews", "olist_orders", "olist_products", "olist_sellers"]
+    },
+    {
+      "description": "Postal-code prefixes connect customer and seller locality fields to geolocation samples; joins can be many-to-many because geolocation prefixes repeat.",
+      "objects": ["olist_customers", "olist_geolocation", "olist_sellers"]
+    },
+    {
+      "description": "Portuguese product categories map to English through product_category_name.",
+      "objects": ["olist_category_translation", "olist_products"]
+    },
+    {
+      "description": "Amazon reviews and Amazon metadata join on asin; both files are line-delimited JSON rather than a single JSON array.",
+      "objects": ["amazon_cell_phone_metadata", "amazon_cell_phone_reviews"]
+    },
+    {
+      "description": "The Olist, Amazon, and eBay objects are separate source collections and have no declared cross-source key.",
+      "objects": ["amazon_cell_phone_reviews", "ebay_laptop_listings", "olist_orders"]
+    }
+  ],
+  "uncertainties": [
+    "The source files do not provide an explicit currency declaration for every monetary field.",
+    "Some uncleaned display fields require parsing before numeric interpretation, and blanks or malformed values are possible."
+  ],
+  "annotation_notes": [
+    "Annotation was derived from public file names, source headers, encodings, and representative records only."
+  ]
+}

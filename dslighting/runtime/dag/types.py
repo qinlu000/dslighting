@@ -81,8 +81,6 @@ class DagRuntimeOptions:
     max_inflight_nodes: int = 256
     node_timeout_seconds: float = 300.0
     ready_queue_policy: str = "priority"  # fifo | priority | lpt_backfill
-    llm_global_max_concurrency: Optional[int] = None
-    llm_model_quotas: Dict[str, int] = field(default_factory=dict)
     enable_speculative_branches: bool = False
     dag_mode: str = "coarse"  # coarse | fine
     enable_debug_branch: bool = False
@@ -113,22 +111,6 @@ class DagRuntimeOptions:
         if policy not in {"fifo", "priority", "lpt_backfill"}:
             policy = "priority"
         self.ready_queue_policy = policy
-
-        if self.llm_global_max_concurrency is not None:
-            try:
-                self.llm_global_max_concurrency = max(1, int(self.llm_global_max_concurrency))
-            except (TypeError, ValueError):
-                self.llm_global_max_concurrency = None
-
-        normalized_quotas: Dict[str, int] = {}
-        for model, value in (self.llm_model_quotas or {}).items():
-            try:
-                cap = int(value)
-            except (TypeError, ValueError):
-                continue
-            if cap > 0:
-                normalized_quotas[str(model)] = cap
-        self.llm_model_quotas = normalized_quotas
 
         actor_strategy = str(self.dag_actor_strategy or "coarse").strip().lower()
         if actor_strategy not in {"coarse", "declarative"}:

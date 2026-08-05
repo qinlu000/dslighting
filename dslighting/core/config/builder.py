@@ -28,7 +28,6 @@ from dslighting.error import ConfigurationError
 
 from dslighting.utils.defaults import (
     DEFAULT_CONFIG,
-    DEFAULT_WORKSPACE_DIR,
     ENV_DSLIGHTING_DEFAULT_WORKFLOW,
     ENV_DSLIGHTING_WORKSPACE_DIR,
 )
@@ -50,7 +49,6 @@ from dslighting.core.config.shared import (
     WORKFLOW_TO_CONFIG_KEY,
     deep_merge,
     is_valid_workflow_name,
-    get_config_key_for_workflow,
 )
 
 from .versioning import (
@@ -94,6 +92,7 @@ class ConfigBuilder:
         api_base: str = None,
         provider: str = None,
         temperature: float = None,
+        llm_config: Optional[LLMConfig] = None,
         sandbox: Optional[Dict[str, Any]] = None,
         data_analysis: Optional[Dict[str, Any]] = None,
         task_context: Optional[Dict[str, Any]] = None,
@@ -144,12 +143,6 @@ class ConfigBuilder:
         # 3. Apply user parameters
         user_config = self._build_user_config(
             workflow=workflow,
-            model=model,
-            api_key=api_key,
-            api_keys=api_keys,
-            api_base=api_base,
-            provider=provider,
-            temperature=temperature,
             sandbox=sandbox,
             data_analysis=data_analysis,
             task_context=task_context,
@@ -166,17 +159,26 @@ class ConfigBuilder:
         )
         config = self._deep_merge(config, user_config)
 
-        llm_config = build_llm_config(
-            model=model,
-            api_key=api_key,
-            api_keys=api_keys,
-            api_base=api_base,
-            provider=provider,
-            temperature=temperature,
-        )
+        if llm_config is not None:
+            legacy_llm_values = (model, api_key, api_keys, api_base, provider, temperature)
+            if any(value is not None for value in legacy_llm_values):
+                raise ConfigurationError(
+                    "`llm_config` cannot be combined with individual LLM arguments.",
+                    error_code="CFG-002",
+                )
+            resolved_llm_config = llm_config.model_copy(deep=True)
+        else:
+            resolved_llm_config = build_llm_config(
+                model=model,
+                api_key=api_key,
+                api_keys=api_keys,
+                api_base=api_base,
+                provider=provider,
+                temperature=temperature,
+            )
 
         # 5. Convert to DSLightingConfig objects
-        return self._create_dslighting_config(config, llm_config=llm_config)
+        return self._create_dslighting_config(config, llm_config=resolved_llm_config)
 
     def _load_non_llm_env_config(self) -> Dict[str, Any]:
         """Load non-LLM configuration from environment variables."""
@@ -196,12 +198,6 @@ class ConfigBuilder:
     def _build_user_config(
         self,
         workflow: str = None,
-        model: str = None,
-        api_key: Union[str, List[str], None] = None,
-        api_keys: Optional[List[str]] = None,
-        api_base: str = None,
-        provider: str = None,
-        temperature: float = None,
         sandbox: Optional[Dict[str, Any]] = None,
         data_analysis: Optional[Dict[str, Any]] = None,
         task_context: Optional[Dict[str, Any]] = None,
@@ -289,24 +285,6 @@ class ConfigBuilder:
         # ========== Common parameters ==========
         if workflow is not None:
             config.setdefault("workflow", {})["name"] = workflow
-
-        if model is not None:
-            config.setdefault("llm", {})["model"] = model
-
-        if api_key is not None:
-            config.setdefault("llm", {})["api_key"] = api_key
-
-        if api_keys is not None:
-            config.setdefault("llm", {})["api_keys"] = api_keys
-
-        if api_base is not None:
-            config.setdefault("llm", {})["api_base"] = api_base
-
-        if provider is not None:
-            config.setdefault("llm", {})["provider"] = provider
-
-        if temperature is not None:
-            config.setdefault("llm", {})["temperature"] = temperature
 
         if sandbox is not None:
             if not isinstance(sandbox, dict):
@@ -641,7 +619,11 @@ class ConfigBuilder:
             "max_iterations": (int, "max_iterations"),
             "num_drafts": (int, "num_drafts"),
             "max_retries": (int, "max_retries"),
+            "request_timeout_seconds": (float, "request_timeout_seconds"),
+            "sdk_max_retries": (int, "sdk_max_retries"),
             "max_concurrent_per_key": (int, "max_concurrent_per_key"),
+            "global_max_concurrency": (int, "global_max_concurrency"),
+            "thinking": (_coerce_bool, "thinking"),
             "timeout": (int, "timeout"),
             "success_threshold": (float, "success_threshold"),
             "debug_prob": (float, "debug_prob"),

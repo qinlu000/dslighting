@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 from pathlib import Path
 from uuid import uuid4
 
+from dslighting.config import LLMConfig
 from dslighting.core.application.agent_config_builder import AgentConfigBuilder
 from dslighting.core.application.task_input_resolver import TaskInputResolver
 from dslighting.core.execution import TaskExecutor
@@ -19,12 +20,7 @@ class AgentAppService:
         self,
         *,
         workflow_name: str,
-        model: str,
-        api_key: Optional[Union[str, List[str]]],
-        api_keys: Optional[List[str]],
-        api_base: Optional[str],
-        provider: Optional[str],
-        temperature: Optional[float],
+        llm_config: LLMConfig,
         timeout: int,
         keep_workspace: bool,
         sandbox_backend: Optional[str],
@@ -36,12 +32,7 @@ class AgentAppService:
         self._workflow_name = workflow_name
         self._config_builder = AgentConfigBuilder(
             workflow_name=workflow_name,
-            model=model,
-            api_key=api_key,
-            api_keys=api_keys,
-            api_base=api_base,
-            provider=provider,
-            temperature=temperature,
+            llm_config=llm_config,
             timeout=timeout,
             keep_workspace=keep_workspace,
             sandbox_backend=sandbox_backend,

@@ -1,0 +1,27 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_20",
+  "data_objects": [
+    {
+      "name": "province_partition_labels",
+      "files": ["input.csv"],
+      "kind": "table",
+      "meaning": "Record-level binary outcomes with data-partition labels and Chinese province-level location names."
+    }
+  ],
+  "variables": [
+    {"object": "province_partition_labels", "file": "input.csv", "name": "uniq_id", "meaning": "Opaque hexadecimal-like record identifier.", "unit": null},
+    {"object": "province_partition_labels", "file": "input.csv", "name": "flag", "meaning": "Data partition code with observed values train, vali, and test.", "unit": null},
+    {"object": "province_partition_labels", "file": "input.csv", "name": "prov_name", "meaning": "Chinese province-level administrative-area name.", "unit": null},
+    {"object": "province_partition_labels", "file": "input.csv", "name": "label", "meaning": "Binary 0/1 outcome indicator; the positive-class business definition is not supplied.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Each row is one identified record. flag defines the provided train/validation/test partition, and prov_name supplies a geographic grouping field.", "objects": ["province_partition_labels"]}
+  ],
+  "uncertainties": [
+    "The positive label and the sampling rules behind the three partitions are not documented."
+  ],
+  "annotation_notes": [
+    "The validation partition is spelled vali in the source."
+  ]
+}

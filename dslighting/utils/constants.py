@@ -22,19 +22,6 @@ from dslighting.utils.defaults import (
 )
 
 # =============================================================================
-# LLM Service Constants
-# =============================================================================
-
-DEFAULT_MAX_CONCURRENT_PER_KEY: Final[int] = 20
-"""Maximum concurrent requests per API key."""
-
-DEFAULT_POOL_SIZE: Final[int] = 10
-"""Default connection pool size for LLM clients."""
-
-KEEPALIVE_TIMEOUT_SECONDS: Final[float] = 300.0
-"""Keep-alive timeout for HTTP connections in seconds."""
-
-# =============================================================================
 # Sandbox Service Constants
 # =============================================================================
 
@@ -94,13 +81,6 @@ MAX_MEMORY_MB: Final[int] = 4096
 
 CPU_TIMEOUT_SECONDS: Final[int] = 300
 """CPU timeout for sandbox execution in seconds."""
-
-# =============================================================================
-# HTTP Client Timeout
-# =============================================================================
-
-LLM_HTTP_CLIENT_TIMEOUT: Final[int] = 120
-"""Timeout for LLM HTTP client connections in seconds."""
 
 # =============================================================================
 # Data Perception

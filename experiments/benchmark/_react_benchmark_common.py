@@ -196,6 +196,7 @@ def run_react_benchmark(benchmark_type: str) -> int:
     from dslighting import configure_logging
     from dslighting.api.benchmark import DSBenchmark
     from dslighting.core.config.builder import ConfigBuilder
+    from dslighting.core.config.llm_resolution import build_llm_config
 
     configure_logging(
         level="INFO",
@@ -204,9 +205,14 @@ def run_react_benchmark(benchmark_type: str) -> int:
         force=True,
     )
 
+    llm_config = build_llm_config(
+        model=model,
+        max_concurrent_per_key=llm_max_concurrency,
+        global_max_concurrency=llm_max_concurrency,
+    )
     config = ConfigBuilder().build_config(
         workflow="react",
-        model=model,
+        llm_config=llm_config,
         keep_workspace=keep_workspace,
         keep_workspace_on_failure=keep_workspace,
         data_analysis=_build_data_analysis_config(benchmark_type),
@@ -219,7 +225,6 @@ def run_react_benchmark(benchmark_type: str) -> int:
 
     config.scheduler.scheduler_policy = scheduler_policy
     config.scheduler.max_concurrency = max_concurrency
-    config.scheduler.llm_max_concurrency = llm_max_concurrency
     config.scheduler.enable_task_rate_limiting = enable_task_rate_limiting
     config.scheduler.llm_task_start_rate = llm_task_start_rate
     config.scheduler.sandbox_task_start_rate = sandbox_task_start_rate

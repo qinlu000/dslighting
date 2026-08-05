@@ -49,6 +49,11 @@ publish the built base image and reference an immutable registry digest (for
 example `registry.example/da-agent@sha256:...`) as `BASE_IMAGE`; record the
 derived image digest alongside the run summary.
 
+This derived benchmark image is also the recommended environment for
+`mini_swe_agent`. In Docker mode DSLighting delegates command execution to
+mini-swe-agent's official `DockerEnvironment`; the model client remains on the
+host and only bash actions run in the benchmark container.
+
 The DSLighting workflow and model client remain on the host. Only generated
 analysis code executes in this task-scoped container. Input symlink targets are
 frozen before the first action and mounted read-only; the task workspace is
@@ -87,28 +92,148 @@ python -m experiments.agenticdatabench_poc \
   --task agriculture_14 \
   --workflow react \
   --model openai/your-model \
+  --no-thinking \
   --sandbox-backend docker \
   --docker-image dslighting-agenticdatabench:latest \
-  --concurrency 4 \
-  --max-steps 80
+  --concurrency 30 \
+  --max-steps 30
 ```
 
-The default 80-step budget matches the upstream da-agent launch script. Every
-Python action is a fresh process, while files and the container workspace persist
-for the full task. `--concurrency` controls the number of task-scoped workflows
-and containers that may be active at once; result summaries remain ordered by
-the upstream task selection.
+The defaults are a 30-step Solving Agent budget and 30 concurrent tasks. Every
+execution action may use a fresh process, while files and the container
+workspace persist for the full task. `--concurrency` controls the number of
+task-scoped workflows and containers that may be active at once; result
+summaries remain ordered by the upstream task selection.
 
-Resource defaults are 4096 MiB memory, 2 CPU cores, and 256 processes. Override
+Provider reasoning mode is disabled by default. Comparable experiment scripts
+also pass `--no-thinking` explicitly, and the resolved value is recorded as
+`thinking` in the dry-run plan and run summary.
+
+Run the same benchmark with mini-swe-agent's official Docker environment:
+
+```bash
+python -m experiments.agenticdatabench_poc \
+  --benchmark-root /path/to/AgenticDataBench \
+  --output-dir ./runs/agenticdatabench/output/mini-swe-agent-smoke \
+  --task agriculture_02 \
+  --workflow mini_swe_agent \
+  --model openai/your-model \
+  --sandbox-backend docker \
+  --docker-image dslighting-agenticdatabench@sha256:... \
+  --concurrency 1 \
+  --max-steps 30
+```
+
+Resource defaults are 8192 MiB memory, 4 CPU cores, and 256 processes. Override
 them with `--memory-mb`, `--cpu-cores`, and `--pids-limit` when needed.
 
 Existing task results are skipped. Use `--retry-failed` to replace only failed
 task directories or `--overwrite` to replace all selected task directories.
 These flags are required before existing outputs are removed.
 
+An experiment sidecar may inject one reviewed solving skill without changing
+the ReAct implementation:
+
+```bash
+python -m experiments.agenticdatabench_poc \
+  --benchmark-root /path/to/AgenticDataBench \
+  --output-dir ./runs/agenticdatabench/output/react-skill \
+  --all \
+  --workflow react \
+  --model openai/your-model \
+  --sandbox-backend docker \
+  --docker-image dslighting-agenticdatabench:latest \
+  --skill-file /absolute/path/to/SKILL.md
+```
+
 For a quick local debugging run without Docker or bubblewrap, pass
 `--local-isolation process`. This is not recommended for comparable benchmark
 results because process isolation does not enforce the default network policy.
+
+## Perception rollout
+
+Perception is an explicit treatment, not part of the ReAct baseline. A normal
+`--workflow react` run keeps it disabled, including when Docker is used. Enable
+it only for a Perception ablation arm:
+
+```bash
+python -m experiments.agenticdatabench_poc \
+  --benchmark-root /path/to/AgenticDataBench \
+  --output-dir ./runs/agenticdatabench/output/react-perception \
+  --task agriculture_02 \
+  --workflow react \
+  --model openai/your-model \
+  --sandbox-backend docker \
+  --docker-image dslighting-agenticdatabench:latest \
+  --perception
+```
+
+The Perception treatment is Docker-only, ReAct-only, and requires networking
+to remain disabled. The Perception Agent and Solving Agent reuse the same
+task-scoped, persistent Docker container and the same read-write workspace.
+
+In this minimal version, the Perception Agent's no-write rule is prompt-only:
+its prompt instructs it to inspect files without creating, overwriting,
+deleting, or renaming anything. This is not a filesystem security boundary;
+Perception code technically has the same workspace permissions as Solver code.
+The shared Docker container still runs with networking disabled.
+
+The Perception Agent uses a lightweight Action–Report protocol rather than the
+Solving Agent's ReAct protocol. It returns either one `<Action>` containing a
+single Python block or one plain-text `<Report>`. It never emits `<Think>` or
+`<Answer>`. Action output is returned to Perception as an observation, while
+the final report is wrapped in `<PerceptionResult>` for the Solving Agent.
+
+The local sandbox, including local Bubblewrap mode, does not support Perception
+in this rollout. Perception is offered only when the configured Docker backend
+uses `network_mode=none`; Solver Actions remain available under the configured
+sandbox.
+
+`--max-steps` limits the Solving Agent loop. It does not include the nested
+Perception turns, so report Perception usage separately when comparing
+ablation arms.
+
+### Naming candidates
+
+- **FastPerception** — The most direct name; it clearly communicates the
+  system's focus on fast, efficient perception.
+- **LEAP** — **L**ightweight **E**fficient **A**gentic **P**erception. The name
+  also suggests speed and forward movement, making it a strong paper-method
+  candidate.
+
+## Datacard treatment
+
+Datacards are a separate ReAct treatment and must not be combined with
+Perception. The control is the normal ReAct run. The treatment adds one frozen,
+task-independent semantic description of the complete public directory
+selected by the upstream task's `domain`.
+
+AgenticDataBench itself exposes all files below `datasets/<domain>` to the
+solver. The Datacard annotation unit therefore follows that same public-root
+boundary; tasks with the same domain reuse one annotation. The runner validates
+each selected card against the complete visible public tree before starting any
+model call.
+
+Enable the treatment with an explicit reviewed artifact directory:
+
+```bash
+python -m experiments.agenticdatabench_poc \
+  --benchmark-root /path/to/AgenticDataBench \
+  --output-dir ./runs/agenticdatabench/output/react-datacard \
+  --all \
+  --workflow react \
+  --model openai/your-model \
+  --sandbox-backend docker \
+  --docker-image dslighting-agenticdatabench:latest \
+  --datacard-dir ./experiments/agenticdatabench_poc/artifacts/datacards_v2
+```
+
+The JSON artifacts use the repository's strict `l1_semantic_map_v1` storage
+schema, but experiment metadata is not rendered into the solver prompt. The
+solver sees only a neutral `Dataset Information` section containing data
+objects, variables, and structural relationships. It never sees `Level 1`,
+`L1`, the schema version, annotation notes, uncertainties, condition names, or
+artifact provenance.
 
 ## Evaluate with AgenticDataBench
 
@@ -136,6 +261,14 @@ python3 evaluate.py \
 The generated JSONL contains the exact upstream records for only the tasks in
 that run. It is kept outside the solving workspace, so evaluator-only fields
 are available to the official scorer but are never exposed to the agent.
+
+## Reference experiment results
+
+The final three-run ReAct, Datacard and FastPerception ablation is reported only
+in the centralized
+[experiment results](../results/agenticdatabench_three_run_ablation.md) for the
+per-round official scores, finished rates, infrastructure-repair protocol,
+step-budget terminations and interpretation limits.
 
 ## Scope
 

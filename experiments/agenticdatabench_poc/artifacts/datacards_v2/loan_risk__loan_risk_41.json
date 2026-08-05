@@ -1,0 +1,42 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_risk/loan_risk_41",
+  "data_objects": [
+    {
+      "name": "numeric_id_feature_json",
+      "files": ["input_1.csv"],
+      "kind": "table",
+      "meaning": "First representation of scored records, with numeric-looking unique identifiers and AFT v4 features serialized as JSON."
+    },
+    {
+      "name": "hashed_id_feature_json",
+      "files": ["input_2.csv"],
+      "kind": "table",
+      "meaning": "Second representation of the same internal id set, with hash-like unique identifiers and AFT v4 features serialized as JSON."
+    }
+  ],
+  "variables": [
+    {"object": "numeric_id_feature_json", "file": "input_1.csv", "name": "uniq_id", "meaning": "Unique record identifier represented by numeric-looking strings in this file.", "unit": null},
+    {"object": "numeric_id_feature_json", "file": "input_1.csv", "name": "id", "meaning": "Integer-like internal identifier that joins one-to-one to input_2.csv.", "unit": null},
+    {"object": "numeric_id_feature_json", "file": "input_1.csv", "name": "score", "meaning": "Continuous record score.", "unit": null},
+    {"object": "numeric_id_feature_json", "file": "input_1.csv", "name": "feature_json", "meaning": "Valid JSON object containing aft_v4_miss_flag and numeric keys aft_v4_f0 through aft_v4_f44.", "unit": null},
+    {"object": "numeric_id_feature_json", "file": "input_1.csv", "name": "feature_json.aft_v4_miss_flag", "meaning": "Missingness flag embedded in feature_json.", "unit": null},
+    {"object": "numeric_id_feature_json", "file": "input_1.csv", "name": "feature_json.aft_v4_f0 … aft_v4_f44", "meaning": "Forty-five indexed numeric AFT v4 features embedded in feature_json.", "unit": null},
+    {"object": "hashed_id_feature_json", "file": "input_2.csv", "name": "uniq_id", "meaning": "Unique record identifier represented by hash-like strings in this file.", "unit": null},
+    {"object": "hashed_id_feature_json", "file": "input_2.csv", "name": "id", "meaning": "Integer-like internal identifier that joins one-to-one to input_1.csv.", "unit": null},
+    {"object": "hashed_id_feature_json", "file": "input_2.csv", "name": "score", "meaning": "Continuous record score; most but not all id-matched values equal the first file's score.", "unit": null},
+    {"object": "hashed_id_feature_json", "file": "input_2.csv", "name": "feature_json", "meaning": "Valid JSON object containing miss_flag and numeric keys aft_v4_f0 through aft_v4_f44.", "unit": null},
+    {"object": "hashed_id_feature_json", "file": "input_2.csv", "name": "feature_json.miss_flag", "meaning": "Missingness flag embedded in feature_json.", "unit": null},
+    {"object": "hashed_id_feature_json", "file": "input_2.csv", "name": "feature_json.aft_v4_f0 … aft_v4_f44", "meaning": "Forty-five indexed numeric AFT v4 features embedded in feature_json.", "unit": null}
+  ],
+  "structure": [
+    {"description": "Both files contain the same unique id values and can be joined one-to-one on id. Their uniq_id namespaces differ; the missingness-key name also differs inside feature_json.", "objects": ["numeric_id_feature_json", "hashed_id_feature_json"]}
+  ],
+  "uncertainties": [
+    "The reason for the two identifier representations, the score differences on some matched ids, and the meanings of indexed AFT features are not supplied."
+  ],
+  "annotation_notes": [
+    "Parse feature_json as JSON rather than using string splitting.",
+    "Use id, not uniq_id, to align the two files."
+  ]
+}

@@ -1,7 +1,8 @@
-"""Protocol helpers for the strict ReAct workflow."""
+"""Protocol helpers for the ReAct workflow."""
 
 from __future__ import annotations
 
+import html
 import re
 from dataclasses import dataclass
 from typing import Optional
@@ -27,33 +28,31 @@ class ReActTurnResult:
     final_answer: str | None = None
     execution_succeeded: bool = False
     action_code: str | None = None
+    explore_request: str | None = None
 
 
-_ACTION_TURN_PATTERN = re.compile(
-    r"\s*<Think>(?P<think>.*?)</Think>\s*<Action>(?P<action>.*?)</Action>\s*",
-    re.DOTALL,
-)
-_ANSWER_TURN_PATTERN = re.compile(
-    r"\s*<Think>(?P<think>.*?)</Think>\s*<Answer>(?P<answer>.*?)</Answer>\s*",
-    re.DOTALL,
-)
-_UNCLOSED_ANSWER_TURN_PATTERN = re.compile(
-    r"\s*<Think>(?P<think>.*?)</Think>\s*<Answer>(?P<answer>.*)",
-    re.DOTALL,
-)
 _STRICT_PYTHON_BLOCK_PATTERN = re.compile(
     r"\s*```python\s*(?P<code>.*?)\s*```\s*",
     re.DOTALL | re.IGNORECASE,
 )
 
 
-def parse_react_reply(content: str) -> ReActTurnResult:
+def parse_react_reply(
+    content: str,
+    *,
+    allow_explore: bool = True,
+) -> ReActTurnResult:
     """Parse one assistant reply into either code, a final answer, or protocol feedback."""
     normalized = normalize_react_reply(content)
-    is_valid, reason = validate_turn_structure(normalized.normalized_content)
+    is_valid, reason = validate_turn_structure(
+        normalized.normalized_content,
+        allow_explore=allow_explore,
+    )
     if not is_valid:
         return ReActTurnResult(
-            next_user_message=wrap_feedback(build_protocol_error_feedback(reason))
+            next_user_message=wrap_feedback(
+                build_protocol_error_feedback(reason, allow_explore=allow_explore)
+            )
         )
 
     action = extract_action_block(normalized.normalized_content)
@@ -68,18 +67,25 @@ def parse_react_reply(content: str) -> ReActTurnResult:
                 next_user_message=wrap_feedback(
                     build_protocol_error_feedback(
                         "Code actions must contain exactly one fenced ```python``` block "
-                        "with no extra text before or after it."
+                        "with no extra text before or after it.",
+                        allow_explore=allow_explore,
                     )
                 )
             )
         return ReActTurnResult(final_answer=final_answer)
+
+    explore_request = extract_explore_block(normalized.normalized_content)
+    if explore_request is not None:
+        return ReActTurnResult(explore_request=explore_request)
 
     answer = extract_answer_block(normalized.normalized_content)
     if answer is None:
         return ReActTurnResult(
             next_user_message=wrap_feedback(
                 build_protocol_error_feedback(
-                    "Missing <Action>...</Action> or <Answer>...</Answer> block."
+                    "Missing <Action>...</Action>, <Explore>...</Explore>, "
+                    "or <Answer>...</Answer> block.",
+                    allow_explore=allow_explore,
                 )
             )
         )
@@ -93,10 +99,14 @@ def build_execution_message(
     obs_head_tokens: int,
     obs_tail_tokens: int,
     critical_footer: str | None = None,
+    escape_output: bool = False,
 ) -> str:
     """Render execution output back into the ReAct conversation."""
+    raw_output = format_observation(exec_result)
+    if escape_output:
+        raw_output = html.escape(raw_output, quote=False)
     execution_output = truncate_observation(
-        format_observation(exec_result),
+        raw_output,
         obs_max_tokens=obs_max_tokens,
         obs_head_tokens=obs_head_tokens,
         obs_tail_tokens=obs_tail_tokens,
@@ -113,30 +123,41 @@ def build_execution_message(
     return wrap_observation(observation)
 
 
+def build_perception_message(
+    perception_result: str,
+    *,
+    obs_max_tokens: int,
+    obs_head_tokens: int,
+    obs_tail_tokens: int,
+) -> str:
+    """Render a bounded Perception result back into the Solving Agent context."""
+    perception = truncate_observation(
+        html.escape(perception_result, quote=False),
+        obs_max_tokens=obs_max_tokens,
+        obs_head_tokens=obs_head_tokens,
+        obs_tail_tokens=obs_tail_tokens,
+    )
+    return wrap_observation(f"<PerceptionResult>\n{perception}\n</PerceptionResult>")
+
+
 def normalize_react_reply(content: str) -> NormalizedReActReply:
     """Repair only low-risk protocol shell issues for assistant replies."""
     raw_content = content if isinstance(content, str) else str(content)
 
-    if "<Final Answer>" in raw_content or "</Final Answer>" in raw_content:
+    if _has_tag(raw_content, "Final Answer"):
         return NormalizedReActReply(
             raw_content=raw_content,
             normalized_content=raw_content,
         )
 
-    if _can_repair_unclosed_answer(raw_content):
+    unclosed_repair = _repair_unclosed_response(raw_content)
+    if unclosed_repair is not None:
+        repaired_content, repaired_tag = unclosed_repair
         return NormalizedReActReply(
             raw_content=raw_content,
-            normalized_content=raw_content.rstrip() + "\n</Answer>",
+            normalized_content=repaired_content,
             repaired=True,
-            repair_reason="added missing </Answer> closing tag",
-        )
-
-    if _can_repair_missing_think_open(raw_content):
-        return NormalizedReActReply(
-            raw_content=raw_content,
-            normalized_content="<Think>\n" + raw_content.lstrip(),
-            repaired=True,
-            repair_reason="added missing <Think> opening tag",
+            repair_reason=f"added missing </{repaired_tag}> closing tag",
         )
 
     return NormalizedReActReply(
@@ -146,7 +167,10 @@ def normalize_react_reply(content: str) -> NormalizedReActReply:
 
 
 def extract_tag_block(content: str, tag: str) -> Optional[str]:
-    pattern = re.compile(rf"<{tag}>(.*?)</{tag}>", re.DOTALL)
+    pattern = re.compile(
+        rf"<{re.escape(tag)}>(.*?)</{re.escape(tag)}>",
+        re.DOTALL | re.IGNORECASE,
+    )
     match = pattern.search(content)
     if not match:
         return None
@@ -159,6 +183,10 @@ def extract_think_block(content: str) -> Optional[str]:
 
 def extract_action_block(content: str) -> Optional[str]:
     return extract_tag_block(content, "Action")
+
+
+def extract_explore_block(content: str) -> Optional[str]:
+    return extract_tag_block(content, "Explore")
 
 
 def extract_answer_block(content: str) -> Optional[str]:
@@ -179,83 +207,76 @@ def extract_final_answer_from_action(action: str) -> Optional[str]:
     return stripped
 
 
-def validate_turn_structure(content: str) -> tuple[bool, Optional[str]]:
-    # Protocol delimiters are reserved tokens. Count both sides before applying
-    # the regex grammar so regex backtracking cannot absorb duplicate blocks.
-    think_open_count = content.count("<Think>")
-    think_close_count = content.count("</Think>")
-    if think_open_count == 0 or think_close_count == 0:
-        return False, "Missing <Think>...</Think> block."
-    if think_open_count != 1 or think_close_count != 1:
-        return False, "Reply must contain exactly one <Think>...</Think> block."
-
-    if "<Final Answer>" in content or "</Final Answer>" in content:
+def validate_turn_structure(
+    content: str,
+    *,
+    allow_explore: bool = True,
+) -> tuple[bool, Optional[str]]:
+    """Validate one response action while leaving the reasoning envelope free-form."""
+    # Response delimiters are reserved tokens. Count both sides before extracting
+    # a block so regex backtracking cannot absorb duplicate or nested actions.
+    if _has_tag(content, "Final Answer"):
         return (
             False,
             "<Final Answer>...</Final Answer> is not supported. Use <Answer>...</Answer> instead.",
         )
 
-    action_open_count = content.count("<Action>")
-    action_close_count = content.count("</Action>")
-    answer_open_count = content.count("<Answer>")
-    answer_close_count = content.count("</Answer>")
+    action_open_count = _tag_count(content, "Action", closing=False)
+    action_close_count = _tag_count(content, "Action", closing=True)
+    explore_open_count = _tag_count(content, "Explore", closing=False)
+    explore_close_count = _tag_count(content, "Explore", closing=True)
+    answer_open_count = _tag_count(content, "Answer", closing=False)
+    answer_close_count = _tag_count(content, "Answer", closing=True)
 
     has_action = action_open_count > 0 or action_close_count > 0
+    has_explore = explore_open_count > 0 or explore_close_count > 0
     has_answer = answer_open_count > 0 or answer_close_count > 0
 
-    response_block_count = sum(1 for present in (has_action, has_answer) if present)
+    if has_explore and not allow_explore:
+        return (
+            False,
+            "<Explore> is unavailable in this workflow. Use <Action> to inspect "
+            "local data or <Answer> to complete the task.",
+        )
+
+    response_block_count = sum(1 for present in (has_action, has_explore, has_answer) if present)
     if response_block_count == 0:
-        return False, "Missing <Action>...</Action> or <Answer>...</Answer> block."
+        if not allow_explore:
+            return False, "Missing <Action>...</Action> or <Answer>...</Answer> block."
+        return (
+            False,
+            "Missing <Action>...</Action>, <Explore>...</Explore>, "
+            "or <Answer>...</Answer> block.",
+        )
     if response_block_count > 1:
         return (
             False,
-            "Reply must contain exactly one of <Action>...</Action> or <Answer>...</Answer>.",
+            "Reply must contain exactly one of <Action>...</Action>, "
+            "<Explore>...</Explore>, or <Answer>...</Answer>.",
         )
 
     if has_action and (action_open_count != 1 or action_close_count != 1):
         return False, "Reply must contain exactly one <Action>...</Action> block."
+    if has_explore and (explore_open_count != 1 or explore_close_count != 1):
+        return False, "Reply must contain exactly one <Explore>...</Explore> block."
     if has_answer and (answer_open_count != 1 or answer_close_count != 1):
         return False, "Reply must contain exactly one <Answer>...</Answer> block."
 
-    think_index = content.find("<Think>")
-    response_index = len(content)
-    for tag in ("<Action>", "<Answer>"):
-        index = content.find(tag)
-        if index != -1:
-            response_index = min(response_index, index)
-    if think_index > response_index:
-        return False, "<Think> must appear before <Action> or <Answer>."
-
     if has_action:
-        match = _ACTION_TURN_PATTERN.fullmatch(content)
-        if match is None:
-            return (
-                False,
-                "Reply must contain only <Think>...</Think> followed by "
-                "<Action>...</Action> with no extra text.",
-            )
-        think = match.group("think").strip()
-        action = match.group("action").strip()
-        if not think:
-            return False, "<Think> cannot be empty."
+        action = extract_action_block(content)
         if not action:
             return False, "<Action> cannot be empty."
         return True, None
 
-    if "<Answer>" in content and "</Answer>" not in content:
-        return False, "Missing closing </Answer> tag."
+    if has_explore:
+        explore = extract_explore_block(content)
+        if not explore:
+            return False, "<Explore> cannot be empty."
+        if "```" in explore:
+            return False, "<Explore> cannot contain a code block."
+        return True, None
 
-    match = _ANSWER_TURN_PATTERN.fullmatch(content)
-    if match is None:
-        return (
-            False,
-            "Reply must contain only <Think>...</Think> followed by "
-            "<Answer>...</Answer> with no extra text.",
-        )
-    think = match.group("think").strip()
-    answer = match.group("answer").strip()
-    if not think:
-        return False, "<Think> cannot be empty."
+    answer = extract_answer_block(content)
     if not answer:
         return False, "<Answer> cannot be empty."
     if "```" in answer:
@@ -263,44 +284,46 @@ def validate_turn_structure(content: str) -> tuple[bool, Optional[str]]:
     return True, None
 
 
-def _can_repair_unclosed_answer(content: str) -> bool:
-    if "<Final Answer>" in content or "</Final Answer>" in content:
-        return False
-    if "<Action>" in content or "</Action>" in content:
-        return False
-    if content.count("<Answer>") != 1 or "</Answer>" in content:
-        return False
+def _repair_unclosed_response(content: str) -> tuple[str, str] | None:
+    """Close one unambiguous response block when only its final tag is missing."""
+    if _has_tag(content, "Final Answer"):
+        return None
 
-    match = _UNCLOSED_ANSWER_TURN_PATTERN.fullmatch(content)
-    if match is None:
-        return False
-    return bool(match.group("answer").strip())
+    response_tags = ("Action", "Explore", "Answer")
+    present_tags = [tag for tag in response_tags if _has_tag(content, tag)]
+    if len(present_tags) != 1:
+        return None
+
+    tag = present_tags[0]
+    if (
+        _tag_count(content, tag, closing=False) != 1
+        or _tag_count(content, tag, closing=True) != 0
+    ):
+        return None
+
+    repaired = content.rstrip() + f"\n</{tag}>"
+    is_valid, _ = validate_turn_structure(repaired, allow_explore=True)
+    if not is_valid:
+        return None
+    return repaired, tag
 
 
-def _can_repair_missing_think_open(content: str) -> bool:
-    """Recognize an intact turn whose leading Think opener was stripped.
+def _tag_count(content: str, tag: str, *, closing: bool) -> int:
+    slash = "/" if closing else ""
+    return len(
+        re.findall(
+            rf"<{slash}{re.escape(tag)}>",
+            content,
+            flags=re.IGNORECASE,
+        )
+    )
 
-    Some reasoning-model gateways consume a leading ``<Think>`` token while
-    preserving the closing tag and complete response block. This repair rejects
-    partial or duplicate response blocks so ambiguous code is never executed.
-    """
-    if "<Think>" in content or content.count("</Think>") != 1:
-        return False
-    if "<Final Answer>" in content or "</Final Answer>" in content:
-        return False
 
-    think_text, response_text = content.split("</Think>", maxsplit=1)
-    if not think_text.strip():
-        return False
-
-    action_count = content.count("<Action>") + content.count("</Action>")
-    answer_count = content.count("<Answer>") + content.count("</Answer>")
-    if (action_count, answer_count) not in {(2, 0), (0, 2)}:
-        return False
-
-    repaired = f"<Think>{think_text}</Think>{response_text}"
-    is_valid, _ = validate_turn_structure(repaired)
-    return is_valid
+def _has_tag(content: str, tag: str) -> bool:
+    return bool(
+        _tag_count(content, tag, closing=False)
+        or _tag_count(content, tag, closing=True)
+    )
 
 
 def wrap_observation(observation: str) -> str:
@@ -311,18 +334,28 @@ def wrap_feedback(feedback: str) -> str:
     return f"<Feedback>\n{feedback}\n</Feedback>"
 
 
-def build_protocol_error_feedback(reason: Optional[str]) -> str:
+def build_protocol_error_feedback(
+    reason: Optional[str],
+    *,
+    allow_explore: bool = True,
+) -> str:
     detail = reason or "Malformed assistant reply."
+    formats = "<Think>...</Think>\n<Action>...</Action>\nor:\n"
+    if allow_explore:
+        formats += "<Think>...</Think>\n<Explore>...</Explore>\nor:\n"
+    formats += "<Answer>...</Answer>\n"
+    explore_guidance = (
+        "Use <Explore> only for a plain-text perception request. "
+        if allow_explore
+        else ""
+    )
     return (
         f"Protocol error: {detail}\n"
-        "Reply using exactly:\n"
-        "<Think>...</Think>\n"
-        "<Action>...</Action>\n"
-        "or:\n"
-        "<Think>...</Think>\n"
-        "<Answer>...</Answer>\n"
+        "Reply using the strict format:\n"
+        f"{formats}"
         "Always close every tag explicitly. In particular, finish completion replies with </Answer>.\n"
         "Use <Action> only for exactly one fenced ```python``` block. "
+        f"{explore_guidance}"
         "Use <Answer> only for plain-text completion after the task is done."
     )
 
@@ -363,9 +396,11 @@ __all__ = [
     "NormalizedReActReply",
     "ReActTurnResult",
     "build_execution_message",
+    "build_perception_message",
     "build_protocol_error_feedback",
     "extract_action_block",
     "extract_answer_block",
+    "extract_explore_block",
     "extract_final_answer_from_action",
     "extract_strict_python_from_action",
     "extract_think_block",

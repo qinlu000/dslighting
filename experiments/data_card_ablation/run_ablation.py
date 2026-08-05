@@ -19,6 +19,7 @@ SUPPORTED_POLICIES = ("main", "l1", "l2", "l3")
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from dslighting.core.config.llm_resolution import build_llm_config  # noqa: E402
 from experiments.data_card_ablation.engine import (  # noqa: E402
     ConditionExperimentEngine,
     ConditionRuntime,
@@ -122,7 +123,7 @@ def _execute(args: argparse.Namespace) -> Path | None:
     run_id = _run_id(prepared.descriptor.source_id)
     runtime = ConditionRuntime(
         workflow=str(args.workflow or profile.default_workflow),
-        model=args.model,
+        llm=build_llm_config(model=args.model),
         task_concurrency=args.concurrency,
     )
     configs = build_configs(
@@ -143,7 +144,7 @@ def _execute(args: argparse.Namespace) -> Path | None:
         "selection": selection_manifest(prepared),
         "runtime": {
             "workflow": runtime.workflow,
-            "model": runtime.model,
+            "model": runtime.llm.model,
             "concurrency": runtime.task_concurrency,
             "output_contract": configs[conditions[0].condition_id].output_contract.model_dump(
                 mode="json"

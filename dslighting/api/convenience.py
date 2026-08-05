@@ -30,6 +30,7 @@ _AGENT_INIT_KWARGS = {
     "api_base",
     "provider",
     "temperature",
+    "llm_config",
     "timeout",
     "keep_workspace",
     "sandbox_backend",
@@ -119,7 +120,7 @@ def _resolve_task_description(task_id: str, registry_root: Optional[Path]) -> Op
 
 
 def setup(
-    model: str = "gpt-4o",
+    model: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> None:
     """Configure DSLighting with default settings.
@@ -138,11 +139,14 @@ def setup(
         >>> setup(model="gpt-4o", api_key="sk-...")
     """
     import os
+    from dslighting.core.config.llm_resolution import build_llm_config
 
     if api_key:
         os.environ["OPENAI_API_KEY"] = api_key
+    if model:
+        os.environ["LLM_MODEL"] = model
 
-    print(f"[OK] DSLighting configured with model: {model}")
+    print(f"[OK] DSLighting configured with model: {build_llm_config().model}")
 
 
 def load_data(
@@ -231,7 +235,7 @@ def run_agent(
     task_id: Optional[str] = None,
     data: Optional[Union[str, Path, TaskContext]] = None,
     workflow: str = "aide",
-    model: str = "gpt-4o",
+    model: Optional[str] = None,
     api_keys: Optional[list[str]] = None,
     sandbox_backend: Optional[str] = None,
     sandbox_backend_type: Optional[str] = None,
@@ -340,7 +344,7 @@ def run_agent(
 def analyze(
     data: Union[str, Path, TaskContext],
     description: str,
-    model: str = "gpt-4o",
+    model: Optional[str] = None,
     **kwargs
 ):
     """Perform open-ended exploratory data analysis.
@@ -392,7 +396,7 @@ def analyze(
 def process(
     data: Union[str, Path, TaskContext],
     description: str,
-    model: str = "gpt-4o",
+    model: Optional[str] = None,
     **kwargs
 ):
     """Perform data processing and transformation tasks.
@@ -445,7 +449,7 @@ def process(
 def model(
     data: Union[str, Path, TaskContext],
     description: str,
-    model: str = "gpt-4o",
+    model: Optional[str] = None,
     **kwargs
 ):
     """Build and train machine learning models.

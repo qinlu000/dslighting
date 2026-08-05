@@ -6,7 +6,7 @@ The create_data_analyzer entry point has been replaced by create_data_perception
 
 from __future__ import annotations
 
-from dslighting.config import DSLightingConfig
+from dslighting.config import DSLightingConfig, LLMConfig
 from dslighting.core import ConfigBuilder
 from dslighting.core.application.agent_config_builder import AgentConfigBuilder
 from dslighting.services.data_analysis_provider import create_data_perception_runtime
@@ -15,12 +15,7 @@ from dslighting.services.data_analysis_provider import create_data_perception_ru
 def _make_agent_builder(init_kwargs: dict) -> AgentConfigBuilder:
     return AgentConfigBuilder(
         workflow_name="aide",
-        model="gpt-4o",
-        api_key=None,
-        api_keys=None,
-        api_base=None,
-        provider=None,
-        temperature=None,
+        llm_config=LLMConfig(model="gpt-4o"),
         timeout=300,
         keep_workspace=False,
         sandbox_backend=None,

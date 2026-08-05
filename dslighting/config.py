@@ -8,11 +8,10 @@ if TYPE_CHECKING:
 
 from dslighting.core.visualization_policy import VisualizationPolicy
 from dslighting.utils.constants import DEFAULT_CACHE_MAX_ENTRIES
-from dslighting.utils.defaults import DEFAULT_MAX_RETRIES
 
 
 class LLMConfig(BaseModel):
-    """LLM service settings."""
+    """Canonical model, transport, retry, and concurrency settings for all LLM calls."""
 
     model: str = "gpt-4o-mini"
     temperature: float = 0.7
@@ -28,14 +27,39 @@ class LLMConfig(BaseModel):
         None, description="Optional LiteLLM provider alias, e.g. 'siliconflow'."
     )
     thinking: Optional[bool] = Field(
-        None,
+        False,
         description=(
-            "Optional reasoning-mode switch for providers that support the OpenAI-compatible "
-            "thinking request body. None leaves the provider default unchanged."
+            "Reasoning-mode switch for providers that support the OpenAI-compatible "
+            "thinking request body. Disabled by default; explicitly set None to leave "
+            "the provider default unchanged."
         ),
     )
-    max_retries: int = DEFAULT_MAX_RETRIES
-    max_concurrent_per_key: int = 20
+    max_retries: int = Field(
+        10,
+        ge=1,
+        description="Total DSLighting transport attempts, including the initial request.",
+    )
+    request_timeout_seconds: float = Field(
+        300.0,
+        gt=0,
+        description="Timeout applied to each provider request.",
+    )
+    sdk_max_retries: int = Field(
+        0,
+        ge=0,
+        description="Retries performed inside LiteLLM for each transport attempt.",
+    )
+    max_concurrent_per_key: int = Field(
+        20,
+        gt=0,
+        description="Maximum in-flight requests for each API key.",
+    )
+    global_max_concurrency: Optional[int] = Field(
+        None,
+        gt=0,
+        description="Optional process-wide cap for in-flight LLM requests.",
+    )
+    model_quotas: Dict[str, int] = Field(default_factory=dict)
 
     def get_api_keys(self) -> List[str]:
         """
@@ -117,6 +141,7 @@ class AgentRuntimeConfig(BaseModel):
 
     max_steps: int = 10
     skill_path: Optional[str] = None
+    perception_enabled: bool = False
     observation: AgentRuntimeObservationConfig = Field(
         default_factory=AgentRuntimeObservationConfig
     )
@@ -163,8 +188,6 @@ class DagRuntimeConfig(BaseModel):
     max_inflight_nodes: int = 256
     node_timeout_seconds: float = 300.0
     ready_queue_policy: Literal["fifo", "priority", "lpt_backfill"] = "priority"
-    llm_global_max_concurrency: Optional[int] = None
-    llm_model_quotas: Dict[str, int] = Field(default_factory=dict)
     enable_speculative_branches: bool = False
     dag_mode: Literal["coarse", "fine"] = "coarse"
     enable_debug_branch: bool = False
@@ -214,7 +237,6 @@ class SchedulerConfig(BaseModel):
     oom_retry_memory_growth: float = 1.35
     sandbox_memory_mode: str = "off"
     sandbox_default_memory_gb: float = 6.0
-    llm_max_concurrency: Optional[int] = None
     cpu_worker_pool_size: Optional[int] = None
     exp_name: Optional[str] = None
     monitor_language: Optional[str] = None
@@ -226,8 +248,12 @@ class SchedulerConfig(BaseModel):
     sandbox_task_start_rate: Optional[float] = None
     task_rate_burst_factor: Optional[float] = None
 
-    def to_runtime_options(self) -> "RuntimeSchedulerOptions":
-        """Convert scheduler settings to RuntimeSchedulerOptions."""
+    def to_runtime_options(
+        self,
+        *,
+        llm_config: LLMConfig | None = None,
+    ) -> "RuntimeSchedulerOptions":
+        """Convert settings to runtime options, sourcing LLM limits from LLMConfig."""
         from dslighting.benchmark import RuntimeSchedulerOptions
 
         return RuntimeSchedulerOptions(
@@ -248,7 +274,6 @@ class SchedulerConfig(BaseModel):
             oom_retry_memory_growth=self.oom_retry_memory_growth,
             sandbox_memory_mode=self.sandbox_memory_mode,
             sandbox_default_memory_gb=self.sandbox_default_memory_gb,
-            llm_max_concurrency=self.llm_max_concurrency,
             cpu_worker_pool_size=self.cpu_worker_pool_size,
             exp_name=self.exp_name,
             monitor_language=self.monitor_language,
@@ -259,6 +284,9 @@ class SchedulerConfig(BaseModel):
             llm_task_start_rate=self.llm_task_start_rate,
             sandbox_task_start_rate=self.sandbox_task_start_rate,
             task_rate_burst_factor=self.task_rate_burst_factor,
+            llm_max_concurrency=(
+                llm_config.global_max_concurrency if llm_config is not None else None
+            ),
         )
 
 

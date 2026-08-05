@@ -1,0 +1,65 @@
+{
+  "schema_version": "l1_semantic_map_v1",
+  "dataset_id": "loan_model",
+  "data_objects": [
+    {
+      "name": "loan_features",
+      "files": ["features.csv"],
+      "kind": "table",
+      "meaning": "Loan-related feature matrix keyed by a date-like time value and business identifier.",
+      "notes": "The f, e, and x feature families are anonymous numeric columns."
+    },
+    {
+      "name": "loan_labels",
+      "files": ["label.csv"],
+      "kind": "table",
+      "meaning": "Binary label table keyed by the same time and business identifier fields as the feature matrix."
+    },
+    {
+      "name": "carisk_documentation",
+      "files": ["carisk.html"],
+      "kind": "document",
+      "meaning": "Static HTML documentation for the carisk Python package."
+    },
+    {
+      "name": "public_tuning_artifact_bundle",
+      "files": ["baseline_clean"],
+      "kind": "bundle",
+      "meaning": "Directory of timestamped public artifact groups containing scene-level JSONL records, compact JSON state, text reports, and run-level summaries.",
+      "notes": "File presence varies by timestamped group; the bundle is not row-aligned with features.csv."
+    }
+  ],
+  "variables": [
+    {"object": "loan_features", "name": "time", "meaning": "Date-like integer in YYYYMMDD form and one component of the feature-label join key.", "unit": null},
+    {"object": "loan_features", "name": "bizcode", "meaning": "Business/entity identifier and one component of the feature-label join key.", "unit": null},
+    {"object": "loan_features", "name": "f0-f66", "meaning": "Regular family of 67 anonymous numeric feature columns with exact names f0 through f66.", "unit": null},
+    {"object": "loan_features", "name": "e1-e11", "meaning": "Regular family of 11 anonymous numeric feature columns with exact names e1 through e11.", "unit": null},
+    {"object": "loan_features", "name": "x0-x19", "meaning": "Regular family of 20 anonymous numeric feature columns with exact names x0 through x19.", "unit": null},
+    {"object": "loan_labels", "name": "label", "meaning": "Binary outcome label encoded numerically.", "unit": null},
+    {"object": "loan_labels", "name": "time", "meaning": "Date-like integer in YYYYMMDD form and one component of the feature-label join key.", "unit": null},
+    {"object": "loan_labels", "name": "bizcode", "meaning": "Business/entity identifier and one component of the feature-label join key.", "unit": null}
+  ],
+  "structure": [
+    {
+      "description": "features.csv and label.csv align by the composite key (time, bizcode); both key columns should be retained when joining.",
+      "objects": ["loan_features", "loan_labels"]
+    },
+    {
+      "description": "The feature matrix has 100 source columns: two keys plus the complete f0-f66, e1-e11, and x0-x19 families.",
+      "objects": ["loan_features"]
+    },
+    {
+      "description": "The carisk HTML and timestamped artifact bundle are supporting public objects with no declared row-level key to the feature and label tables.",
+      "objects": ["carisk_documentation", "loan_features", "public_tuning_artifact_bundle"]
+    }
+  ],
+  "uncertainties": [
+    "The public feature matrix does not define the business meaning or units of the anonymous f, e, and x columns.",
+    "The meaning of the binary label's positive class is not declared in the tabular headers.",
+    "The timestamped artifact groups are heterogeneous and some expected file types are absent from individual groups."
+  ],
+  "annotation_notes": [
+    "High-dimensional regular feature families are grouped; all ordinary columns are listed separately.",
+    "The public tuning directory is described only at the bundle/file-role level, without exposing recorded outcomes."
+  ]
+}

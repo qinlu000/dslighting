@@ -1,6 +1,6 @@
 """Thin ReAct protocol operator.
 
-This operator parses strict ReAct replies and formats execution observations.
+This operator parses ReAct response actions and formats execution observations.
 It does not execute code directly; workflows should delegate execution to the
 shared execute operator.
 """
@@ -13,6 +13,7 @@ from dslighting.ops.base import Operator
 from dslighting.workflows.search.react.protocol import (
     ReActTurnResult,
     build_execution_message,
+    build_perception_message,
     parse_react_reply,
 )
 from dslighting.workflows.search.react.validation import (
@@ -49,15 +50,20 @@ class ReActOperator(Operator):
         assistant_reply: str,
         *,
         expected_output_filename: Optional[str] = None,
+        allow_explore: bool = False,
     ) -> ReActTurnResult:
         _ = expected_output_filename
-        return parse_react_reply(assistant_reply)
+        return parse_react_reply(
+            assistant_reply,
+            allow_explore=allow_explore,
+        )
 
     def build_execution_message(
         self,
         exec_result,
         *,
         critical_footer: Optional[str] = None,
+        escape_output: bool = False,
     ) -> str:
         return build_execution_message(
             exec_result,
@@ -65,6 +71,15 @@ class ReActOperator(Operator):
             obs_head_tokens=self.obs_head_tokens,
             obs_tail_tokens=self.obs_tail_tokens,
             critical_footer=critical_footer,
+            escape_output=escape_output,
+        )
+
+    def build_perception_message(self, perception_result: str) -> str:
+        return build_perception_message(
+            perception_result,
+            obs_max_tokens=self.obs_max_tokens,
+            obs_head_tokens=self.obs_head_tokens,
+            obs_tail_tokens=self.obs_tail_tokens,
         )
 
 

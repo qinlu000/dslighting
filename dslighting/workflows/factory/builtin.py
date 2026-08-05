@@ -532,6 +532,7 @@ class ReActWorkflowFactory(BaseWorkflowFactory):
             "react_context_config": context_config,
             "output_contract_config": output_contract_config,
             "agent_skill": _resolve_agent_skill(config),
+            "perception_enabled": bool(config.agent_runtime.perception_enabled),
         }
         return ReActWorkflow(
             operators=operators,

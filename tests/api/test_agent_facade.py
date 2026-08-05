@@ -1,6 +1,7 @@
 import pytest
 
 from dslighting.api.agent import Agent
+from dslighting.config import LLMConfig
 from dslighting.core.interfaces import AgentResult
 from dslighting.error import ConfigurationError
 
@@ -21,7 +22,16 @@ def test_agent_keeps_api_keys_on_app_service() -> None:
     agent = Agent(workflow="aide", model="gpt-4o", api_keys=["k1", "k2"])
     service = agent._create_app_service()
 
-    assert service._config_builder.api_keys == ["k1", "k2"]
+    assert service._config_builder.llm_config.api_keys == ["k1", "k2"]
+
+
+def test_agent_accepts_one_global_llm_config() -> None:
+    llm_config = LLMConfig(model="test/model", thinking=False, max_retries=3)
+    agent = Agent(workflow="aide", llm_config=llm_config)
+
+    assert agent.llm_config == llm_config
+    with pytest.raises(ConfigurationError, match="cannot be combined"):
+        Agent(workflow="aide", model="other/model", llm_config=llm_config)
 
 
 @pytest.mark.asyncio
