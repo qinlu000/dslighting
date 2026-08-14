@@ -1,0 +1,141 @@
+{
+  "schema_version": "dslighting_experiment_results_v1",
+  "updated_at": "2026-08-04T14:33:55+08:00",
+  "experiments": {
+    "agenticdatabench_three_run_ablation": {
+      "status": "final",
+      "comparable": true,
+      "task_count_per_run": 246,
+      "repetitions_per_condition": 3,
+      "conditions": {
+        "react": {
+          "rounds": [
+            {"round": 1, "score": 0.4165350515332671, "finished": 231, "max_step_terminated": 12},
+            {"round": 2, "score": 0.45586761638441625, "finished": 239, "max_step_terminated": 9},
+            {"round": 3, "score": 0.4284376562154654, "finished": 234, "max_step_terminated": 9}
+          ],
+          "mean_score": 0.43361344137771625,
+          "sample_score_sd": 0.020170627865210233,
+          "mean_finished_rate": 0.9539295392953929
+        },
+        "datacard": {
+          "rounds": [
+            {"round": 1, "score": 0.4187507327323214, "finished": 225, "max_step_terminated": 8},
+            {"round": 2, "score": 0.45129353184172877, "finished": 232, "max_step_terminated": 7},
+            {"round": 3, "score": 0.45692233518459946, "finished": 232, "max_step_terminated": 6}
+          ],
+          "mean_score": 0.44232219991954985,
+          "sample_score_sd": 0.02060658646615494,
+          "mean_finished_rate": 0.9336043360433605,
+          "mean_score_delta_vs_react": 0.00870875854183361
+        },
+        "fastperception": {
+          "rounds": [
+            {"round": 1, "score": 0.43261754458984425, "finished": 236, "max_step_terminated": 9},
+            {"round": 2, "score": 0.43130784186945015, "finished": 242, "max_step_terminated": 4},
+            {"round": 3, "score": 0.4443462347976573, "finished": 235, "max_step_terminated": 8}
+          ],
+          "mean_score": 0.4360905404189839,
+          "sample_score_sd": 0.007179568062181489,
+          "mean_finished_rate": 0.9661246612466124,
+          "mean_score_delta_vs_react": 0.00247709904126766
+        }
+      },
+      "source_glob": "runs/agenticdatabench/evaluations/hkust-v4flash-parallel-c100-*-s50-c320k-full-r?.json"
+    },
+    "datacope_agenticdatabench": {
+      "status": "final",
+      "comparable": true,
+      "task_count": 184,
+      "control": {"score": 0.4052108131084538, "finished": 147},
+      "skill": {"score": 0.3359531604472232, "finished": 127},
+      "score_delta": -0.06925765266123063,
+      "paired": {"skill_wins": 28, "control_wins": 41, "ties": 115},
+      "sources": [
+        "data/releases/agenticdatabench_full/AgenticDataBench/testbed/results/agenticdatabench_datacope_test_baseline.json",
+        "data/releases/agenticdatabench_full/AgenticDataBench/testbed/results/agenticdatabench_datacope_test_skill.json"
+      ]
+    },
+    "datacope_moscibench": {
+      "status": "final",
+      "comparable": true,
+      "task_count": 65,
+      "control": {"accuracy": 0.4153846153846154, "correct": 27},
+      "skill": {"accuracy": 0.3230769230769231, "correct": 21},
+      "accuracy_delta": -0.09230769230769231,
+      "source": "experiments/datacope_moscibench/runs/test_summary.json"
+    },
+    "data_card_level_ablation": {
+      "status": "final",
+      "comparable": true,
+      "repetitions_per_cell": 1,
+      "metric": "score.actual_average",
+      "benchmarks": {
+        "dabench": {
+          "task_count": 257,
+          "aide": {
+            "main": {"score": 0.8754863813229572, "scored": 257},
+            "l1": {"score": 0.8832684824902723, "scored": 256},
+            "l2": {"score": 0.8832684824902723, "scored": 256},
+            "l3": {"score": 0.8949416342412452, "scored": 257}
+          },
+          "react": {
+            "main": {"score": 0.8015564202334631, "scored": 237},
+            "l1": {"score": 0.8132295719844358, "scored": 241},
+            "l2": {"score": 0.7898832684824902, "scored": 236},
+            "l3": {"score": 0.7937743190661478, "scored": 235}
+          }
+        },
+        "moscibench": {
+          "task_count": 88,
+          "aide": {
+            "main": {"score": 0.6022727272727273, "scored": 75},
+            "l1": {"score": 0.6590909090909091, "scored": 77},
+            "l2": {"score": 0.6363636363636364, "scored": 67},
+            "l3": {"score": 0.6590909090909091, "scored": 76}
+          },
+          "react": {
+            "main": {"score": 0.32954545454545453, "scored": 40},
+            "l1": {"score": 0.375, "scored": 45},
+            "l2": {"score": 0.36363636363636365, "scored": 41},
+            "l3": {"score": 0.36363636363636365, "scored": 40}
+          }
+        }
+      },
+      "source_root": "experiments/benchmark/runs"
+    },
+    "annotation_perception_skills": {
+      "status": "curated_preliminary",
+      "comparable": true,
+      "metric": "score_equal_to_1_rate_with_all_tasks_in_denominator",
+      "benchmarks": {
+        "dabench": {
+          "task_count_per_condition_repetition": 257,
+          "repetitions": 5,
+          "conditions": {
+            "original_dataset_description": {"per_repetition": [203, 206, 201, 211, 207], "score_1_total": 1028, "denominator": 1285, "rate": 0.8},
+            "base_annotation": {"per_repetition": [198, 205, 209, 198, 203], "score_1_total": 1013, "denominator": 1285, "rate": 0.7883268482490272},
+            "semantics_guided_annotation": {"per_repetition": [202, 206, 199, 205, 208], "score_1_total": 1020, "denominator": 1285, "rate": 0.7937743190661478}
+          }
+        },
+        "moscibench": {
+          "task_count_per_condition_repetition": 88,
+          "repetitions": 3,
+          "conditions": {
+            "original_dataset_description": {"per_repetition": [36, 34, 36], "score_1_total": 106, "denominator": 264, "rate": 0.4015151515151515},
+            "base_annotation": {"per_repetition": [38, 39, 34], "score_1_total": 111, "denominator": 264, "rate": 0.42045454545454547},
+            "semantics_guided_annotation": {"per_repetition": [34, 38, 42], "score_1_total": 114, "denominator": 264, "rate": 0.4318181818181818},
+            "modality_enriched_annotation": {"per_repetition": [39, 37, 41], "score_1_total": 117, "denominator": 264, "rate": 0.4431818181818182}
+          }
+        }
+      },
+      "source": "data/experiments/data_card_ablation/suites/annotation-skill-ablation-20260722/manifest.json"
+    },
+    "agenticdatabench_v4flash_30_step": {
+      "status": "superseded",
+      "comparable": false,
+      "reason": "Incorrect provider-thinking configuration and a different step budget",
+      "source_glob": "runs/agenticdatabench/evaluations/hkust-v4flash-*-30-full*.json"
+    }
+  }
+}
