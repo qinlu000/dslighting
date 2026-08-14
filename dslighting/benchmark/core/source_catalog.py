@@ -22,8 +22,6 @@ class BenchmarkSourceDescriptor:
     default_data_env_var: Optional[str] = None
     supports_single_task_loader: bool = True
     legacy_task_prefixes: tuple[str, ...] = ()
-    context_dataset_id_field: Optional[str] = None
-    context_dataset_id_prefix: str = ""
 
 
 @dataclass(frozen=True)
@@ -90,12 +88,6 @@ class BenchmarkSourceCatalog:
             for prefix in payload.get("legacy_task_prefixes") or ()
             if str(prefix).strip()
         )
-        context_dataset = payload.get("context_dataset") or {}
-        if not isinstance(context_dataset, dict):
-            raise ConfigurationError(
-                f"Invalid context_dataset declaration: {manifest_path}",
-                details={"manifest_path": str(manifest_path)},
-            )
         return BenchmarkSourceDescriptor(
             source_id=source_id,
             contract_id=contract_id,
@@ -106,10 +98,6 @@ class BenchmarkSourceCatalog:
             default_data_env_var=(payload.get("default_data_env_var") or None),
             supports_single_task_loader=bool(payload.get("supports_single_task_loader", True)),
             legacy_task_prefixes=prefixes,
-            context_dataset_id_field=(
-                str(context_dataset.get("id_field") or "").strip() or None
-            ),
-            context_dataset_id_prefix=str(context_dataset.get("id_prefix") or "").strip(),
         )
 
     @classmethod

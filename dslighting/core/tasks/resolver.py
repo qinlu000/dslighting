@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import yaml
 
@@ -11,8 +11,6 @@ from dslighting.benchmark.evaluation.contract_builder import build_task_evaluati
 from dslighting.core.tasks.errors import TaskLayoutResolutionError
 from dslighting.core.tasks.models import ResolvedTaskLayout
 from dslighting.core.tasks.output_artifact import resolve_output_artifact_path_for_competition
-
-_LINE_BREAK_CHARACTERS = frozenset("\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029")
 
 
 class TaskResolver:
@@ -90,58 +88,6 @@ class TaskResolver:
         with open(config_path, "r", encoding="utf-8") as handle:
             return yaml.safe_load(handle) or {}
 
-    @staticmethod
-    def resolve_dataset_id(
-        *,
-        task_id: str,
-        config: Mapping[str, Any],
-        context_dataset_id_field: str | None,
-        context_dataset_id_prefix: str = "",
-    ) -> str:
-        """Resolve a stable semantic-dataset identity declared by the source.
-
-        Sources without a declaration use task identity.  A declared dotted
-        field is fail-closed so a misspelled or absent family key cannot
-        silently select a task-level artifact.
-        """
-
-        field = str(context_dataset_id_field or "").strip()
-        if not field:
-            return task_id
-
-        value: Any = config
-        for segment in field.split("."):
-            if not segment or not isinstance(value, Mapping) or segment not in value:
-                raise TaskLayoutResolutionError(
-                    f"Task '{task_id}' has no context dataset identity field {field!r}."
-                )
-            value = value[segment]
-        if (
-            not isinstance(value, str)
-            or not value.strip()
-            or any(character in value for character in _LINE_BREAK_CHARACTERS)
-        ):
-            raise TaskLayoutResolutionError(
-                f"Task '{task_id}' context dataset identity field {field!r} must be "
-                "a non-empty single-line string."
-            )
-
-        identity = f"{context_dataset_id_prefix}{value.strip()}"
-        if (
-            not identity
-            or identity in {".", ".."}
-            or Path(identity).name != identity
-            or "/" in identity
-            or "\\" in identity
-            or "\x00" in identity
-            or any(character in identity for character in _LINE_BREAK_CHARACTERS)
-        ):
-            raise TaskLayoutResolutionError(
-                f"Task '{task_id}' resolved an invalid context dataset identity "
-                f"{identity!r} from {field!r}."
-            )
-        return identity
-
     def resolve(
         self,
         *,
@@ -164,27 +110,16 @@ class TaskResolver:
         except Exception as exc:
             raise self._build_layout_error(task_id, data_path, explicit_registry) from exc
 
-        source_task_root = (
+        task_root = (
             resolved_source.task_dir.resolve()
             if resolved_source.task_dir
             else (resolved_source.registry_root / task_id).resolve()
         )
-        data_root = self._infer_data_root(task_id, data_path or source_task_root)
-        registry = self._catalog.build_registry(
-            resolved_source.descriptor,
-            data_root=data_root,
-        )
-        effective_task = registry.resolve_task_config(task_id)
-        task_root = effective_task.task_dir
-        config = effective_task.config
+        config = self._load_task_config(task_root)
         task_type = str(config.get("task_type") or "kaggle").strip() or "kaggle"
-        dataset_id = self.resolve_dataset_id(
-            task_id=task_id,
-            config=config,
-            context_dataset_id_field=(resolved_source.descriptor.context_dataset_id_field),
-            context_dataset_id_prefix=(resolved_source.descriptor.context_dataset_id_prefix),
-        )
 
+        data_root = self._infer_data_root(task_id, data_path or task_root)
+        registry = self._catalog.build_registry(resolved_source.descriptor, data_root=data_root)
         competition = registry.get_competition(task_id)
 
         if task_type == "open_ended":
@@ -233,7 +168,6 @@ class TaskResolver:
 
         return ResolvedTaskLayout(
             task_id=task_id,
-            dataset_id=dataset_id,
             source_id=resolved_source.descriptor.source_id,
             engine_id=resolved_source.descriptor.engine_id,
             task_type=task_type,

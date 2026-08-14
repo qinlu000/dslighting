@@ -70,19 +70,3 @@ def test_factory_package_import_stays_lightweight() -> None:
     combined_output = f"{result.stdout}\n{result.stderr}"
     assert result.returncode == 0, combined_output
     assert "BUILTIN_IMPORTED False" in result.stdout
-
-
-def test_task_context_and_provider_are_fresh_process_import_safe() -> None:
-    result = _run_python(
-        """
-        import dslighting.core.task_context as task_context
-        import dslighting.services.task_context_provider as provider
-
-        print(task_context.TaskContextBuilder.__name__)
-        print(provider.create_task_context_builder.__name__)
-        """
-    )
-
-    combined_output = f"{result.stdout}\n{result.stderr}"
-    assert result.returncode == 0, combined_output
-    assert "partially initialized" not in combined_output

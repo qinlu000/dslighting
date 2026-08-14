@@ -11,7 +11,6 @@ from dslighting.benchmark.grading.models import SubmissionArtifactContract
 @dataclass(frozen=True)
 class ResolvedTaskLayout:
     task_id: str
-    dataset_id: str
     source_id: str
     engine_id: str
     task_type: str

@@ -1,9 +1,7 @@
 # dslighting/benchmark/benchmarks/mle_style_benchmark.py
 
-import hashlib
 import logging
 import os
-import tempfile
 import time
 import uuid
 from dataclasses import replace
@@ -389,8 +387,7 @@ class MLEStyleBenchmark(BaseBenchmark):
                 return 0.0
 
             # Load task description and rubric
-            competition_registry = self._get_registry_for_competition(competition_id)
-            competition = competition_registry.get_competition(competition_id)
+            competition = self._get_registry_for_competition(competition_id).get_competition(competition_id)
             competition_dir = competition.raw_dir.parent
 
             description_path = competition_dir / "description.md"
@@ -631,46 +628,6 @@ Respond ONLY with the JSON object, no additional text.
         logger.error(f"Error for {competition_id}: {error_msg}")
         return report
 
-    def _output_artifact_suffix(self, competition_id: str) -> str:
-        """Use a stable suffix only when output naming is explicitly seeded.
-
-        Normal benchmark runs retain the historical random suffix, including
-        runs with an explicit scheduler run ID.  Comparable experiments may
-        opt in through the generic ``output_artifact_suffix_seed`` run
-        parameter while keeping their host log directories isolated.
-        """
-
-        seed = self._output_artifact_suffix_seed(competition_id)
-        if seed is None:
-            return uuid.uuid4().hex[:6]
-        digest_input = f"{seed}\0{competition_id}".encode("utf-8")
-        return hashlib.sha256(digest_input).hexdigest()[:6]
-
-    def _output_artifact_suffix_seed(self, _competition_id: str) -> Optional[str]:
-        runner_config = getattr(getattr(self, "runner", None), "config", None)
-        run_config = getattr(runner_config, "run", None)
-        parameters = getattr(run_config, "parameters", None)
-        if not isinstance(parameters, dict):
-            return None
-        return str(parameters.get("output_artifact_suffix_seed") or "").strip() or None
-
-    def _allocate_output_artifact_path(
-        self,
-        artifact_name: Path,
-        *,
-        seeded: bool,
-    ) -> Path:
-        """Allocate a fresh host destination while preserving the solver basename."""
-
-        log_root = Path(self.log_path).absolute()
-        if not seeded:
-            return (log_root / artifact_name).absolute()
-
-        attempts_root = log_root / ".output_attempts"
-        attempts_root.mkdir(parents=True, exist_ok=True)
-        attempt_root = Path(tempfile.mkdtemp(prefix="attempt-", dir=attempts_root))
-        return (attempt_root / artifact_name.name).absolute()
-
     async def evaluate_problem(self, problem: dict, eval_fn: Callable) -> Tuple[Tuple, CompetitionReport, Optional[str]]:
         """
         Evaluates a single competition-style benchmark task.
@@ -681,7 +638,7 @@ Respond ONLY with the JSON object, no additional text.
         if not competition_id:
             raise ValueError("Problem data must contain 'competition_id'")
 
-        unique_id = self._output_artifact_suffix(competition_id)
+        unique_id = uuid.uuid4().hex[:6]
 
         # Start timing
         start_time = time.perf_counter()
@@ -696,17 +653,15 @@ Respond ONLY with the JSON object, no additional text.
         competition: Optional[Any] = None
 
         try:
-            competition_registry = self._get_registry_for_competition(competition_id)
-            competition = competition_registry.get_competition(competition_id)
-            artifact_name = resolve_output_artifact_path_for_competition(
-                task_id=competition_id,
-                competition=competition,
-                unique_suffix=unique_id,
-            )
-            output_submission_path = self._allocate_output_artifact_path(
-                artifact_name,
-                seeded=self._output_artifact_suffix_seed(competition_id) is not None,
-            )
+            competition = self._get_registry_for_competition(competition_id).get_competition(competition_id)
+            output_submission_path = (
+                Path(self.log_path)
+                / resolve_output_artifact_path_for_competition(
+                    task_id=competition_id,
+                    competition=competition,
+                    unique_suffix=unique_id,
+                )
+            ).absolute()
             # Skip prepared check for open-ended tasks
             if mode != "open_ended" and not is_dataset_prepared(competition, grading_only=False):
                 raise ValueError(f"Dataset for '{competition_id}' not prepared in '{self.data_dir}'.")
@@ -775,7 +730,6 @@ Respond ONLY with the JSON object, no additional text.
 
                 payload = {
                     "description": competition.description,
-                    "registry_dir": str(competition_registry.get_competitions_dir()),
                     "agent_visible_data_dir": str(source_data_dir.absolute()),
                     "public_data_dir": str(source_data_dir.absolute()),  # Use the determined source
                     "output_submission_path": str(output_submission_path.absolute()),
