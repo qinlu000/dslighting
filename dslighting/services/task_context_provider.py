@@ -16,7 +16,7 @@ def create_task_context_builder(
     *,
     perception_runtime: Any = _UNSET,
 ) -> TaskContextBuilder:
-    """Wire policy and the main perception runtime without leaking either.
+    """Wire the main data-perception runtime into task-context assembly.
 
     Passing ``perception_runtime=None`` deliberately disables perception;
     omitting it constructs the runtime from ``config.data_analysis``.
@@ -24,7 +24,7 @@ def create_task_context_builder(
 
     if perception_runtime is _UNSET:
         perception_runtime = create_data_perception_runtime(config)
-    return TaskContextBuilder(config.task_context, perception_runtime)
+    return TaskContextBuilder(perception_runtime)
 
 
 __all__ = ["create_task_context_builder"]

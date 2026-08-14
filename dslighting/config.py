@@ -1,7 +1,8 @@
 # dslighting/config.py
 
-from typing import Dict, Any, Optional, List, Literal, TYPE_CHECKING
-from pydantic import BaseModel, Field, ConfigDict
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
     from dslighting.benchmark import RuntimeSchedulerOptions
@@ -156,21 +157,6 @@ class OutputContractConfig(BaseModel):
     max_preview_rows: int = 3
     max_candidate_files: int = 20
     allow_runner_fallback: bool = True
-
-
-class TaskContextConfig(BaseModel):
-    """Select the dataset context presented to file-submission solvers.
-
-    ``main`` preserves the prompt assembled by the main branch.  The other
-    policies change only the dataset-description layer and/or append an
-    explicitly configured L2 guidance artifact; data profiling, submission
-    requirements, I/O instructions, and grading remain on the main path.
-    """
-
-    policy: Literal["main", "l1", "l2", "l3"] = "main"
-    l1_artifact_dir: Optional[str] = None
-    l2_guidance_path: Optional[str] = None
-    require_canonical_layout: bool = False
 
 
 class TaskConfig(BaseModel):
@@ -347,7 +333,6 @@ class DSLightingConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     sandbox: SandboxConfig = Field(default_factory=SandboxConfig)
     data_analysis: DataAnalysisConfig = Field(default_factory=DataAnalysisConfig)
-    task_context: TaskContextConfig = Field(default_factory=TaskContextConfig)
     agent_runtime: AgentRuntimeConfig = Field(default_factory=AgentRuntimeConfig)
     output_contract: OutputContractConfig = Field(default_factory=OutputContractConfig)
     scheduler: SchedulerConfig = Field(default_factory=SchedulerConfig)

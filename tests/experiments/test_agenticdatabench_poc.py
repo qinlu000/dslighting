@@ -13,11 +13,8 @@ from experiments.agenticdatabench_poc.runner import (
     AgenticDataBenchTask,
     RunSettings,
     build_task_definition,
-    datacard_artifact_id,
-    load_datacards,
     load_tasks,
     prepare_agent_visible_dir,
-    render_datacard,
     required_output_names,
     run_tasks,
     select_tasks,
@@ -102,104 +99,6 @@ def test_direct_execution_spec_excludes_gold_and_evaluator(tmp_path: Path) -> No
     assert "must_not_reach_the_agent" not in serialized
     assert "result.csv" not in serialized
     assert "hidden solver label" not in serialized
-
-
-def _write_datacard(path: Path, *, dataset_id: str = "agriculture") -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(
-            {
-                "schema_version": "l1_semantic_map_v1",
-                "dataset_id": dataset_id,
-                "data_objects": [
-                    {
-                        "name": "records",
-                        "files": ["data.csv"],
-                        "kind": "table",
-                        "meaning": "Tabular observations.",
-                    }
-                ],
-                "variables": [
-                    {
-                        "object": "records",
-                        "file": "data.csv",
-                        "name": "x",
-                        "meaning": "Recorded value.",
-                        "unit": None,
-                    }
-                ],
-                "structure": [
-                    {
-                        "description": "Each row represents one observation.",
-                        "objects": ["records"],
-                    }
-                ],
-                "uncertainties": [],
-                "annotation_notes": [],
-            }
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-
-
-def test_datacard_is_neutral_and_added_before_plot_instructions(tmp_path: Path) -> None:
-    task = AgenticDataBenchTask.from_payload(_payload("agriculture_14", plot=True))
-    domain = tmp_path / "datasets" / "agriculture"
-    domain.mkdir(parents=True)
-    (domain / "data.csv").write_text("x\n1\n", encoding="utf-8")
-    artifact_dir = tmp_path / "datacards"
-    _write_datacard(artifact_dir / "agriculture.json")
-    artifact = load_datacards(
-        [task],
-        dataset_root=tmp_path / "datasets",
-        artifact_dir=artifact_dir,
-    )["agriculture"]
-
-    definition = build_task_definition(
-        task,
-        agent_visible_dir=tmp_path / "datasets" / "agriculture",
-        output_dir=tmp_path / "output",
-        datacard=artifact,
-    )
-    description = definition.payload["execution_spec"]["description_text"]
-
-    assert "## Dataset Information" in description
-    assert "### Data Objects" in description
-    assert "### Variables" in description
-    assert "### Structure" in description
-    assert "Level 1" not in description
-    assert "l1_semantic_map_v1" not in description
-    assert description.index("## Dataset Information") < description.index(
-        "## Plot instrumentation"
-    )
-
-
-def test_load_datacards_validates_identity_and_public_coverage(tmp_path: Path) -> None:
-    task = AgenticDataBenchTask.from_payload(_payload("agriculture_02"))
-    domain = tmp_path / "datasets" / "agriculture"
-    domain.mkdir(parents=True)
-    (domain / "data.csv").write_text("x\n1\n", encoding="utf-8")
-    artifact_dir = tmp_path / "datacards"
-    _write_datacard(artifact_dir / "agriculture.json")
-
-    loaded = load_datacards(
-        [task],
-        dataset_root=tmp_path / "datasets",
-        artifact_dir=artifact_dir,
-    )
-
-    assert set(loaded) == {"agriculture"}
-    assert datacard_artifact_id("loan_risk/loan_risk_1") == "loan_risk__loan_risk_1"
-    assert "Level 1" not in render_datacard(loaded["agriculture"])
-
-    _write_datacard(artifact_dir / "agriculture.json", dataset_id="wrong")
-    with pytest.raises(ValueError, match="does not match expected"):
-        load_datacards(
-            [task],
-            dataset_root=tmp_path / "datasets",
-            artifact_dir=artifact_dir,
-        )
 
 
 def test_selected_task_config_preserves_only_official_selected_records(
@@ -373,7 +272,6 @@ def test_cli_dry_run_is_explicit_and_does_not_require_datasets(tmp_path: Path, c
     assert plan["summary_trigger_turns"] == 18
     assert plan["timeout_seconds"] == 3600
     assert plan["perception_enabled"] is False
-    assert plan["datacard_enabled"] is False
     assert not output_dir.exists()
 
 
@@ -474,36 +372,6 @@ def test_cli_perception_is_explicit_and_requires_offline_react_docker(
     )
     plan = json.loads(capsys.readouterr().out)
     assert plan["perception_enabled"] is True
-
-
-def test_cli_rejects_combined_perception_and_datacard(tmp_path: Path, capsys) -> None:
-    benchmark = tmp_path / "AgenticDataBench"
-    tasks_file = benchmark / "testbed" / "tasks" / "dev.jsonl"
-    _write_tasks(tasks_file)
-
-    exit_code = main(
-        [
-            "--benchmark-root",
-            str(benchmark),
-            "--output-dir",
-            str(tmp_path / "output"),
-            "--task",
-            "agriculture_02",
-            "--model",
-            "test/model",
-            "--sandbox-backend",
-            "docker",
-            "--docker-image",
-            "agenticdatabench:test",
-            "--perception",
-            "--datacard-dir",
-            str(tmp_path / "datacards"),
-            "--dry-run",
-        ]
-    )
-
-    assert exit_code == 2
-    assert "separate treatments" in capsys.readouterr().err
 
 
 @pytest.mark.asyncio

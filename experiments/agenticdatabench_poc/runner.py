@@ -22,11 +22,6 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 from dslighting.config import LLMConfig
-from dslighting.core.task_context import (
-    L1SemanticArtifact,
-    load_l1_artifact,
-    validate_l1_public_coverage,
-)
 from dslighting.core.types import TaskDefinition
 
 PLOT_HELPER_RELATIVE_PATH = Path("testbed/da_agent/configs/scripts/image.py")
@@ -110,7 +105,6 @@ class RunSettings:
     local_isolation: str = "bubblewrap"
     disable_network: bool = True
     perception_enabled: bool = False
-    datacard_dir: Path | None = None
     skill_file: Path | None = None
     overwrite: bool = False
     retry_failed: bool = False
@@ -269,66 +263,6 @@ matching `.json` and `.npy` files required by the evaluator.
 """.strip()
 
 
-def datacard_artifact_id(domain: str) -> str:
-    """Map one upstream domain path to a stable artifact basename."""
-
-    parts = Path(domain).parts
-    if (
-        not parts
-        or any(part in {"", ".", ".."} for part in parts)
-        or Path(domain).is_absolute()
-        or "\\" in domain
-    ):
-        raise ValueError(f"Invalid AgenticDataBench domain for Datacard: {domain!r}")
-    return "__".join(parts)
-
-
-def render_datacard(artifact: L1SemanticArtifact) -> str:
-    """Render semantic data information without experiment-level metadata."""
-
-    def inline_code(value: str) -> str:
-        return "`" + value.replace("`", "\\`") + "`"
-
-    def prose(value: str) -> str:
-        return " ".join(value.split())
-
-    lines = ["## Dataset Information", "", "### Data Objects", ""]
-    for data_object in sorted(artifact.data_objects, key=lambda item: item.name):
-        lines.append(
-            f"- {inline_code(data_object.name)} ({data_object.kind}): {prose(data_object.meaning)}"
-        )
-        files = ", ".join(inline_code(value) for value in sorted(data_object.files))
-        lines.append(f"  - Files: {files}")
-        if data_object.notes is not None:
-            lines.append(f"  - Notes: {prose(data_object.notes)}")
-
-    if artifact.variables:
-        lines.extend(["", "### Variables", ""])
-        for variable in sorted(
-            artifact.variables,
-            key=lambda item: (item.object, item.file or "", item.name),
-        ):
-            label = f"{inline_code(variable.object)}.{inline_code(variable.name)}"
-            lines.append(f"- {label}: {prose(variable.meaning)}")
-            if variable.file is not None:
-                lines.append(f"  - File: {inline_code(variable.file)}")
-            if variable.unit is not None:
-                lines.append(f"  - Unit: {prose(variable.unit)}")
-
-    if artifact.structure:
-        lines.extend(["", "### Structure", ""])
-        for item in sorted(
-            artifact.structure,
-            key=lambda value: (prose(value.description), tuple(sorted(value.objects))),
-        ):
-            lines.append(f"- {prose(item.description)}")
-            if item.objects:
-                objects = ", ".join(inline_code(value) for value in sorted(item.objects))
-                lines.append(f"  - Objects: {objects}")
-
-    return "\n".join(lines).rstrip() + "\n"
-
-
 def _io_instructions(task: AgenticDataBenchTask, output_dir: Path) -> str:
     required = required_output_names(task)
     rendered = ", ".join(f"`{name}`" for name in required)
@@ -348,7 +282,6 @@ def build_task_definition(
     *,
     agent_visible_dir: Path,
     output_dir: Path,
-    datacard: L1SemanticArtifact | None = None,
 ) -> TaskDefinition:
     """Build a direct execution spec that bypasses DSLighting's registry resolver."""
 
@@ -356,8 +289,6 @@ def build_task_definition(
     output_dir = Path(output_dir).expanduser().resolve()
     required = required_output_names(task)
     description = task.question
-    if datacard is not None:
-        description = f"{description}\n\n{render_datacard(datacard).rstrip()}"
     plot_instructions = _plot_instructions(task)
     if plot_instructions:
         description = f"{description}\n\n{plot_instructions}"
@@ -437,41 +368,6 @@ def prepare_agent_visible_dir(
             raise ValueError(f"AgenticDataBench plot helper does not exist: {plot_helper}")
         shutil.copy2(plot_helper, stage_dir / "image.py")
     return stage_dir
-
-
-def load_datacards(
-    tasks: Sequence[AgenticDataBenchTask],
-    *,
-    dataset_root: Path,
-    artifact_dir: Path,
-) -> dict[str, L1SemanticArtifact]:
-    """Load and validate one frozen Datacard per solver-visible public root."""
-
-    root = Path(artifact_dir).expanduser().resolve()
-    if not root.is_dir():
-        raise ValueError(f"Datacard directory does not exist: {root}")
-
-    artifacts: dict[str, L1SemanticArtifact] = {}
-    for task in tasks:
-        if task.domain in artifacts:
-            continue
-        artifact_id = datacard_artifact_id(task.domain)
-        artifact = load_l1_artifact(
-            root,
-            artifact_id,
-            expected_dataset_id=task.domain,
-        )
-        validate_l1_public_coverage(
-            artifact,
-            resolve_domain_dir(dataset_root, task.domain),
-        )
-        rendered = render_datacard(artifact)
-        forbidden = ("Level 1", "L1", "l1_semantic_map_v1")
-        leaked = [value for value in forbidden if value in rendered]
-        if leaked:
-            raise ValueError(f"Datacard {artifact_id!r} exposes experiment metadata: {leaked}")
-        artifacts[task.domain] = artifact
-    return artifacts
 
 
 def _load_messages(record: Mapping[str, Any] | None) -> list[dict[str, Any]]:
@@ -635,18 +531,6 @@ async def run_tasks(
         or not settings.disable_network
     ):
         raise ValueError("Perception requires ReAct with an offline Docker sandbox")
-    if settings.perception_enabled and settings.datacard_dir is not None:
-        raise ValueError("Run Perception and Datacard as separate treatments")
-
-    datacards = (
-        load_datacards(
-            tasks,
-            dataset_root=settings.dataset_root,
-            artifact_dir=settings.datacard_dir,
-        )
-        if settings.datacard_dir is not None
-        else {}
-    )
     skill_file = (
         settings.skill_file.expanduser().resolve()
         if settings.skill_file is not None
@@ -742,7 +626,6 @@ async def run_tasks(
             task,
             agent_visible_dir=visible_dir,
             output_dir=task_output,
-            datacard=datacards.get(task.domain),
         )
         result, cost, usage = await evaluate_task(definition)
         record = _last_task_record(runner.get_run_records(), task.task_id)
@@ -785,21 +668,7 @@ async def run_tasks(
         "model": config.llm.model,
         "thinking": config.llm.thinking,
         "perception_enabled": settings.perception_enabled,
-        "datacard_enabled": bool(datacards),
         "skill_file": str(skill_file) if skill_file is not None else None,
-        "datacard_dir": (
-            str(settings.datacard_dir.expanduser().resolve())
-            if settings.datacard_dir is not None
-            else None
-        ),
-        "datacards": {
-            domain: {
-                "artifact_id": datacard_artifact_id(domain),
-                **artifact.provenance.as_dict(),
-                "rendered_chars": len(render_datacard(artifact)),
-            }
-            for domain, artifact in sorted(datacards.items())
-        },
         "concurrency": settings.concurrency,
         "global_max_concurrency": config.llm.global_max_concurrency,
         "max_retries": config.llm.max_retries,

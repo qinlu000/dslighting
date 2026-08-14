@@ -9,34 +9,22 @@ configuration version management and migration support.
 import logging
 import os
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 from typing_extensions import ClassVar
 
 from dslighting.config import (
-    DSLightingConfig,
+    AgentConfig,
     AgentRuntimeConfig,
     DataAnalysisConfig,
+    DSLightingConfig,
     LLMConfig,
     OutputContractConfig,
     RunConfig,
-    TaskContextConfig,
-    WorkflowConfig,
-    AgentConfig,
     SandboxConfig,
     SchedulerConfig,
-)
-from dslighting.error import ConfigurationError
-
-from dslighting.utils.defaults import (
-    DEFAULT_CONFIG,
-    ENV_DSLIGHTING_DEFAULT_WORKFLOW,
-    ENV_DSLIGHTING_WORKSPACE_DIR,
+    WorkflowConfig,
 )
 from dslighting.core.config.llm_resolution import build_llm_config
-from dslighting.core.visualization_policy import (
-    VISUALIZATION_POLICY_KEY,
-    coerce_visualization_policy,
-    consume_visualization_policy,
-)
 from dslighting.core.config.runtime_params import (
     LEGACY_REACT_RUNTIME_KEYS,
     normalize_agent_runtime_params,
@@ -50,13 +38,24 @@ from dslighting.core.config.shared import (
     deep_merge,
     is_valid_workflow_name,
 )
+from dslighting.core.visualization_policy import (
+    VISUALIZATION_POLICY_KEY,
+    coerce_visualization_policy,
+    consume_visualization_policy,
+)
+from dslighting.error import ConfigurationError
+from dslighting.utils.defaults import (
+    DEFAULT_CONFIG,
+    ENV_DSLIGHTING_DEFAULT_WORKFLOW,
+    ENV_DSLIGHTING_WORKSPACE_DIR,
+)
 
 from .versioning import (
     ConfigVersionManager,
-    get_version_manager,
     detect_config_version,
-    migrate_config,
+    get_version_manager,
     is_config_compatible,
+    migrate_config,
 )
 
 logger = logging.getLogger(__name__)
@@ -95,7 +94,6 @@ class ConfigBuilder:
         llm_config: Optional[LLMConfig] = None,
         sandbox: Optional[Dict[str, Any]] = None,
         data_analysis: Optional[Dict[str, Any]] = None,
-        task_context: Optional[Dict[str, Any]] = None,
         agent_runtime: Optional[Dict[str, Any]] = None,
         output_contract: Optional[Dict[str, Any]] = None,
         max_iterations: int = None,
@@ -119,7 +117,6 @@ class ConfigBuilder:
             temperature: LLM temperature
             sandbox: Code-execution sandbox settings
             data_analysis: Shared data analysis settings
-            task_context: Dataset-context policy and artifact locations
             agent_runtime: Shared agent runtime settings
             output_contract: Shared output artifact contract settings
             max_iterations: Maximum agent iterations
@@ -145,7 +142,6 @@ class ConfigBuilder:
             workflow=workflow,
             sandbox=sandbox,
             data_analysis=data_analysis,
-            task_context=task_context,
             agent_runtime=agent_runtime,
             output_contract=output_contract,
             max_iterations=max_iterations,
@@ -200,7 +196,6 @@ class ConfigBuilder:
         workflow: str = None,
         sandbox: Optional[Dict[str, Any]] = None,
         data_analysis: Optional[Dict[str, Any]] = None,
-        task_context: Optional[Dict[str, Any]] = None,
         agent_runtime: Optional[Dict[str, Any]] = None,
         output_contract: Optional[Dict[str, Any]] = None,
         max_iterations: int = None,
@@ -235,6 +230,11 @@ class ConfigBuilder:
         remaining_kwargs = {}
 
         for key, value in kwargs.items():
+            if key == "task_context":
+                raise ConfigurationError(
+                    "The Data Card task-context experiment has been removed.",
+                    error_code="CFG-002",
+                )
             if key == "react":
                 raise ConfigurationError(
                     "`react` runtime config is no longer supported. Use "
@@ -301,14 +301,6 @@ class ConfigBuilder:
                     error_code="CFG-002",
                 )
             config.setdefault("data_analysis", {}).update(data_analysis)
-
-        if task_context is not None:
-            if not isinstance(task_context, dict):
-                raise ConfigurationError(
-                    "`task_context` must be a dictionary matching TaskContextConfig",
-                    error_code="CFG-002",
-                )
-            config.setdefault("task_context", {}).update(task_context)
 
         if agent_runtime is not None:
             try:
@@ -428,11 +420,6 @@ class ConfigBuilder:
         data_analysis_dict = config_dict.get("data_analysis", {})
         data_analysis_config = DataAnalysisConfig(**data_analysis_dict)
 
-        # Extract task-context policy. The default is byte-compatible with the
-        # main branch's file-submission prompt assembly.
-        task_context_dict = config_dict.get("task_context", {})
-        task_context_config = TaskContextConfig(**task_context_dict)
-
         # Extract shared agent runtime config
         agent_runtime_dict = config_dict.get("agent_runtime", {})
         agent_runtime_config = AgentRuntimeConfig(**agent_runtime_dict)
@@ -453,7 +440,6 @@ class ConfigBuilder:
             agent=agent_config,
             sandbox=sandbox_config,
             data_analysis=data_analysis_config,
-            task_context=task_context_config,
             agent_runtime=agent_runtime_config,
             output_contract=output_contract_config,
             scheduler=scheduler_config,

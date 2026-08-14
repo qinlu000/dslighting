@@ -3,18 +3,18 @@
 from __future__ import annotations
 
 import time
+from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Callable, Optional, Union
 from uuid import uuid4
-from dataclasses import replace
 
 from dslighting.config import DSLightingConfig
-from dslighting.debug import debug_scope, get_debug_session
-from dslighting.debug.models import RunDebugContext
 from dslighting.core.execution.result_mapper import map_execution_result
 from dslighting.core.interfaces import AgentResult
 from dslighting.core.tasks import FileSubmissionTaskAdapter, TaskResolver
 from dslighting.core.types import TaskDefinition
+from dslighting.debug import debug_scope, get_debug_session
+from dslighting.debug.models import RunDebugContext
 
 if TYPE_CHECKING:
     from dslighting.runner import DSLightingRunner
@@ -64,16 +64,10 @@ class TaskExecutor:
                 registry_dir=registry_dir,
             )
             adapter = FileSubmissionTaskAdapter(self._config)
-            is_treatment = adapter.task_context_builder.policy.value != "main"
-            if task_description and is_treatment:
-                # Treatments must compile against the effective description;
-                # replacing the finished spec would silently discard L1/L2
-                # while leaving misleading provenance behind.
-                layout = replace(layout, description_text=task_description)
             spec = adapter.task_context_builder.build(layout)
             adapter.cleanup()
 
-            if task_description and not is_treatment:
+            if task_description:
                 # Preserve the main branch's historical full-prompt override.
                 spec = replace(spec, description_text=task_description)
             if output is not None:

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Perceive Scientific Modalities"
-  short_description: "Inspect scientific modality structure"
-  default_prompt: "Use $perceive-scientific-modalities to inspect modality-specific structure in the provided public dataset."
-policy:
-  allow_implicit_invocation: false

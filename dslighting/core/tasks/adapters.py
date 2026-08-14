@@ -1,20 +1,18 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import contextlib
-from dataclasses import replace
 import logging
-from pathlib import Path
 import tempfile
+from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Mapping, Protocol
 
-from dslighting.config import DSLightingConfig, TaskContextConfig
 from dslighting.benchmark.evaluation.models import TaskEvaluationContractRef
 from dslighting.benchmark.grading.models import SubmissionArtifactContract
+from dslighting.config import DSLightingConfig
 from dslighting.core.task_context import TaskContextBuilder
 from dslighting.core.tasks.errors import TaskExecutionSpecError
 from dslighting.core.tasks.models import ResolvedTaskLayout, TaskExecutionSpec
-from dslighting.core.tasks.payload_layout import resolve_file_submission_payload_layout
 from dslighting.core.types import TaskDefinition
 from dslighting.services.data_analysis_provider import create_data_perception_runtime
 from dslighting.services.task_context_provider import create_task_context_builder
@@ -86,11 +84,6 @@ class BaseTaskAdapter(ABC):
                 engine_id=str(spec.get("engine_id") or "") or None,
                 submission_artifact_contract=submission_contract,
                 evaluation_contract_ref=evaluation_contract_ref,
-                task_context_provenance=(
-                    dict(spec["task_context_provenance"])
-                    if isinstance(spec.get("task_context_provenance"), Mapping)
-                    else None
-                ),
             )
         return None
 
@@ -98,7 +91,7 @@ class BaseTaskAdapter(ABC):
     def build_file_submission_spec(layout: ResolvedTaskLayout, perception_runtime) -> TaskExecutionSpec:
         """Compatibility shim for callers that still use the former helper."""
 
-        return TaskContextBuilder(TaskContextConfig(), perception_runtime).build(layout)
+        return TaskContextBuilder(perception_runtime).build(layout)
 
     def cleanup(self) -> None:
         temp_dir = getattr(self, "temp_dir", None)
@@ -148,57 +141,6 @@ class FileSubmissionTaskAdapter(BaseTaskAdapter):
         submission_context = submission_contract.to_payload() if submission_contract else {"output_submission_path": str(output_value)}
         evaluation_contract_ref = TaskEvaluationContractRef.from_payload(payload)
         io_instructions = str(payload.get("io_instructions") or "").strip()
-        requires_canonical_layout = self.task_context_builder.requires_canonical_layout
-        if requires_canonical_layout:
-            try:
-                layout = resolve_file_submission_payload_layout(
-                    task_id=task.task_id,
-                    description=description,
-                    data_dir=data_dir,
-                    output_path=Path(str(output_value)),
-                    registry_dir=str(payload.get("registry_dir") or "").strip() or None,
-                    submission_contract=submission_contract,
-                    submission_context=submission_context,
-                )
-            except Exception as exc:
-                raise TaskExecutionSpecError(
-                    "Cannot resolve the canonical task layout required by "
-                    f"task-context policy {self.task_context_builder.policy.value!r} "
-                    f"for task {task.task_id!r}."
-                ) from exc
-            else:
-                spec = self.task_context_builder.build(
-                    layout,
-                    explicit_io_instructions=io_instructions or None,
-                )
-                spec = replace(
-                    spec,
-                    metric_name=str(payload.get("metric_name") or "").strip() or None,
-                    lower_is_better=(
-                        payload.get("lower_is_better")
-                        if isinstance(payload.get("lower_is_better"), bool)
-                        else None
-                    ),
-                    source_id=(
-                        str(payload.get("source_id") or "").strip() or spec.source_id
-                    ),
-                    engine_id=(
-                        str(payload.get("engine_id") or "").strip() or spec.engine_id
-                    ),
-                    evaluation_contract_ref=(
-                        evaluation_contract_ref or spec.evaluation_contract_ref
-                    ),
-                )
-                if self.data_perception is None and not io_instructions:
-                    return replace(
-                        spec,
-                        io_instructions=self._legacy_payload_io_instructions(
-                            output_value,
-                            submission_contract,
-                        ),
-                    )
-                return spec
-
         data_report = ""
         if self.data_perception is not None:
             data_report = self.data_perception.analyze_data(

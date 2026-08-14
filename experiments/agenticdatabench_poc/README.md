@@ -201,40 +201,6 @@ ablation arms.
   also suggests speed and forward movement, making it a strong paper-method
   candidate.
 
-## Datacard treatment
-
-Datacards are a separate ReAct treatment and must not be combined with
-Perception. The control is the normal ReAct run. The treatment adds one frozen,
-task-independent semantic description of the complete public directory
-selected by the upstream task's `domain`.
-
-AgenticDataBench itself exposes all files below `datasets/<domain>` to the
-solver. The Datacard annotation unit therefore follows that same public-root
-boundary; tasks with the same domain reuse one annotation. The runner validates
-each selected card against the complete visible public tree before starting any
-model call.
-
-Enable the treatment with an explicit reviewed artifact directory:
-
-```bash
-python -m experiments.agenticdatabench_poc \
-  --benchmark-root /path/to/AgenticDataBench \
-  --output-dir ./runs/agenticdatabench/output/react-datacard \
-  --all \
-  --workflow react \
-  --model openai/your-model \
-  --sandbox-backend docker \
-  --docker-image dslighting-agenticdatabench:latest \
-  --datacard-dir ./experiments/agenticdatabench_poc/artifacts/datacards_v2
-```
-
-The JSON artifacts use the repository's strict `l1_semantic_map_v1` storage
-schema, but experiment metadata is not rendered into the solver prompt. The
-solver sees only a neutral `Dataset Information` section containing data
-objects, variables, and structural relationships. It never sees `Level 1`,
-`L1`, the schema version, annotation notes, uncertainties, condition names, or
-artifact provenance.
-
 ## Evaluate with AgenticDataBench
 
 The sidecar writes the upstream-compatible layout:
@@ -261,14 +227,6 @@ python3 evaluate.py \
 The generated JSONL contains the exact upstream records for only the tasks in
 that run. It is kept outside the solving workspace, so evaluator-only fields
 are available to the official scorer but are never exposed to the agent.
-
-## Reference experiment results
-
-The final three-run ReAct, Datacard and FastPerception ablation is reported only
-in the centralized
-[experiment results](../results/agenticdatabench_three_run_ablation.md) for the
-per-round official scores, finished rates, infrastructure-repair protocol,
-step-budget terminations and interpretation limits.
 
 ## Scope
 

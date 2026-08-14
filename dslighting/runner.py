@@ -1,25 +1,38 @@
 # dslighting/runner.py
 from __future__ import annotations
 
-import hashlib
+import json
 import logging
 import shutil
-import uuid
-import json
 import threading
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Coroutine, Any, Mapping
+from typing import Any, Callable, Coroutine
+
+from dslighting.benchmark.evaluation.service import TaskEvaluationService
 
 # Core configuration and models
-from dslighting.config import DSLightingConfig, DagRuntimeConfig
+from dslighting.config import DagRuntimeConfig, DSLightingConfig
 from dslighting.core.config.runtime_logging import log_resolved_runtime_config
-from dslighting.core.types import TaskDefinition, TaskType
 
-# Services and workflows
-from dslighting.services.llm import LLMService
-from dslighting.workflows.base import BaseWorkflow
+# Dynamic components (factories and adapters)
+from dslighting.core.tasks import (
+    BaseTaskAdapter,
+    DataScienceTaskAdapter,
+    FileSubmissionTaskAdapter,
+    OpenEndedTaskAdapter,
+    QATaskAdapter,
+    TaskResolver,
+)
+from dslighting.core.types import TaskDefinition, TaskType
+from dslighting.error import (
+    BenchmarkError,
+    ConfigurationError,
+    WorkflowError,
+    WorkspaceError,
+)
 from dslighting.runtime.dag import (
     DagRunSummary,
     DagRuntime,
@@ -30,26 +43,21 @@ from dslighting.runtime.dag import (
     create_pipeline_runtime,
 )
 
-# Dynamic components (factories and adapters)
-from dslighting.core.tasks import (
-    BaseTaskAdapter,
-    DataScienceTaskAdapter,
-    FileSubmissionTaskAdapter,
-    OpenEndedTaskAdapter,
-    QATaskAdapter,
-    TaskExecutionSpec,
-    TaskResolver,
-)
-from dslighting.benchmark.evaluation.service import TaskEvaluationService
+# Services and workflows
+from dslighting.services.llm import LLMService
+from dslighting.state.search.journal import JournalState
+from dslighting.utils.constants import CODE_FILENAME_ZERO_PADDING, UNIQUE_SUFFIX_LENGTH
+from dslighting.utils.defaults import DEFAULT_WORKSPACE_DIR
+from dslighting.workflows.base import BaseWorkflow
 from dslighting.workflows.factory.base import BaseWorkflowFactory
 from dslighting.workflows.factory.builtin import (
-    AutoMindWorkflowFactory,
-    AIDEWorkflowFactory,
-    DSAgentWorkflowFactory,
-    DataInterpreterWorkflowFactory,
-    AutoKaggleWorkflowFactory,
     AFlowWorkflowFactory,
+    AIDEWorkflowFactory,
+    AutoKaggleWorkflowFactory,
+    AutoMindWorkflowFactory,
+    DataInterpreterWorkflowFactory,
     DeepAnalyzeWorkflowFactory,
+    DSAgentWorkflowFactory,
     DynamicWorkflowFactory,
     MyCustomAgentWorkflowFactory,
     ReActWorkflowFactory,
@@ -62,15 +70,6 @@ from dslighting.workflows.output_contract import (
 
 # Import AFlow workflow for type checking
 from dslighting.workflows.search.aflow_workflow import AFlowWorkflow
-from dslighting.state.search.journal import JournalState
-from dslighting.error import (
-    BenchmarkError,
-    ConfigurationError,
-    WorkflowError,
-    WorkspaceError,
-)
-from dslighting.utils.constants import UNIQUE_SUFFIX_LENGTH, CODE_FILENAME_ZERO_PADDING
-from dslighting.utils.defaults import DEFAULT_WORKSPACE_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -532,14 +531,6 @@ class DSLightingRunner:
             adapter: BaseTaskAdapter | None = None
             description, io_instructions = "", ""
             data_dir, output_path = None, None
-            task_context_audit: Mapping[str, Any] | None = None
-
-            def capture_execution_spec(execution_spec: TaskExecutionSpec) -> None:
-                nonlocal task_context_audit
-                if execution_spec.task_context_provenance is None:
-                    return
-                task_context_audit = self._build_task_context_audit(execution_spec)
-
             # ========================================================================
             # Stage 1: Prepare task execution
             # ========================================================================
@@ -578,7 +569,6 @@ class DSLightingRunner:
                     sandbox_service,
                     workspace_service,
                     task_config,
-                    execution_spec_observer=capture_execution_spec,
                 )
 
                 logger.info(f"Task '{task.task_id}' evaluation finished successfully.")
@@ -615,7 +605,6 @@ class DSLightingRunner:
                         task=task,
                         description=description,
                         io_instructions=io_instructions,
-                        task_context_audit=task_context_audit,
                         data_dir=data_dir,
                         output_path=output_path,
                         result=result,
@@ -777,7 +766,6 @@ class DSLightingRunner:
         sandbox_service: Any,
         workspace_service: Any,
         task_config: DSLightingConfig,
-        execution_spec_observer: Callable[[TaskExecutionSpec], None] | None = None,
     ) -> tuple[Any, DagRunSummary | None, BaseTaskAdapter, str, str, Path | None, Path | None]:
         """Build task runtime input and execute workflow.
 
@@ -818,8 +806,6 @@ class DSLightingRunner:
         data_dir, output_path = None, None
 
         execution_spec = adapter.build_execution_spec(task)
-        if execution_spec_observer is not None:
-            execution_spec_observer(execution_spec)
         description = execution_spec.description_text
         io_instructions = execution_spec.io_instructions
         data_dir = execution_spec.agent_visible_dir
@@ -1245,46 +1231,6 @@ class DSLightingRunner:
         return [record.copy() for record in self.run_records]
 
     @staticmethod
-    def _build_task_context_audit(execution_spec: TaskExecutionSpec) -> dict[str, Any]:
-        """Capture treatment provenance and fixed final-spec fingerprints."""
-
-        submission_payload: Any = None
-        if execution_spec.submission_artifact_contract is not None:
-            submission_payload = execution_spec.submission_artifact_contract.to_payload().get(
-                "submission_artifact_contract"
-            )
-            if isinstance(submission_payload, dict):
-                submission_payload = dict(submission_payload)
-                submission_payload["output_submission_path"] = execution_spec.output_path.name
-        evaluation_ref_payload: Any = None
-        if execution_spec.evaluation_contract_ref is not None:
-            evaluation_ref_payload = execution_spec.evaluation_contract_ref.to_payload().get(
-                "evaluation_contract_ref"
-            )
-
-        def canonical_sha256(payload: Any) -> str:
-            serialized = json.dumps(
-                payload,
-                sort_keys=True,
-                separators=(",", ":"),
-            ).encode("utf-8")
-            return hashlib.sha256(serialized).hexdigest()
-
-        return {
-            "provenance": dict(execution_spec.task_context_provenance or {}),
-            "fixed_context": {
-                "io_instructions_sha256": hashlib.sha256(
-                    execution_spec.io_instructions.encode("utf-8")
-                ).hexdigest(),
-                "output_artifact_name": execution_spec.output_path.name,
-                "submission_contract_sha256": canonical_sha256(submission_payload),
-                "evaluation_contract_ref_sha256": canonical_sha256(
-                    evaluation_ref_payload
-                ),
-            },
-        }
-
-    @staticmethod
     def _redact_config_snapshot(config_snapshot: dict[str, Any]) -> dict[str, Any]:
         """
         Redact sensitive values in a config snapshot before persistence/exposure.
@@ -1315,7 +1261,6 @@ class DSLightingRunner:
         task: TaskDefinition,
         description: str,
         io_instructions: str,
-        task_context_audit: Mapping[str, Any] | None,
         data_dir: Path | None,
         output_path: Path | None,
         result: Any,
@@ -1352,7 +1297,6 @@ class DSLightingRunner:
             task=task,
             description=description,
             io_instructions=io_instructions,
-            task_context_audit=task_context_audit,
             data_dir=data_dir,
             output_path=output_path,
             result=result,
@@ -1434,7 +1378,6 @@ class DSLightingRunner:
         task: TaskDefinition,
         description: str,
         io_instructions: str,
-        task_context_audit: Mapping[str, Any] | None,
         data_dir: Path | None,
         output_path: Path | None,
         result: Any,
@@ -1496,7 +1439,6 @@ class DSLightingRunner:
             task=task,
             description=description,
             io_instructions=io_instructions,
-            task_context_audit=task_context_audit,
             data_dir=data_dir,
             output_path=output_path,
             result=result,
@@ -1572,7 +1514,6 @@ class DSLightingRunner:
         task: TaskDefinition,
         description: str,
         io_instructions: str,
-        task_context_audit: Mapping[str, Any] | None,
         data_dir: Path | None,
         output_path: Path | None,
         result: Any,
@@ -1652,9 +1593,6 @@ class DSLightingRunner:
             },
             "config_snapshot": run_context["config_snapshot"],
         }
-
-        if task_context_audit is not None:
-            metadata["task_context"]["audit"] = dict(task_context_audit)
 
         if dag_summary:
             metadata["dag_runtime"] = dag_summary
@@ -1870,9 +1808,6 @@ class DSLightingRunner:
             "detail_files": metadata.get("detail_files"),
             "dag_runtime": metadata.get("dag_runtime"),
         }
-        task_context_audit = metadata["task_context"].get("audit")
-        if task_context_audit is not None:
-            record_entry["task_context_audit"] = task_context_audit
         self.run_records.append(record_entry)
 
     def _update_metadata_with_telemetry(

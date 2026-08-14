@@ -124,11 +124,6 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable the Perception treatment (ReAct with offline Docker only)",
     )
-    parser.add_argument(
-        "--datacard-dir",
-        type=Path,
-        help="Add one validated, task-independent Datacard per visible domain root",
-    )
     parser.add_argument("--skill-file", type=Path)
     parser.add_argument(
         "--llm-debug-logging",
@@ -219,9 +214,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "--perception requires --workflow react, --sandbox-backend docker, "
                 "and networking disabled"
             )
-        if args.perception and args.datacard_dir is not None:
-            raise ValueError("--perception and --datacard-dir are separate treatments")
-
         llm_config = build_llm_config(
             model=args.model,
             provider=args.provider,
@@ -249,12 +241,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "summary_trigger_turns": args.summary_trigger_turns,
                 "timeout_seconds": args.timeout_seconds,
                 "perception_enabled": args.perception,
-                "datacard_enabled": args.datacard_dir is not None,
-                "datacard_dir": (
-                    str(args.datacard_dir.expanduser().resolve())
-                    if args.datacard_dir is not None
-                    else None
-                ),
                 "skill_file": (
                     str(args.skill_file.expanduser().resolve())
                     if args.skill_file is not None
@@ -299,9 +285,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             local_isolation=args.local_isolation,
             disable_network=not args.allow_network,
             perception_enabled=args.perception,
-            datacard_dir=(
-                args.datacard_dir.expanduser().resolve() if args.datacard_dir is not None else None
-            ),
             skill_file=(
                 args.skill_file.expanduser().resolve() if args.skill_file is not None else None
             ),

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Perceive Dataset Semantics"
-  short_description: "Map task-independent dataset semantics"
-  default_prompt: "Use $perceive-dataset-semantics to inspect the provided public dataset and produce a grounded semantic data map."
-policy:
-  allow_implicit_invocation: false
