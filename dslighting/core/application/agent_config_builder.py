@@ -71,11 +71,6 @@ class AgentConfigBuilder:
 
         # Keep legacy precedence: call-time kwargs override init-time kwargs.
         merged = {**self.init_kwargs, **run_kwargs}
-        if "task_context" in merged:
-            raise ConfigurationError(
-                "The Data Card task-context experiment has been removed.",
-                error_code="CFG-002",
-            )
         self._apply_data_analysis_overrides(config, merged)
         self._apply_agent_runtime_overrides(config, merged)
         self._apply_output_contract_overrides(config, merged)

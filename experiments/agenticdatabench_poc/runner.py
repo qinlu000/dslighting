@@ -105,7 +105,6 @@ class RunSettings:
     local_isolation: str = "bubblewrap"
     disable_network: bool = True
     perception_enabled: bool = False
-    skill_file: Path | None = None
     overwrite: bool = False
     retry_failed: bool = False
 
@@ -531,16 +530,6 @@ async def run_tasks(
         or not settings.disable_network
     ):
         raise ValueError("Perception requires ReAct with an offline Docker sandbox")
-    skill_file = (
-        settings.skill_file.expanduser().resolve()
-        if settings.skill_file is not None
-        else None
-    )
-    if skill_file is not None and (
-        not skill_file.is_file() or not skill_file.read_text(encoding="utf-8").strip()
-    ):
-        raise ValueError(f"Skill file is missing or empty: {skill_file}")
-
     output_root = settings.output_dir.expanduser().resolve()
     workspace_root = settings.workspace_dir.expanduser().resolve()
     staging_root = settings.staging_dir.expanduser().resolve()
@@ -586,9 +575,6 @@ async def run_tasks(
             "summary_trigger_turns": settings.summary_trigger_turns,
         },
     }
-    if skill_file is not None:
-        agent_runtime["skill_path"] = str(skill_file)
-
     config = ConfigBuilder().build_config(
         workflow=settings.workflow,
         llm_config=settings.llm,
@@ -668,7 +654,6 @@ async def run_tasks(
         "model": config.llm.model,
         "thinking": config.llm.thinking,
         "perception_enabled": settings.perception_enabled,
-        "skill_file": str(skill_file) if skill_file is not None else None,
         "concurrency": settings.concurrency,
         "global_max_concurrency": config.llm.global_max_concurrency,
         "max_retries": config.llm.max_retries,

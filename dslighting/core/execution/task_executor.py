@@ -68,7 +68,6 @@ class TaskExecutor:
             adapter.cleanup()
 
             if task_description:
-                # Preserve the main branch's historical full-prompt override.
                 spec = replace(spec, description_text=task_description)
             if output is not None:
                 overridden_output = Path(output)

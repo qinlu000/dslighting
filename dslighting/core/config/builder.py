@@ -230,11 +230,6 @@ class ConfigBuilder:
         remaining_kwargs = {}
 
         for key, value in kwargs.items():
-            if key == "task_context":
-                raise ConfigurationError(
-                    "The Data Card task-context experiment has been removed.",
-                    error_code="CFG-002",
-                )
             if key == "react":
                 raise ConfigurationError(
                     "`react` runtime config is no longer supported. Use "

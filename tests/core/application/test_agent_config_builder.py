@@ -1,9 +1,6 @@
-import pytest
-
 from dslighting.config import LLMConfig
 from dslighting.core.application.agent_config_builder import AgentConfigBuilder
 from dslighting.core.visualization_policy import VisualizationPolicy
-from dslighting.error import ConfigurationError
 
 
 def _make_builder(workflow_name: str, init_kwargs: dict):
@@ -42,10 +39,3 @@ def test_runtime_kwargs_override_init_kwargs_and_unconsumed_go_to_parameters() -
     assert config.agent.search.max_iterations == 5
     assert config.run.parameters["custom_a"] == 1
     assert config.run.parameters["custom_b"] == 2
-
-
-def test_removed_data_card_context_is_rejected() -> None:
-    builder = _make_builder("aide", {})
-
-    with pytest.raises(ConfigurationError, match="Data Card"):
-        builder.build(task_id="task1", run_kwargs={"task_context": {"policy": "l1"}})

@@ -131,21 +131,6 @@ Existing task results are skipped. Use `--retry-failed` to replace only failed
 task directories or `--overwrite` to replace all selected task directories.
 These flags are required before existing outputs are removed.
 
-An experiment sidecar may inject one reviewed solving skill without changing
-the ReAct implementation:
-
-```bash
-python -m experiments.agenticdatabench_poc \
-  --benchmark-root /path/to/AgenticDataBench \
-  --output-dir ./runs/agenticdatabench/output/react-skill \
-  --all \
-  --workflow react \
-  --model openai/your-model \
-  --sandbox-backend docker \
-  --docker-image dslighting-agenticdatabench:latest \
-  --skill-file /absolute/path/to/SKILL.md
-```
-
 For a quick local debugging run without Docker or bubblewrap, pass
 `--local-isolation process`. This is not recommended for comparable benchmark
 results because process isolation does not enforce the default network policy.

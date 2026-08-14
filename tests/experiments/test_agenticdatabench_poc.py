@@ -393,7 +393,6 @@ async def test_run_tasks_writes_evaluator_layout_without_registry(
         assert self.config.agent_runtime.context.max_history_chars == 48000
         assert self.config.agent_runtime.context.keep_recent_turns == 14
         assert self.config.agent_runtime.context.summary_trigger_turns == 18
-        assert self.config.agent_runtime.skill_path == str(skill_file.resolve())
         assert self.config.sandbox.backend == "docker"
         assert self.config.sandbox.docker_image == "agenticdatabench:test"
         assert self.config.sandbox.environment_policy == "allowlist"
@@ -410,8 +409,6 @@ async def test_run_tasks_writes_evaluator_layout_without_registry(
 
     monkeypatch.setattr(DSLightingRunner, "get_eval_function", fake_get_eval_function)
     output_root = tmp_path / "runs" / "dslighting-react-smoke"
-    skill_file = tmp_path / "SKILL.md"
-    skill_file.write_text("# AgenticDataBench Skill\n", encoding="utf-8")
     settings = RunSettings(
         benchmark_root=benchmark,
         dataset_root=benchmark / "testbed" / "datasets",
@@ -423,7 +420,6 @@ async def test_run_tasks_writes_evaluator_layout_without_registry(
         sandbox_backend="docker",
         docker_image="agenticdatabench:test",
         disable_network=True,
-        skill_file=skill_file,
     )
 
     summary = await run_tasks([task], settings)
@@ -433,7 +429,6 @@ async def test_run_tasks_writes_evaluator_layout_without_registry(
     assert summary["max_history_chars"] == 48000
     assert summary["keep_recent_turns"] == 14
     assert summary["summary_trigger_turns"] == 18
-    assert summary["skill_file"] == str(skill_file.resolve())
     result_path = output_root / task.task_id / "dabench" / "result.json"
     result = json.loads(result_path.read_text(encoding="utf-8"))
     assert result["finished"] is True

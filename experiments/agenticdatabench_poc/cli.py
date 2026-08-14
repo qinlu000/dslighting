@@ -124,7 +124,6 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable the Perception treatment (ReAct with offline Docker only)",
     )
-    parser.add_argument("--skill-file", type=Path)
     parser.add_argument(
         "--llm-debug-logging",
         action="store_true",
@@ -241,11 +240,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "summary_trigger_turns": args.summary_trigger_turns,
                 "timeout_seconds": args.timeout_seconds,
                 "perception_enabled": args.perception,
-                "skill_file": (
-                    str(args.skill_file.expanduser().resolve())
-                    if args.skill_file is not None
-                    else None
-                ),
                 "sandbox_backend": args.sandbox_backend,
                 "docker_image": args.docker_image,
                 "tasks": [
@@ -285,9 +279,6 @@ def main(argv: Sequence[str] | None = None) -> int:
             local_isolation=args.local_isolation,
             disable_network=not args.allow_network,
             perception_enabled=args.perception,
-            skill_file=(
-                args.skill_file.expanduser().resolve() if args.skill_file is not None else None
-            ),
             overwrite=args.overwrite,
             retry_failed=args.retry_failed,
         )

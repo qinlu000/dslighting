@@ -13,7 +13,6 @@ def create_react_prompt(
     task_context: Dict,
     *,
     output_filename: Optional[str] = None,
-    skill: Optional[str] = None,
     allow_explore: bool = False,
 ) -> str:
     """Create the static system prompt for the ReAct workflow.
@@ -68,11 +67,6 @@ def create_react_prompt(
             "Termination Rule": "Stop writing code and return <Answer>...</Answer> only when no additional execution is needed.",
         },
     }
-    normalized_skill = str(skill or "").strip()
-    if normalized_skill:
-        prompt_dict[
-            "Reusable Skill (apply when relevant; task requirements and ReAct protocol take priority)"
-        ] = normalized_skill
     return dict_to_str(prompt_dict)
 
 

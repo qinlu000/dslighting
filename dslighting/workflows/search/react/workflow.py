@@ -59,7 +59,6 @@ class ReActWorkflow(BaseWorkflow):
         self.context_config: ReActContextConfig = build_react_context_config(
             services.get("react_context_config")
         )
-        self.agent_skill = str(services.get("agent_skill") or "").strip()
         self.perception_enabled = bool(services.get("perception_enabled", False))
         self.output_contract_config: OutputContractConfig = self._build_output_contract_config(
             services.get("output_contract_config")
@@ -104,7 +103,6 @@ class ReActWorkflow(BaseWorkflow):
         perception_enabled = self._has_offline_docker_perception()
         system_prompt = create_react_prompt(
             task_context,
-            skill=self.agent_skill or None,
             allow_explore=perception_enabled,
         )
         perception_system_prompt = (

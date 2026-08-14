@@ -141,7 +141,6 @@ class AgentRuntimeConfig(BaseModel):
     """Shared runtime settings consumed by agent workflows."""
 
     max_steps: int = 10
-    skill_path: Optional[str] = None
     perception_enabled: bool = False
     observation: AgentRuntimeObservationConfig = Field(
         default_factory=AgentRuntimeObservationConfig

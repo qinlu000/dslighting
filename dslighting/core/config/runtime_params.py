@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 AGENT_RUNTIME_ALLOWED_KEYS = frozenset(
-    {"max_steps", "skill_path", "perception_enabled", "observation", "context"}
+    {"max_steps", "perception_enabled", "observation", "context"}
 )
 AGENT_RUNTIME_OBSERVATION_ALLOWED_KEYS = frozenset(
     {"max_tokens", "head_tokens", "tail_tokens", "max_chars"}
@@ -139,16 +139,6 @@ def normalize_agent_runtime_params(
             field_name=f"{source}.max_steps",
             minimum=1,
         )
-
-    if "skill_path" in params:
-        raw_skill_path = params["skill_path"]
-        if raw_skill_path is None:
-            normalized["skill_path"] = None
-        else:
-            skill_path = str(raw_skill_path).strip()
-            if not skill_path:
-                raise ValueError(f"`{source}.skill_path` must be a non-empty path")
-            normalized["skill_path"] = skill_path
 
     if "perception_enabled" in params:
         normalized["perception_enabled"] = _coerce_bool(
