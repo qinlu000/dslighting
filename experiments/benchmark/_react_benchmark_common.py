@@ -24,6 +24,13 @@ BENCHMARK_TYPE_ALIASES = {
     "scienceagentbench": "sciencebench",
 }
 
+BENCHMARK_VENDOR_NAMES = {
+    "dabench": "dabench",
+    "dacode": "dacode",
+    "scienceagentbench": "sciencebench",
+    "moscibench": "moscibench",
+}
+
 DEFAULT_DATA_ROOTS = {
     "dabench": DEFAULT_LOCAL_DATA_ROOT / "dabench",
     "dacode": DEFAULT_LOCAL_DATA_ROOT / "dacode",
@@ -32,8 +39,16 @@ DEFAULT_DATA_ROOTS = {
 }
 
 
-def _build_agent_runtime_config(benchmark_type: str, *, max_steps: int) -> dict:
-    config = {"max_steps": max_steps}
+def _build_agent_runtime_config(
+    benchmark_type: str,
+    *,
+    max_steps: int,
+    perception_enabled: bool = False,
+) -> dict:
+    config = {
+        "max_steps": max_steps,
+        "perception_enabled": perception_enabled,
+    }
     if benchmark_type == "moscibench":
         config.update(
             {
@@ -77,6 +92,31 @@ def _build_output_contract_config(benchmark_type: str) -> dict:
     }
 
 
+def _build_sandbox_config() -> dict:
+    backend = _str_env("SANDBOX_BACKEND", "local")
+    config = {"backend": backend}
+    if backend in {"local", "docker"}:
+        config.update(
+            {
+                "environment_policy": _str_env(
+                    "SANDBOX_ENVIRONMENT_POLICY",
+                    "inherit",
+                ),
+                "network_policy": (
+                    "disabled" if _bool_env("DISABLE_NETWORK", False) else "inherit"
+                ),
+            }
+        )
+    if backend == "local":
+        config["local_isolation"] = _str_env("LOCAL_ISOLATION", "process")
+    elif backend == "docker":
+        image = _str_env("DOCKER_IMAGE", "")
+        if not image:
+            raise ValueError("DOCKER_IMAGE is required when SANDBOX_BACKEND=docker")
+        config["docker_image"] = image
+    return config
+
+
 def _bool_env(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     if raw is None:
@@ -103,6 +143,14 @@ def _str_env(name: str, default: str) -> str:
     if raw is None or not raw.strip():
         return default
     return raw.strip()
+
+
+def _list_env(name: str) -> list[str]:
+    raw = os.getenv(name, "")
+    values = [value for value in raw.replace(",", " ").split() if value]
+    if len(values) != len(set(values)):
+        raise ValueError(f"{name} contains duplicate values")
+    return values
 
 
 def _resolve_env_file() -> Path | None:
@@ -150,17 +198,26 @@ def run_react_benchmark(benchmark_type: str) -> int:
 
     repo_root = Path(os.getenv("DSLIGHTING_REPO", str(PROJECT_ROOT))).resolve()
     data_root = _resolve_data_root(benchmark_type)
-    model = DEFAULT_MODEL
+    model = _str_env("MODEL", _str_env("LLM_MODEL", DEFAULT_MODEL))
     max_steps = int(os.getenv("MAX_STEPS", str(DEFAULT_MAX_STEPS)))
+    perception_enabled = _bool_env("PERCEPTION_ENABLED", False)
     keep_workspace = _bool_env("KEEP_WORKSPACE", True)
     log_dir = _resolve_log_dir(benchmark_type)
+    run_name = _str_env(
+        "RUN_NAME",
+        f"{benchmark_type}_{'fastperception' if perception_enabled else 'react'}_s{max_steps}",
+    )
+    workspace_dir = os.getenv("WORKSPACE_DIR")
+    sandbox_config = _build_sandbox_config()
     scheduler_policy = _str_env("SCHEDULER_POLICY", "balanced")
+    gpu_policy = _str_env("GPU_POLICY", "auto")
     max_concurrency = _int_env("MAX_CONCURRENCY", 8)
     llm_max_concurrency = _int_env("LLM_MAX_CONCURRENCY", 20)
     enable_task_rate_limiting = _bool_env("ENABLE_TASK_RATE_LIMITING", True)
     llm_task_start_rate = _float_env("LLM_TASK_START_RATE", 10.0)
     sandbox_task_start_rate = _float_env("SANDBOX_TASK_START_RATE", 20.0)
     task_rate_burst_factor = _float_env("TASK_RATE_BURST_FACTOR", 2.0)
+    task_ids = _list_env("TASK_IDS")
 
     if str(repo_root) not in sys.path:
         sys.path.insert(0, str(repo_root))
@@ -180,16 +237,21 @@ def run_react_benchmark(benchmark_type: str) -> int:
     print("Workflow: react")
     print(f"Model: {model}")
     print(f"Max steps: {max_steps}")
+    print(f"FastPerception: {perception_enabled}")
     print(f"Keep workspace: {keep_workspace}")
+    print(f"Sandbox backend: {sandbox_config['backend']}")
+    print(f"Sandbox network: {sandbox_config.get('network_policy', 'inherit')}")
     print(f"LLM_MODEL_CONFIGS set: {bool(os.environ.get('LLM_MODEL_CONFIGS'))}")
     print(f"Log dir: {log_dir}")
     print(f"Scheduler policy: {scheduler_policy}")
+    print(f"GPU policy: {gpu_policy}")
     print(f"Max concurrency: {max_concurrency}")
     print(f"LLM max concurrency: {llm_max_concurrency}")
     print(f"Enable task rate limiting: {enable_task_rate_limiting}")
     print(f"LLM task start rate: {llm_task_start_rate}")
     print(f"Sandbox task start rate: {sandbox_task_start_rate}")
     print(f"Task rate burst factor: {task_rate_burst_factor}")
+    print(f"Selected tasks: {len(task_ids) if task_ids else 'all'}")
     if env_file is not None:
         print(f"Loaded env file: {env_file}")
 
@@ -213,27 +275,56 @@ def run_react_benchmark(benchmark_type: str) -> int:
     config = ConfigBuilder().build_config(
         workflow="react",
         llm_config=llm_config,
+        sandbox=sandbox_config,
         keep_workspace=keep_workspace,
         keep_workspace_on_failure=keep_workspace,
+        workspace_dir=workspace_dir,
         data_analysis=_build_data_analysis_config(benchmark_type),
-        agent_runtime=_build_agent_runtime_config(benchmark_type, max_steps=max_steps),
+        agent_runtime=_build_agent_runtime_config(
+            benchmark_type,
+            max_steps=max_steps,
+            perception_enabled=perception_enabled,
+        ),
         output_contract=_build_output_contract_config(benchmark_type),
-        run_name=f"{benchmark_type}_react_benchmark",
+        run_name=run_name,
     )
     config.sandbox.timeout = DEFAULT_TASK_TIMEOUT_SECONDS
     config.run.dag_runtime.node_timeout_seconds = float(DEFAULT_TASK_TIMEOUT_SECONDS)
 
     config.scheduler.scheduler_policy = scheduler_policy
+    config.scheduler.gpu_policy = gpu_policy
     config.scheduler.max_concurrency = max_concurrency
     config.scheduler.enable_task_rate_limiting = enable_task_rate_limiting
     config.scheduler.llm_task_start_rate = llm_task_start_rate
     config.scheduler.sandbox_task_start_rate = sandbox_task_start_rate
     config.scheduler.task_rate_burst_factor = task_rate_burst_factor
 
-    benchmark = DSBenchmark(
-        benchmark_type=resolved_benchmark_type,
-        data_dir=str(data_root),
-    )
+    benchmark_kwargs = {
+        "benchmark_type": resolved_benchmark_type,
+        "data_dir": str(data_root),
+    }
+    if task_ids:
+        vendor_dir = (
+            PROJECT_ROOT
+            / "dslighting"
+            / "benchmark"
+            / "vendor"
+            / BENCHMARK_VENDOR_NAMES[benchmark_type]
+            / "competitions"
+        )
+        missing_data = [task_id for task_id in task_ids if not (data_root / task_id).is_dir()]
+        missing_vendor = [task_id for task_id in task_ids if not (vendor_dir / task_id).is_dir()]
+        if missing_data or missing_vendor:
+            raise ValueError(
+                "Selected tasks are unavailable: "
+                f"missing_data={missing_data}, missing_vendor={missing_vendor}"
+            )
+        benchmark_kwargs.update(
+            competitions=task_ids,
+            vendor_comp_dir=str(vendor_dir),
+        )
+
+    benchmark = DSBenchmark(**benchmark_kwargs)
 
     result = benchmark.run(
         config=config,

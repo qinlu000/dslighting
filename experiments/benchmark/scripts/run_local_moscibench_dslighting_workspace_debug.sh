@@ -11,9 +11,9 @@ LOG_DIR="${LOG_DIR:-$RUN_ROOT/moscibench_react}"
 STDOUT_LOG="${STDOUT_LOG:-$RUN_ROOT/stdout.log}"
 SUBSET_ROOT="${SUBSET_ROOT:-$RUN_ROOT/data}"
 SUBSET_COMPETITIONS="$SUBSET_ROOT/competitions"
-PYTHON_BIN="${PYTHON_BIN:-$REPO_ROOT/experiments/.venv312_framework/bin/python}"
+PYTHON_BIN="${PYTHON_BIN:-$REPO_ROOT/.venv/bin/python}"
 ENV_FILE="${DSLIGHTING_ENV_FILE:-$REPO_ROOT/.env}"
-TARGET_SCRIPT="$REPO_ROOT/experiments/benchmark/run_moscibench_benchmark_react.py"
+TARGET_SCRIPT="$REPO_ROOT/experiments/benchmark/run_react_benchmark.py"
 LOCAL_DEBUG_PROFILE="${LOCAL_DEBUG_PROFILE:-serial}"
 
 if [[ -z "${SOURCE_MOSCIBENCH_DATA:-}" ]]; then
@@ -174,7 +174,7 @@ if [[ "${DRY_RUN:-false}" == "true" ]]; then
 fi
 
 set +e
-"$PYTHON_BIN" "$TARGET_SCRIPT" 2>&1 | tee "$STDOUT_LOG"
+"$PYTHON_BIN" "$TARGET_SCRIPT" moscibench 2>&1 | tee "$STDOUT_LOG"
 exit_code="${PIPESTATUS[0]}"
 set -e
 
