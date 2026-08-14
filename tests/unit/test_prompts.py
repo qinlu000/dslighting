@@ -8,40 +8,18 @@ These tests verify:
 - Helper functions
 """
 
-import sys
-import os
-import importlib.util
-
-# Load the prompts module directly without triggering package init
-_prompts_path = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "dslighting", "prompts"
-)
-
-# Load builder module
-_builder_path = os.path.join(_prompts_path, "builder.py")
-_builder_spec = importlib.util.spec_from_file_location("builder", _builder_path)
-builder_module = importlib.util.module_from_spec(_builder_spec)
-_builder_spec.loader.exec_module(builder_module)
-
-# Load base module
-_base_path = os.path.join(_prompts_path, "base.py")
-_base_spec = importlib.util.spec_from_file_location("base", _base_path)
-base_module = importlib.util.module_from_spec(_base_spec)
-_base_spec.loader.exec_module(base_module)
-
-# Extract classes and functions for use in tests
-PromptBuilder = builder_module.PromptBuilder
-StructuredPromptBuilder = builder_module.StructuredPromptBuilder
-PromptTemplate = builder_module.PromptTemplate
-create_structured_prompt = builder_module.create_structured_prompt
-truncate_output = builder_module.truncate_output
-format_code_block = builder_module.format_code_block
-create_prompt_template = base_module.create_prompt_template
-get_common_guidelines = base_module.get_common_guidelines
 
 import pytest
-from typing import Dict, Any, List, Optional
+
+from dslighting.prompts.base import create_prompt_template, get_common_guidelines
+from dslighting.prompts.builder import (
+    PromptBuilder,
+    PromptTemplate,
+    StructuredPromptBuilder,
+    create_structured_prompt,
+    format_code_block,
+    truncate_output,
+)
 
 
 class TestCreatePromptTemplate:

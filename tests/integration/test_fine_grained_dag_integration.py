@@ -6,14 +6,15 @@ Tests cover:
 2. Comparison with coarse-grained implementation
 3. Concurrency and thread safety
 """
-import pytest
 import asyncio
 from pathlib import Path
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import Mock
 
-from dslighting.workflows.search.aide_workflow import AIDEWorkflow, FineGrainedAIDEWorkflowDagActor
-from dslighting.runtime.dag import DagRuntime, DagRuntimeOptions
+import pytest
+
+from dslighting.runtime.dag import DagRuntime, DagRuntimeOptions, NodeResult
 from dslighting.state.search.journal import JournalState, Node
+from dslighting.workflows.search.aide_workflow import AIDEWorkflow, FineGrainedAIDEWorkflowDagActor
 
 
 @pytest.mark.asyncio
@@ -24,7 +25,7 @@ async def test_fine_grained_dag_end_to_end():
     mock_sandbox = Mock()
     mock_sandbox.workspace.get_path.return_value = Path("/tmp/sandbox")
 
-    mock_llm = AsyncMock()
+    mock_llm = Mock()
     mock_llm.get_call_history.return_value = []
 
     # Mock generate_op 返回 (plan, code)
@@ -106,7 +107,7 @@ async def test_fine_grained_dag_end_to_end():
     summary = await runtime.run_actor(actor)
 
     # 验证结果
-    assert summary["status"] == "success"
+    assert summary.success
 
 
 @pytest.mark.asyncio
@@ -209,7 +210,7 @@ async def test_fine_grained_dag_failure_recovery():
     """测试细粒度 DAG 在节点失败时的恢复机制"""
     # 创建 mock services
     mock_sandbox = Mock()
-    mock_llm = AsyncMock()
+    mock_llm = Mock()
     mock_llm.get_call_history.return_value = []
 
     # Mock generate_op - 第一次失败，第二次成功
@@ -281,7 +282,7 @@ async def test_fine_grained_dag_failure_recovery():
     summary = await runtime.run_actor(actor)
 
     # 验证恢复成功
-    assert summary["status"] == "success"
+    assert summary.success
     assert gen_call_count[0] > 1, "Should have retried generation"
 
 
@@ -291,6 +292,9 @@ async def test_dag_dependency_chain_integrity():
     # 创建 mock workflow
     mock_workflow = Mock()
     mock_workflow.agent_config = {"search": {"max_iterations": 3}}
+    mock_workflow.visualization_policy = "allow"
+    mock_workflow.state.generate_summary.return_value = ""
+    mock_workflow._select_node_to_expand.return_value = None
 
     actor = FineGrainedAIDEWorkflowDagActor(
         task_id="chain_test",
@@ -308,9 +312,9 @@ async def test_dag_dependency_chain_integrity():
     # Gen_0
     result = NodeResult(
         node_id="chain_test:gen:0",
+        task_id="chain_test",
         status="success",
-        return_value=("plan0", "code0"),
-        outputs={}
+        outputs={"plan": "plan0", "code": "code0"},
     )
     nodes, _ = actor._handle_gen_result(0, result)
     executed_order.append(result.node_id)
@@ -320,9 +324,16 @@ async def test_dag_dependency_chain_integrity():
     # Exec_0
     exec_result = NodeResult(
         node_id="chain_test:exec:0",
+        task_id="chain_test",
         status="success",
-        return_value=Mock(success=True, stdout="out", stderr="", exc_type=None, metadata={}, code="code0"),
-        outputs={}
+        outputs={
+            "success": True,
+            "stdout": "out",
+            "stderr": "",
+            "exc_type": None,
+            "metadata": {},
+            "code": "code0",
+        },
     )
     nodes, _ = actor._handle_exec_result(0, exec_result)
     executed_order.append(exec_result.node_id)
@@ -332,6 +343,7 @@ async def test_dag_dependency_chain_integrity():
     # Review_0
     review_result = NodeResult(
         node_id="chain_test:review:0",
+        task_id="chain_test",
         status="success",
         outputs={}
     )

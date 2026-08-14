@@ -144,7 +144,7 @@ class ConfigVersionManager:
             >>> migrated["_version"]
             '2.0'
         """
-        current_version = from_version or self.detect_version(config)
+        current_version = str(from_version) if from_version is not None else self.detect_version(config)
         target_version = to_version or self.VERSION
         self._validate_version(target_version)
 
@@ -154,6 +154,13 @@ class ConfigVersionManager:
                 f"Please upgrade your config to v2.0 format. "
                 f"Supported versions: {self.SUPPORTED_VERSIONS}"
             )
+        # No structural migration is needed within the v2.0-only contract.
+        if current_version == target_version:
+            if config.get("_version") == target_version:
+                return config
+            migrated_config = config.copy()
+            migrated_config["_version"] = target_version
+            return migrated_config
 
         migrated_config = config.copy()
         migrated_config["_version"] = target_version

@@ -1,20 +1,18 @@
 import logging
 import shutil
 from pathlib import Path
-from typing import Dict, Optional, Any, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from dslighting.workflows.base import BaseWorkflow
-from dslighting.state.search.journal import JournalState, Node, MetricValue
 from dslighting.benchmark.core.base import BaseBenchmark
 from dslighting.core.visualization_policy import resolve_visualization_policy_from_agent_config
-from dslighting.runtime.dag import BaseWorkflowActor, NodeResult, OpNode
 from dslighting.error import LLMServiceError
-from dslighting.services.llm import LLMService
-
-from dslighting.prompts.workflows.aide import create_improve_prompt, create_debug_prompt
 from dslighting.prompts.common import create_draft_prompt
-
+from dslighting.prompts.workflows.aide import create_debug_prompt, create_improve_prompt
+from dslighting.runtime.dag import BaseWorkflowActor, NodeResult, OpNode
+from dslighting.services.llm import LLMService
 from dslighting.state.context import ContextManager, summarize_repetitive_logs
+from dslighting.state.search.journal import JournalState, MetricValue, Node
+from dslighting.workflows.base import BaseWorkflow
 from dslighting.workflows.utils import (
     build_error_history,
     capture_llm_history,
@@ -305,7 +303,11 @@ class FineGrainedAIDEWorkflowDagActor(BaseWorkflowActor):
 
     def _handle_gen_result(self, step: int, result: NodeResult) -> Tuple[List[OpNode], bool]:
         if result.status == "success":
-            code = result.outputs.get("code", "")
+            outputs = result.outputs or {}
+            value = outputs.get("value")
+            if isinstance(value, tuple) and len(value) >= 2:
+                outputs = {**outputs, "plan": value[0], "code": value[1]}
+            code = outputs.get("code", "")
             if not code or not code.strip():
                 logger.warning(f"Step {step} generated empty code. Triggering search logic to debug/retry.")
                 return self._create_next_generation_nodes(result.node_id, step)
@@ -324,7 +326,20 @@ class FineGrainedAIDEWorkflowDagActor(BaseWorkflowActor):
     def _handle_exec_result(self, step: int, result: NodeResult) -> Tuple[List[OpNode], bool]:
         # ASSUMPTION: The `execute_op` has updated the shared `JournalState` with execution results.
         if result.status == "success":
-            return [self._build_review_node(step=step, exec_result=result.outputs, depends_on=[result.node_id])], False
+            outputs = result.outputs or {}
+            value = outputs.get("value")
+            if value is not None and not isinstance(value, dict):
+                outputs = {
+                    "success": getattr(value, "success", True),
+                    "stdout": getattr(value, "stdout", ""),
+                    "stderr": getattr(value, "stderr", ""),
+                    "exc_type": getattr(value, "exc_type", None),
+                    "metadata": getattr(value, "metadata", {}),
+                    "code": getattr(value, "code", ""),
+                }
+            elif isinstance(value, dict):
+                outputs = value
+            return [self._build_review_node(step=step, exec_result=outputs, depends_on=[result.node_id])], False
         else:
             logger.info(f"Execution failed at step {step}. Triggering search logic for debug.")
             return self._create_next_generation_nodes(result.node_id, step)

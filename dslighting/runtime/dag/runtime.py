@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections import defaultdict, deque
 from typing import Any, Deque, Dict, List, Optional, Set, Tuple
 
@@ -359,7 +359,11 @@ class BaseDagRuntime(ABC):
             for parent_id in node.depends_on:
                 self._children[parent_id].add(node.node_id)
                 parent_result = self._results.get(parent_id)
-                if parent_result is None or parent_result.status != "success":
+                # A node emitted after its parent reaches a terminal state may
+                # intentionally recover from that parent's failure. Ordering
+                # is satisfied here; explicit input bindings still require a
+                # successful parent in _resolve_inputs().
+                if parent_result is None:
                     indegree += 1
 
             self._indegree[node.node_id] = indegree

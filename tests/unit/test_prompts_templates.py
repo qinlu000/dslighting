@@ -7,29 +7,23 @@ These tests verify:
 - Common prompt utilities
 """
 
-import sys
-import os
-
-# Add the project root to path for imports
-_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, _project_root)
 
 import pytest
-from typing import Dict, Any, List, Optional
+
+from dslighting.prompts.base import dict_to_str
+from dslighting.prompts.common import (
+    _get_common_guidelines,
+    create_draft_prompt,
+)
 
 # Import functions from templates modules
 from dslighting.prompts.templates.data_science import (
-    create_modeling_prompt,
     create_eda_prompt,
+    create_modeling_prompt,
 )
 from dslighting.prompts.templates.debugging import (
     create_generic_debug_prompt,
 )
-from dslighting.prompts.common import (
-    create_draft_prompt,
-    _get_common_guidelines,
-)
-from dslighting.prompts.base import dict_to_str
 
 
 class TestCreateModelingPrompt:

@@ -5,8 +5,7 @@ This test verifies that metadata updates are properly synchronized
 with the vector store to ensure search operations return updated metadata.
 """
 
-import pytest
-from dslighting.state import MemoryManager, SimpleVectorStore
+from dslighting.state.memory import MemoryManager, SimpleVectorStore
 
 
 class TestMemoryManagerVectorSync:

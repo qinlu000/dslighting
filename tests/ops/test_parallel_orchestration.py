@@ -1,26 +1,8 @@
 """Tests for parallel.py majority aggregation strategy."""
 
-from pathlib import Path
-
 import pytest
 
-# Bypass dslighting __init__ by importing the module file directly
-import importlib.util
-
-# Load the parallel module directly without triggering dslighting __init__
-parallel_path = (
-    Path(__file__).resolve().parents[2]
-    / "dslighting"
-    / "ops"
-    / "orchestration"
-    / "parallel.py"
-)
-
-spec = importlib.util.spec_from_file_location("parallel_module", parallel_path)
-parallel_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(parallel_module)
-
-Parallel = parallel_module.Parallel
+from dslighting.ops.orchestration.parallel import Parallel
 
 
 class TestParallelMajorityVoting:

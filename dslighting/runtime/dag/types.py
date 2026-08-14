@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Literal
-
+from typing import Any, Dict, List, Literal, Optional
 
 OpType = Literal["llm", "sandbox", "io", "parse", "custom", "workflow"]
 NodeStatus = Literal["pending", "ready", "running", "success", "failed", "cancelled"]
@@ -170,7 +169,11 @@ class DagRunSummary:
 
     @property
     def success(self) -> bool:
-        return self.actor_completed and self.failed_nodes == 0 and self.cancelled_nodes == 0
+        if not self.actor_completed or self.cancelled_nodes:
+            return False
+        if isinstance(self.final_result, dict) and "status" in self.final_result:
+            return self.final_result["status"] == "success"
+        return self.failed_nodes == 0
 
     def to_dict(self) -> Dict[str, Any]:
         return {

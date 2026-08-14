@@ -32,14 +32,17 @@ def test_detects_explicit_or_implicit_current_version(
 ) -> None:
     assert manager.detect_version({"_version": "2.0"}) == "2.0"
     assert manager.detect_version({"llm": {"model": "test"}}) == "2.0"
+    assert manager.detect_version({}) == "2.0"
 
 
 def test_unknown_explicit_version_is_not_treated_as_current(
     manager: ConfigVersionManager,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     config = {"_version": "1.1"}
 
     assert manager.detect_version(config) == "1.1"
+    assert "Unknown config version '1.1'" in caplog.text
     assert manager.is_compatible(config) is False
 
 
@@ -55,12 +58,24 @@ def test_migrate_normalizes_an_unversioned_v2_config_without_mutating_it(
     assert "_version" not in original
 
 
+def test_migrate_current_version_is_noop(manager: ConfigVersionManager) -> None:
+    config = {"_version": "2.0", "custom": True}
+
+    assert manager.migrate(config) is config
+
+
+@pytest.mark.parametrize("legacy_version", ["0.9", "1.0", "1.1"])
 def test_migrate_rejects_removed_legacy_versions(
     manager: ConfigVersionManager,
+    legacy_version: str,
 ) -> None:
     with pytest.raises(MigrationNotSupportedError, match="no longer supported"):
-        manager.migrate({"_version": "1.1"})
+        manager.migrate({"_version": legacy_version})
 
+
+def test_migrate_rejects_an_explicit_legacy_source(
+    manager: ConfigVersionManager,
+) -> None:
     with pytest.raises(MigrationNotSupportedError, match="no longer supported"):
         manager.migrate({}, from_version="0.9")
 
@@ -75,8 +90,9 @@ def test_migration_path_exists_only_for_the_current_version(
 ) -> None:
     assert manager.get_migration_path("2.0", "2.0") == []
 
-    with pytest.raises(InvalidVersionError):
-        manager.get_migration_path("1.1", "2.0")
+    for version in ["0.9", "1.0", "1.1", "3.0", "invalid"]:
+        with pytest.raises(InvalidVersionError):
+            manager.get_migration_path(version, "2.0")
 
 
 def test_version_validation_and_support(manager: ConfigVersionManager) -> None:
@@ -88,6 +104,15 @@ def test_version_validation_and_support(manager: ConfigVersionManager) -> None:
         manager._validate_version("1.1")
 
 
+def test_custom_migration_registration(manager: ConfigVersionManager) -> None:
+    def migration(config: dict) -> dict:
+        return config
+
+    manager.register_migration("custom", "2.0", migration)
+
+    assert manager._migration_registry[("custom", "2.0")] is migration
+
+
 def test_factory_reuses_named_managers() -> None:
     factory = ConfigVersionManagerFactory()
 
@@ -96,6 +121,7 @@ def test_factory_reuses_named_managers() -> None:
 
 
 def test_convenience_functions_follow_the_v2_contract() -> None:
+    assert get_version_manager() is get_version_manager()
     assert get_version_manager().VERSION == "2.0"
     assert detect_config_version({}) == "2.0"
     assert migrate_config({"task": {}}) == {"task": {}, "_version": "2.0"}

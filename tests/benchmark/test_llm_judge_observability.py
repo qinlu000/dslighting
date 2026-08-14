@@ -4,6 +4,7 @@ import asyncio
 import json
 from pathlib import Path
 
+import pytest
 from PIL import Image
 
 import dslighting.benchmark.grading.llm_judge as llm_judge_module
@@ -62,6 +63,14 @@ def _close_session() -> None:
 
 def _reset_image_judge_capabilities() -> None:
     llm_judge_module._JSON_MODE_UNSUPPORTED_CAPABILITIES.clear()
+
+
+@pytest.fixture(autouse=True)
+def _restore_image_judge_capabilities():
+    original = set(llm_judge_module._JSON_MODE_UNSUPPORTED_CAPABILITIES)
+    yield
+    llm_judge_module._JSON_MODE_UNSUPPORTED_CAPABILITIES.clear()
+    llm_judge_module._JSON_MODE_UNSUPPORTED_CAPABILITIES.update(original)
 
 
 def test_text_judge_emits_completed_and_preserves_max_tokens(monkeypatch, tmp_path: Path) -> None:
