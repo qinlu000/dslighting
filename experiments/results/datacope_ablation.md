@@ -4,6 +4,10 @@ This report centralizes the completed held-out DataCOPE comparisons on
 AgenticDataBench and MoSciBench. Each benchmark compares the same fixed Solving
 Agent with and without the final DataCOPE-discovered skill.
 
+DataCOPE is a retired experimental method. AgenticDataBench and MoSciBench are
+the benchmarks on which it was evaluated; this report is not part of the active
+AgenticDataBench runner.
+
 ## AgenticDataBench
 
 The deterministic held-out test split contains 184 tasks. The Solver was
@@ -45,8 +49,8 @@ Dataset-level accuracy:
 | pop_genetics | 0.20000 | 0.30000 | +0.10000 |
 | terra | 0.30000 | 0.00000 | -0.30000 |
 
-The machine-readable source of truth is
-`experiments/datacope_moscibench/runs/test_summary.json`.
+The machine-readable source of truth is archived outside the worktree at
+`local-experiments-20260816/datacope/moscibench/runs/test_summary.json`.
 
 ## Conclusion
 

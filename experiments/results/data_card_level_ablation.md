@@ -59,7 +59,8 @@ for treatment comparisons because coverage differs substantially by condition.
 ## Source artifacts
 
 The source metadata, task-level result CSVs, submissions and paired-run
-manifests remain under `experiments/benchmark/runs/`:
+manifests are archived outside the worktree under
+`local-experiments-20260816/legacy-benchmark-runs/runs/`:
 
 - `dabench_aide_paired_20260628_122304` plus the L3 continuation
   `dabench_aide_paired_20260629_132443`;

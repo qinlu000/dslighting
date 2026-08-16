@@ -1,6 +1,6 @@
-# AgenticDataBench × DSLighting PoC
+# AgenticDataBench × DSLighting
 
-This sidecar runs public AgenticDataBench tasks through a DSLighting workflow
+This runner executes public AgenticDataBench tasks through a DSLighting workflow
 without registering AgenticDataBench in `DSBenchmark` or modifying DSLighting's
 task registry.
 
@@ -40,7 +40,7 @@ docker build \
   --build-arg HOST_UID=$(id -u) \
   --build-arg HOST_GID=$(id -g) \
   -t dslighting-agenticdatabench:latest \
-  -f experiments/agenticdatabench_poc/docker/Dockerfile .
+  -f experiments/agenticdatabench/docker/Dockerfile .
 ```
 
 The upstream Dockerfile currently contains unpinned Python packages, so a
@@ -64,7 +64,7 @@ mounted read-write; networking is disabled by default.
 Dry-run one task without calling a model:
 
 ```bash
-python -m experiments.agenticdatabench_poc \
+python -m experiments.agenticdatabench \
   --benchmark-root /path/to/AgenticDataBench \
   --output-dir ./runs/agenticdatabench/output/dslighting-react-smoke \
   --task agriculture_02 \
@@ -85,7 +85,7 @@ tasks. Choose one of:
 Start with a small mixed smoke set:
 
 ```bash
-python -m experiments.agenticdatabench_poc \
+python -m experiments.agenticdatabench \
   --benchmark-root /path/to/AgenticDataBench \
   --output-dir ./runs/agenticdatabench/output/dslighting-react-smoke \
   --task agriculture_02 \
@@ -112,7 +112,7 @@ also pass `--no-thinking` explicitly, and the resolved value is recorded as
 Run the same benchmark with mini-swe-agent's official Docker environment:
 
 ```bash
-python -m experiments.agenticdatabench_poc \
+python -m experiments.agenticdatabench \
   --benchmark-root /path/to/AgenticDataBench \
   --output-dir ./runs/agenticdatabench/output/mini-swe-agent-smoke \
   --task agriculture_02 \
@@ -142,7 +142,7 @@ Perception is an explicit treatment, not part of the ReAct baseline. A normal
 it only for a Perception ablation arm:
 
 ```bash
-python -m experiments.agenticdatabench_poc \
+python -m experiments.agenticdatabench \
   --benchmark-root /path/to/AgenticDataBench \
   --output-dir ./runs/agenticdatabench/output/react-perception \
   --task agriculture_02 \

@@ -1,4 +1,4 @@
-"""Thin AgenticDataBench sidecar for running DSLighting workflows."""
+"""AgenticDataBench runner for DSLighting workflows."""
 
 from .runner import (
     AgenticDataBenchTask,

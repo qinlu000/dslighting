@@ -8,8 +8,8 @@ import pytest
 
 from dslighting.benchmark.grading.models import SubmissionArtifactContract
 from dslighting.config import LLMConfig
-from experiments.agenticdatabench_poc.cli import main
-from experiments.agenticdatabench_poc.runner import (
+from experiments.agenticdatabench.cli import main
+from experiments.agenticdatabench.runner import (
     AgenticDataBenchTask,
     RunSettings,
     build_task_definition,
@@ -150,7 +150,7 @@ def test_staging_does_not_copy_dataset_when_symlinking_fails(tmp_path: Path, mon
         raise OSError("symlinks unavailable")
 
     monkeypatch.setattr(
-        "experiments.agenticdatabench_poc.runner.os.symlink",
+        "experiments.agenticdatabench.runner.os.symlink",
         reject_symlink,
     )
 
@@ -458,7 +458,7 @@ async def test_run_tasks_fails_fast_on_adapter_errors(tmp_path: Path, monkeypatc
 
     monkeypatch.setattr(DSLightingRunner, "get_eval_function", fake_get_eval_function)
     monkeypatch.setattr(
-        "experiments.agenticdatabench_poc.runner.prepare_agent_visible_dir",
+        "experiments.agenticdatabench.runner.prepare_agent_visible_dir",
         reject_staging,
     )
     output_root = tmp_path / "runs" / "output"

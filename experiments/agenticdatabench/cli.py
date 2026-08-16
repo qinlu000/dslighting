@@ -1,4 +1,4 @@
-"""Command-line entrypoint for the AgenticDataBench PoC sidecar."""
+"""Command-line entrypoint for the AgenticDataBench runner."""
 
 from __future__ import annotations
 
