@@ -49,8 +49,10 @@ Dataset-level accuracy:
 | pop_genetics | 0.20000 | 0.30000 | +0.10000 |
 | terra | 0.30000 | 0.00000 | -0.30000 |
 
-The machine-readable source of truth is archived outside the worktree at
-`local-experiments-20260816/datacope/moscibench/runs/test_summary.json`.
+The original machine-readable source was
+`experiments/datacope_moscibench/runs/test_summary.json`. It was removed with
+the retired method artifacts after the aggregate values in this report and
+`summary.json` were verified.
 
 ## Conclusion
 

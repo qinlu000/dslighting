@@ -58,9 +58,8 @@ for treatment comparisons because coverage differs substantially by condition.
 
 ## Source artifacts
 
-The source metadata, task-level result CSVs, submissions and paired-run
-manifests are archived outside the worktree under
-`local-experiments-20260816/legacy-benchmark-runs/runs/`:
+The original source metadata, task-level result CSVs, submissions and
+paired-run manifests were stored under `experiments/benchmark/runs/`:
 
 - `dabench_aide_paired_20260628_122304` plus the L3 continuation
   `dabench_aide_paired_20260629_132443`;
@@ -70,3 +69,6 @@ manifests are archived outside the worktree under
   `moscibench_aide_paired_20260629_132217`;
 - `moscibench_react_paired_20260629_090903` plus the L3 continuation
   `moscibench_react_paired_20260629_132233`.
+
+Those raw artifacts were removed after the aggregate tables in this report and
+`summary.json` were verified.

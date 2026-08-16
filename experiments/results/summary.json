@@ -63,7 +63,8 @@
       "control": {"accuracy": 0.4153846153846154, "correct": 27},
       "skill": {"accuracy": 0.3230769230769231, "correct": 21},
       "accuracy_delta": -0.09230769230769231,
-      "source": "archive:local-experiments-20260816/datacope/moscibench/runs/test_summary.json"
+      "source": "experiments/results/datacope_ablation.md",
+      "raw_artifacts": "removed_after_aggregate_verification"
     },
     "data_card_level_ablation": {
       "status": "final",
@@ -102,7 +103,8 @@
           }
         }
       },
-      "source_root": "archive:local-experiments-20260816/legacy-benchmark-runs/runs"
+      "source": "experiments/results/data_card_level_ablation.md",
+      "raw_artifacts": "removed_after_aggregate_verification"
     },
     "annotation_perception_skills": {
       "status": "curated_preliminary",
@@ -129,7 +131,8 @@
           }
         }
       },
-      "source": "archive:local-experiments-20260816/data-card/data-experiments/suites/annotation-skill-ablation-20260722/manifest.json"
+      "source": "experiments/results/annotation_perception_skills.md",
+      "raw_artifacts": "removed_after_aggregate_verification"
     },
     "agenticdatabench_v4flash_30_step": {
       "status": "superseded",

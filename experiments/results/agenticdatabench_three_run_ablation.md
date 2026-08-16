@@ -140,8 +140,7 @@ affected.
 The final repair audit is recorded at
 `runs/agenticdatabench/retries/parallel-c100-until-clean-20260803/status.json`.
 It completed on 2026-08-04 at 14:33:55 Asia/Shanghai with zero residual issues.
-Retry output copies were subsequently deleted after merge; accepted-ID lists,
-logs, workspace messages and telemetry were retained locally outside Git.
-Completed execution `sandbox/` trees were removed after final scoring because
-their required task outputs had already been copied into the final output
-directories.
+Retry outputs, accepted-ID lists, logs, workspace messages, telemetry and task
+output directories were removed after final scoring and aggregate verification.
+The nine official evaluation JSON files remain locally as the task-level source
+of truth for the three-run comparison.

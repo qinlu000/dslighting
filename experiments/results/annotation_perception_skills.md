@@ -48,10 +48,10 @@ observed gain for Modality-Enriched Annotation.
 
 ## Source artifacts
 
-The canonical machine-readable index is archived outside the worktree at
-`local-experiments-20260816/data-card/data-experiments/suites/annotation-skill-ablation-20260722/manifest.json`.
-Original manifests, final results, metadata and mismatch logs are retained
-under `local-experiments-20260816/data-card/data-experiments/archive/`.
+The original machine-readable index was stored at
+`data/experiments/data_card_ablation/suites/annotation-skill-ablation-20260722/manifest.json`.
+The raw manifests, metadata and mismatch logs were removed after the aggregate
+values in this report and `summary.json` were verified.
 
-The suite is explicitly preliminary. Its cohort rules and archive-path mapping
-remain authoritative even though the numerical report is centralized here.
+The suite is explicitly preliminary. The cohort rules recorded in this report
+remain authoritative for interpreting the centralized numerical result.

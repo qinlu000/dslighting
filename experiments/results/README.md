@@ -3,7 +3,10 @@
 This directory contains only compact, aggregate experiment results suitable for
 version control. Task outputs, evaluator payloads, submissions, prompts,
 message histories, workspaces, telemetry and execution trajectories are not
-included. Reports record the local source-artifact paths for provenance only.
+included. Reports record provenance and artifact-retention status.
+The nine final AgenticDataBench evaluator JSON files remain available locally;
+raw artifacts for retired methods were removed after their aggregate results
+were verified.
 
 [`summary.json`](summary.json) provides the consolidated machine-readable
 result index.
