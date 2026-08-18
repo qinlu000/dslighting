@@ -19,6 +19,10 @@ _PYTHON_BLOCK_PATTERN = re.compile(
     r"\s*```python\s*(?P<code>.*?)\s*```\s*",
     re.DOTALL | re.IGNORECASE,
 )
+_THINK_PREFIX_PATTERN = re.compile(
+    r"\s*<Think>.*?</Think>\s*(?P<response>.*)\s*",
+    re.DOTALL | re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -58,7 +62,10 @@ def normalize_perception_reply(content: str) -> NormalizedPerceptionReply:
         if close_match is None:
             return NormalizedPerceptionReply(raw_content, raw_content)
         prefix = raw_content[: close_match.start()]
-        if tag == "Action":
+        think_closes = list(re.finditer(r"</Think>", prefix, flags=re.IGNORECASE))
+        if think_closes:
+            opening_index = think_closes[-1].end()
+        elif tag == "Action":
             payload_match = re.search(r"```python\b", prefix, flags=re.IGNORECASE)
             if payload_match is None:
                 return NormalizedPerceptionReply(raw_content, raw_content)
@@ -86,6 +93,11 @@ def normalize_perception_reply(content: str) -> NormalizedPerceptionReply:
 def parse_perception_reply(content: str) -> PerceptionTurnResult:
     """Parse one reply as either a Python action or a plain-text report."""
     reply = normalize_perception_reply(content).normalized_content
+    response = _strip_optional_think_prefix(reply)
+    if response is None:
+        return _protocol_error(
+            "The <Think>...</Think> block is malformed or is not followed by a response block."
+        )
     action_open = _tag_count(reply, "Action", closing=False)
     action_close = _tag_count(reply, "Action", closing=True)
     report_open = _tag_count(reply, "Report", closing=False)
@@ -104,7 +116,7 @@ def parse_perception_reply(content: str) -> PerceptionTurnResult:
             return _protocol_error(
                 "Reply must contain exactly one <Action>...</Action> block."
             )
-        match = _ACTION_PATTERN.fullmatch(reply)
+        match = _ACTION_PATTERN.fullmatch(response)
         if match is None:
             return _protocol_error(
                 "Reply must contain only <Action>...</Action> with no extra text."
@@ -121,7 +133,7 @@ def parse_perception_reply(content: str) -> PerceptionTurnResult:
         return _protocol_error(
             "Reply must contain exactly one <Report>...</Report> block."
         )
-    match = _REPORT_PATTERN.fullmatch(reply)
+    match = _REPORT_PATTERN.fullmatch(response)
     if match is None:
         return _protocol_error(
             "Reply must contain only <Report>...</Report> with no extra text."
@@ -135,18 +147,35 @@ def parse_perception_reply(content: str) -> PerceptionTurnResult:
 
 
 def _has_valid_payload(reply: str, tag: str) -> bool:
+    response = _strip_optional_think_prefix(reply)
+    if response is None:
+        return False
     if tag == "Action":
-        match = _ACTION_PATTERN.fullmatch(reply)
+        match = _ACTION_PATTERN.fullmatch(response)
         if match is None:
             return False
         code_match = _PYTHON_BLOCK_PATTERN.fullmatch(match.group("body"))
         return bool(code_match and code_match.group("code").strip())
 
-    match = _REPORT_PATTERN.fullmatch(reply)
+    match = _REPORT_PATTERN.fullmatch(response)
     if match is None:
         return False
     report = match.group("body").strip()
     return bool(report and "```" not in report)
+
+
+def _strip_optional_think_prefix(reply: str) -> str | None:
+    """Return the response block while tolerating a missing Think envelope."""
+    think_open = _tag_count(reply, "Think", closing=False)
+    think_close = _tag_count(reply, "Think", closing=True)
+    if think_open == 0 and think_close == 0:
+        return reply.strip()
+    if think_open != 1 or think_close != 1:
+        return None
+    match = _THINK_PREFIX_PATTERN.fullmatch(reply)
+    if match is None:
+        return None
+    return match.group("response").strip()
 
 
 def _tag_count(content: str, tag: str, *, closing: bool) -> int:
@@ -170,11 +199,12 @@ def _has_tag(content: str, tag: str) -> bool:
 def _protocol_error(reason: str) -> PerceptionTurnResult:
     feedback = (
         f"Perception protocol error: {reason}\n"
-        "Reply with exactly one block and no other text:\n"
+        "Reply with exactly two blocks and no other text:\n"
+        "<Think>reason about the next step</Think>\n"
         "<Action>```python\n# read-only inspection code\n```</Action>\n"
         "or:\n"
-        "<Report>concise plain-text perception report</Report>\n"
-        "Do not include <Think>, <Answer>, or <Explore>."
+        "<Think>reason about the findings</Think>\n"
+        "<Report>concise answer and relevant data findings</Report>"
     )
     return PerceptionTurnResult(next_user_message=wrap_feedback(feedback))
 

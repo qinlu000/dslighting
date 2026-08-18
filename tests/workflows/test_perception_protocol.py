@@ -26,6 +26,26 @@ def test_parse_perception_report() -> None:
     assert result.next_user_message is None
 
 
+def test_parse_perception_accepts_think_before_action() -> None:
+    result = parse_perception_reply(
+        "<Think>Inspect the rows.</Think>"
+        "<Action>```python\nprint('rows')\n```</Action>"
+    )
+
+    assert result.action_code == "print('rows')"
+    assert result.next_user_message is None
+
+
+def test_parse_perception_accepts_think_before_report() -> None:
+    result = parse_perception_reply(
+        "<Think>The request is answered.</Think>"
+        "<Report>rows=3; missing=0</Report>"
+    )
+
+    assert result.report == "rows=3; missing=0"
+    assert result.next_user_message is None
+
+
 def test_parse_perception_accepts_case_insensitive_tags() -> None:
     result = parse_perception_reply(
         "<action>```python\nprint('rows')\n```</ACTION>",
@@ -69,11 +89,40 @@ def test_parse_perception_repairs_one_missing_report_opening_tag() -> None:
 
 
 @pytest.mark.parametrize(
+    ("reply", "expected_action", "expected_report"),
+    [
+        (
+            "<Think>Inspect rows.</Think>"
+            "```python\nprint('rows')\n```</Action>",
+            "print('rows')",
+            None,
+        ),
+        (
+            "<Think>The request is answered.</Think>"
+            "rows=3; missing=0</Report>",
+            None,
+            "rows=3; missing=0",
+        ),
+    ],
+)
+def test_parse_perception_repairs_missing_response_opening_after_think(
+    reply: str,
+    expected_action: str | None,
+    expected_report: str | None,
+) -> None:
+    result = parse_perception_reply(reply)
+
+    assert result.action_code == expected_action
+    assert result.report == expected_report
+    assert result.next_user_message is None
+
+
+@pytest.mark.parametrize(
     "reply",
     [
         "",
         "rows=3",
-        "<Think>Inspect.</Think><Action>```python\nprint('rows')\n```</Action>",
+        "<Think>Inspect.</Think>extra<Action>```python\nprint('rows')\n```</Action>",
         "<Action>print('rows')</Action>",
         "<Action>```python\nprint('rows')\n```</Action><Report>rows=3</Report>",
         "<Report></Report>",

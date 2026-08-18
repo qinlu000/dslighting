@@ -339,7 +339,7 @@ async def test_react_workflow_rejects_nested_perception_request_without_recursin
     assert len(llm.calls) == 4
     assert "Perception protocol error:" in llm.calls[2][-1]["content"]
     assert "<Action>```python" in llm.calls[2][-1]["content"]
-    assert "<Report>concise plain-text perception report</Report>" in (
+    assert "<Report>concise answer and relevant data findings</Report>" in (
         llm.calls[2][-1]["content"]
     )
     assert "Ask another Perception Agent" not in llm.calls[2][1]["content"]

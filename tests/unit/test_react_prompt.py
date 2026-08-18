@@ -31,16 +31,10 @@ def test_create_perception_prompt_is_minimal_local_prompt() -> None:
     expected = """Role: You are a Perception Agent supporting a Solving Agent.
 Instructions:
   Goal: Analyze the local task data to answer the Solving Agent's Exploration Request, using the Original Task as context.
-  Constraints:
-    - You may perform any operation needed to inspect and analyze the local task data, except creating or modifying files.
-    - Each Action runs in a fresh Python process. Repeat all imports and recreate any required in-memory state in every Action.
-    - Return a concise Report that directly answers the Solving Agent's Exploration Request and includes the relevant findings from the data.
-  Response Format:
-    - Every reply MUST contain exactly one of <Action>...</Action> or <Report>...</Report>, with no other text.
-    - Use <Action> only for exactly one non-empty fenced ```python ... ``` block.
-    - Use <Report> for a concise plain-text perception report with no code block.
-    - You have at most four replies. Use as few Actions as possible and return <Report> as soon as the request is answered, no later than the fourth reply.
-    - Do not output text outside the required tags, and always close every tag."""
+  Think: Use <Think>...</Think> to reason about the current task state and decide the next step.
+  Action: Use <Action>...</Action> to inspect and analyze the local task data without creating or modifying files. The <Action> block must contain exactly one non-empty fenced Python code block and no other content. Each Action runs in a fresh Python process, so repeat all imports and recreate any required in-memory state.
+  Report: Use <Report>...</Report> when you can answer the Solving Agent's Exploration Request. Return a concise answer and the relevant findings from the data.
+  Protocol: Every reply MUST contain exactly two blocks in this order: a <Think>...</Think> block followed by exactly one <Action>...</Action> or <Report>...</Report> block. Do not output text outside these blocks, and always close every tag."""
 
     assert create_perception_prompt() == expected
 
