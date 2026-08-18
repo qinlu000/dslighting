@@ -415,11 +415,15 @@ class ReActWorkflow(BaseWorkflow):
 
     @staticmethod
     def _render_task_message(task_context: Dict[str, str]) -> str:
+        description = task_context["goal_and_data"].strip()
+        io_instructions = task_context["io_instructions"].strip()
+        if not io_instructions:
+            return description
         return (
             "Task Description:\n"
-            f"{task_context['goal_and_data']}\n\n"
+            f"{description}\n\n"
             "I/O Requirements:\n"
-            f"{task_context['io_instructions']}"
+            f"{io_instructions}"
         )
 
     @staticmethod

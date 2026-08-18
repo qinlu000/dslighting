@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from dslighting.ops.presets.react import ReActOperator, ReActTurnResult
-from dslighting.prompts.workflows.react import create_react_prompt
 from dslighting.utils.typing import ExecutionResult
 
 
@@ -25,26 +24,6 @@ async def test_react_operator_extracts_strict_python_action_for_workflow_executi
     assert result.execution_succeeded is False
     assert result.next_user_message is None
     assert result.action_code == "print('hello')"
-
-    system_prompt = create_react_prompt(
-        {
-            "goal_and_data": "Predict the target.",
-            "io_instructions": "Write submission.csv.",
-        },
-        output_filename="submission.csv",
-    )
-    assert "Role:" in system_prompt
-    assert "Task Goal and Data Overview:" not in system_prompt
-    assert "CRITICAL I/O REQUIREMENTS (MUST BE FOLLOWED):" not in system_prompt
-    assert "authoritative task description" in system_prompt
-    assert "Response Format:" in system_prompt
-    assert "Action Semantics:" in system_prompt
-    assert "<Feedback>...</Feedback>" in system_prompt
-    assert "<Answer>...</Answer>" in system_prompt
-    assert "Never output <Final Answer>" in system_prompt
-    assert "required artifact has already been created" not in system_prompt
-    assert "exact filename `submission.csv`" not in system_prompt
-
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(

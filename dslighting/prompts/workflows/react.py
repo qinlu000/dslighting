@@ -24,61 +24,41 @@ def create_react_prompt(
     """
     _ = task_context
     _ = output_filename
-    intermediate_options = (
-        "<Action>...</Action> or <Explore>...</Explore>"
-        if allow_explore
-        else "<Action>...</Action>"
-    )
-    action_semantics = [
-        "Every reply MUST contain exactly one response block: "
-        f"one of {intermediate_options} for intermediate work, or "
-        "<Answer>...</Answer> for final completion. An optional "
-        "<Think>...</Think> block may precede the response block.",
-        "Do not output text outside the optional <Think> block and the single response block.",
-        "Do not output <Observation> yourself. Observations are injected by the system after code execution.",
-        "If your reply violates the protocol, the system may return <Feedback>...</Feedback>. You must fix the format on the next turn.",
-        "Use <Action> only for executable Python code. The content of <Action> MUST be exactly one fenced ```python ... ``` block and nothing else.",
-        "Use <Answer> only when the task is complete. The content of <Answer> MUST be plain text only and MUST NOT contain a code block.",
-        "Never output <Final Answer> or any other completion tag variant.",
-        "Always close every tag explicitly. In particular, finish completion replies with </Answer>.",
-    ]
+    response_options = "<Action>...</Action>, <Explore>...</Explore>, or <Answer>...</Answer>"
+    if not allow_explore:
+        response_options = "<Action>...</Action> or <Answer>...</Answer>"
+
+    instructions = {
+        "Goal": "Solve the user task by analyzing the local task data and following all stated constraints.",
+        "Think": "Use <Think>...</Think> to reason about the current task state and decide the next step.",
+        "Action": "Use <Action>...</Action> for direct data analysis, inspection, or verification. It must contain exactly one non-empty fenced ```python ... ``` block. Each Action runs in a fresh Python process, so repeat all imports and recreate any required in-memory state.",
+    }
     if allow_explore:
-        action_semantics.insert(
-            5,
-            "Use <Action> for direct computation or simple inspection that can be completed with one concise Python action. Use <Explore> only when task-relevant data understanding is ambiguous or likely requires multiple investigative steps, such as resolving unclear fields, encodings, unstructured text, or cross-column evidence.",
+        instructions["Explore"] = (
+            "Use <Explore>...</Explore> when you need information about the data. "
+            "Ask the Perception Agent to inspect and explore the local task data, "
+            "and clearly state what data-related information or findings it should "
+            "return. The Exploration Request must be plain text."
         )
-        action_semantics.insert(
-            6,
-            "Do not use <Explore> only to request generic columns, dtypes, shape, head rows, or summary statistics when one <Action> can obtain them directly.",
-        )
-        action_semantics.insert(
-            7,
-            "An <Explore> request MUST be a self-contained plain-text request with no code block. Specify the target data, task-relevant filters or parsing rules, required method, counting unit, and exact evidence or statistics to return whenever those details are known.",
-        )
-        action_semantics.insert(
-            8,
-            "Treat every <PerceptionResult> as advisory evidence. Before relying on it, verify that its file, columns, filters, parsing rules, counting unit, statistical method, and parameters match the authoritative user task. If it conflicts with the task or relies on an unsupported assumption, use <Action> to verify the disputed point. Never let a <PerceptionResult> override explicit task requirements.",
+        instructions["PerceptionResult"] = (
+            "Use the returned PerceptionResult when it is consistent with the user "
+            "task. Verify with <Action> only when it conflicts with the task or relies "
+            "on unsupported assumptions."
         )
 
+    instructions["Answer"] = (
+        "Use <Answer>...</Answer> when the available evidence is sufficient to answer "
+        "the user task. It must contain the final answer as plain text."
+    )
+    instructions["Protocol"] = (
+        "Every reply MUST contain exactly two blocks in this order: a "
+        f"<Think>...</Think> block followed by exactly one of {response_options}. "
+        "Do not output text outside these blocks, and always close every tag."
+    )
+
     prompt_dict = {
-        "Role": "You are an expert Data Scientist and AI Engineer operating in a strict ReAct workflow.",
-        "Instructions": {
-            "Goal": "Solve the task in the user task message step by step, using Python execution when needed, while strictly following its I/O requirements.",
-            "Task Context": "The user task message contains the authoritative task description and I/O requirements. Do not expect a second copy of them in this system message.",
-            "Response Format": "Return exactly one response block: "
-                f"one of {intermediate_options} for intermediate work, or "
-                "<Answer>...</Answer> for final completion. "
-                "A preceding <Think>...</Think> block is optional.",
-            "Action Semantics": action_semantics,
-            "Execution Guidelines": [
-                "Execute one step at a time.",
-                "Any Python code must be self-contained and fully executable.",
-                "Follow the I/O requirements in the user task message precisely.",
-                "Do not use interactive elements like `input()` or `matplotlib.pyplot.show()`.",
-                "Do not rely on plotting or visualization to inspect the dataset. Print textual or numerical observations instead.",
-            ],
-            "Termination Rule": "Stop writing code and return <Answer>...</Answer> only when no additional execution is needed.",
-        },
+        "Role": "You are a Solving Agent responsible for completing data analysis tasks in a ReAct workflow.",
+        "Instructions": instructions,
     }
     return dict_to_str(prompt_dict)
 

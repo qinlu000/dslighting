@@ -5,6 +5,16 @@ from dslighting.prompts.workflows.react import (
 
 
 def test_create_react_prompt_uses_structured_dslighting_format() -> None:
+    expected = """Role: You are a Solving Agent responsible for completing data analysis tasks in a ReAct workflow.
+Instructions:
+  Goal: Solve the user task by analyzing the local task data and following all stated constraints.
+  Think: Use <Think>...</Think> to reason about the current task state and decide the next step.
+  Action: Use <Action>...</Action> for direct data analysis, inspection, or verification. It must contain exactly one non-empty fenced ```python ... ``` block. Each Action runs in a fresh Python process, so repeat all imports and recreate any required in-memory state.
+  Explore: Use <Explore>...</Explore> when you need information about the data. Ask the Perception Agent to inspect and explore the local task data, and clearly state what data-related information or findings it should return. The Exploration Request must be plain text.
+  PerceptionResult: Use the returned PerceptionResult when it is consistent with the user task. Verify with <Action> only when it conflicts with the task or relies on unsupported assumptions.
+  Answer: Use <Answer>...</Answer> when the available evidence is sufficient to answer the user task. It must contain the final answer as plain text.
+  Protocol: Every reply MUST contain exactly two blocks in this order: a <Think>...</Think> block followed by exactly one of <Action>...</Action>, <Explore>...</Explore>, or <Answer>...</Answer>. Do not output text outside these blocks, and always close every tag."""
+
     prompt = create_react_prompt(
         {
             "goal_and_data": "Predict house prices from tabular data.",
@@ -14,32 +24,7 @@ def test_create_react_prompt_uses_structured_dslighting_format() -> None:
         allow_explore=True,
     )
 
-    assert prompt.startswith(
-        "Role: You are an expert Data Scientist and AI Engineer operating in a strict ReAct workflow."
-    )
-    assert "Task Goal and Data Overview" not in prompt
-    assert "CRITICAL I/O REQUIREMENTS (MUST BE FOLLOWED)" not in prompt
-    assert "The user task message contains the authoritative task description" in prompt
-    assert "Follow the I/O requirements in the user task message precisely." in prompt
-    assert "Instructions:" in prompt
-    assert (
-        "Response Format: Return exactly one response block: one of "
-        "<Action>...</Action> or <Explore>...</Explore> for intermediate work, "
-        "or <Answer>...</Answer> for final completion. "
-        "A preceding <Think>...</Think> block is optional."
-    ) in prompt
-    assert "Do not output text outside the optional <Think> block" in prompt
-    assert "self-contained plain-text request" in prompt
-    assert "Use <Action> for direct computation or simple inspection" in prompt
-    assert "Do not use <Explore> only to request generic columns" in prompt
-    assert "counting unit" in prompt
-    assert "Treat every <PerceptionResult> as advisory evidence" in prompt
-    assert "Never let a <PerceptionResult> override explicit task requirements" in prompt
-    assert "Never output <Final Answer> or any other completion tag variant." in prompt
-    assert "Always close every tag explicitly. In particular, finish completion replies with </Answer>." in prompt
-    assert "required artifact has already been created" not in prompt
-    assert "exact filename `submission.csv`" not in prompt
-    assert "Termination Rule: Stop writing code and return <Answer>...</Answer> only when no additional execution is needed." in prompt
+    assert prompt == expected
 
 
 def test_create_perception_prompt_is_minimal_local_prompt() -> None:
@@ -61,6 +46,14 @@ Instructions:
 
 
 def test_create_react_prompt_hides_perception_when_offline_sandbox_is_unavailable() -> None:
+    expected = """Role: You are a Solving Agent responsible for completing data analysis tasks in a ReAct workflow.
+Instructions:
+  Goal: Solve the user task by analyzing the local task data and following all stated constraints.
+  Think: Use <Think>...</Think> to reason about the current task state and decide the next step.
+  Action: Use <Action>...</Action> for direct data analysis, inspection, or verification. It must contain exactly one non-empty fenced ```python ... ``` block. Each Action runs in a fresh Python process, so repeat all imports and recreate any required in-memory state.
+  Answer: Use <Answer>...</Answer> when the available evidence is sufficient to answer the user task. It must contain the final answer as plain text.
+  Protocol: Every reply MUST contain exactly two blocks in this order: a <Think>...</Think> block followed by exactly one of <Action>...</Action> or <Answer>...</Answer>. Do not output text outside these blocks, and always close every tag."""
+
     prompt = create_react_prompt(
         {
             "goal_and_data": "Inspect local data.",
@@ -69,6 +62,4 @@ def test_create_react_prompt_hides_perception_when_offline_sandbox_is_unavailabl
         allow_explore=False,
     )
 
-    assert "<Explore>" not in prompt
-    assert "Perception Agent" not in prompt
-    assert "A preceding <Think>...</Think> block is optional." in prompt
+    assert prompt == expected

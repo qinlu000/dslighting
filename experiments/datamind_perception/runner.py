@@ -239,10 +239,7 @@ def build_task_definition(
         "source_task_id": task.source_task_id,
         "task_type": "datasci",
         "description_text": description,
-        "io_instructions": (
-            "Inspect only the local task data. Return the requested result in the final "
-            "<Answer> as concise plain text; no output file is required."
-        ),
+        "io_instructions": "",
         "agent_visible_dir": str(Path(agent_visible_dir).resolve()),
         "output_path": str(Path(output_dir).resolve() / "answer.txt"),
     }

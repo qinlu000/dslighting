@@ -71,6 +71,7 @@ def test_load_select_stage_and_build_definition(tmp_path: Path) -> None:
         "**The data source path is 'one.csv'.**\n\n"
         "Question: summarize one.csv"
     )
+    assert spec["io_instructions"] == ""
     assert "42" not in spec["description_text"]
     assert "trajectory" not in json.dumps(spec)
     assert "submission_artifact_contract" not in spec

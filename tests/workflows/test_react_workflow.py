@@ -126,6 +126,18 @@ def _bind_offline_docker_sandbox(
     return sandbox
 
 
+def test_react_workflow_renders_description_verbatim_without_io_instructions() -> None:
+    description = (
+        "# Data Source\n"
+        "**The data source path is 'table.csv'.**\n\n"
+        "Question: summarize table.csv"
+    )
+
+    assert ReActWorkflow._render_task_message(
+        {"goal_and_data": description, "io_instructions": ""}
+    ) == description
+
+
 @pytest.mark.asyncio
 async def test_react_workflow_executes_via_shared_execute_operator_and_saves_messages(
     tmp_path,

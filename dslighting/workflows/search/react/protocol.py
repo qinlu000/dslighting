@@ -367,10 +367,10 @@ def build_protocol_error_feedback(
     allow_explore: bool = True,
 ) -> str:
     detail = reason or "Malformed assistant reply."
-    formats = "Optional: <Think>...</Think>\n<Action>...</Action>\nor:\n"
+    formats = "<Think>...</Think>\n<Action>...</Action>\nor:\n"
     if allow_explore:
-        formats += "Optional: <Think>...</Think>\n<Explore>...</Explore>\nor:\n"
-    formats += "<Answer>...</Answer>\n"
+        formats += "<Think>...</Think>\n<Explore>...</Explore>\nor:\n"
+    formats += "<Think>...</Think>\n<Answer>...</Answer>\n"
     explore_guidance = (
         "Use <Explore> only for a plain-text perception request. "
         if allow_explore
