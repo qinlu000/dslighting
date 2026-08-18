@@ -228,6 +228,36 @@ async def test_react_operator_repairs_one_unclosed_explore_request() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("reply", "expected_kind", "expected_payload"),
+    [
+        ("```python\nprint('ok')\n```</Action>", "action", "print('ok')"),
+        ("Inspect the CSV columns.</Explore>", "explore", "Inspect the CSV columns."),
+        ("42</Answer>", "answer", "42"),
+        (
+            "<Think>Need evidence.</Think>Inspect the CSV columns.</Explore>",
+            "explore",
+            "Inspect the CSV columns.",
+        ),
+    ],
+)
+async def test_react_operator_repairs_one_missing_opening_response_tag(
+    reply: str,
+    expected_kind: str,
+    expected_payload: str,
+) -> None:
+    result = await ReActOperator()(reply, allow_explore=True)
+
+    assert result.next_user_message is None
+    if expected_kind == "action":
+        assert result.action_code == expected_payload
+    elif expected_kind == "explore":
+        assert result.explore_request == expected_payload
+    elif expected_kind == "answer":
+        assert result.final_answer == expected_payload
+
+
+@pytest.mark.asyncio
 async def test_react_operator_accepts_stripped_think_opening_tag() -> None:
     operator = ReActOperator(max_steps=1)
 

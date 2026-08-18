@@ -150,14 +150,14 @@ def normalize_react_reply(content: str) -> NormalizedReActReply:
             normalized_content=raw_content,
         )
 
-    unclosed_repair = _repair_unclosed_response(raw_content)
-    if unclosed_repair is not None:
-        repaired_content, repaired_tag = unclosed_repair
+    shell_repair = _repair_response_shell(raw_content)
+    if shell_repair is not None:
+        repaired_content, repair_reason = shell_repair
         return NormalizedReActReply(
             raw_content=raw_content,
             normalized_content=repaired_content,
             repaired=True,
-            repair_reason=f"added missing </{repaired_tag}> closing tag",
+            repair_reason=repair_reason,
         )
 
     return NormalizedReActReply(
@@ -284,8 +284,8 @@ def validate_turn_structure(
     return True, None
 
 
-def _repair_unclosed_response(content: str) -> tuple[str, str] | None:
-    """Close one unambiguous response block when only its final tag is missing."""
+def _repair_response_shell(content: str) -> tuple[str, str] | None:
+    """Repair one unambiguous response block missing one boundary tag."""
     if _has_tag(content, "Final Answer"):
         return None
 
@@ -295,17 +295,44 @@ def _repair_unclosed_response(content: str) -> tuple[str, str] | None:
         return None
 
     tag = present_tags[0]
-    if (
-        _tag_count(content, tag, closing=False) != 1
-        or _tag_count(content, tag, closing=True) != 0
-    ):
+    open_count = _tag_count(content, tag, closing=False)
+    close_count = _tag_count(content, tag, closing=True)
+    if open_count == 1 and close_count == 0:
+        repaired = content.rstrip() + f"\n</{tag}>"
+        reason = f"added missing </{tag}> closing tag"
+    elif open_count == 0 and close_count == 1:
+        opening_index = _missing_opening_insertion_index(content, tag)
+        if opening_index is None:
+            return None
+        repaired = content[:opening_index] + f"<{tag}>" + content[opening_index:]
+        reason = f"added missing <{tag}> opening tag"
+    else:
         return None
 
-    repaired = content.rstrip() + f"\n</{tag}>"
     is_valid, _ = validate_turn_structure(repaired, allow_explore=True)
     if not is_valid:
         return None
-    return repaired, tag
+    return repaired, reason
+
+
+def _missing_opening_insertion_index(content: str, tag: str) -> int | None:
+    """Locate a conservative insertion point for one missing response opener."""
+    close_match = re.search(rf"</{re.escape(tag)}>", content, flags=re.IGNORECASE)
+    if close_match is None:
+        return None
+
+    prefix = content[: close_match.start()]
+    think_closes = list(re.finditer(r"</Think>", prefix, flags=re.IGNORECASE))
+    if think_closes:
+        return think_closes[-1].end()
+
+    if tag.casefold() == "action":
+        code_match = re.search(r"```python\b", prefix, flags=re.IGNORECASE)
+        if code_match is None:
+            return None
+        return code_match.start()
+
+    return len(prefix) - len(prefix.lstrip())
 
 
 def _tag_count(content: str, tag: str, *, closing: bool) -> int:
@@ -340,9 +367,9 @@ def build_protocol_error_feedback(
     allow_explore: bool = True,
 ) -> str:
     detail = reason or "Malformed assistant reply."
-    formats = "<Think>...</Think>\n<Action>...</Action>\nor:\n"
+    formats = "Optional: <Think>...</Think>\n<Action>...</Action>\nor:\n"
     if allow_explore:
-        formats += "<Think>...</Think>\n<Explore>...</Explore>\nor:\n"
+        formats += "Optional: <Think>...</Think>\n<Explore>...</Explore>\nor:\n"
     formats += "<Answer>...</Answer>\n"
     explore_guidance = (
         "Use <Explore> only for a plain-text perception request. "

@@ -16,6 +16,7 @@ from dslighting.prompts.workflows.react import (
 )
 from dslighting.runtime.dag.actor import SolveWorkflowActor
 from dslighting.services.sandbox_backends.backends.docker import DockerSandboxBackend
+from dslighting.services.sandbox_backends.backends.local import LocalSandboxBackend
 from dslighting.workflows.base import BaseWorkflow
 from dslighting.workflows.output_contract import (
     OutputContractStatus,
@@ -100,7 +101,7 @@ class ReActWorkflow(BaseWorkflow):
             io_instructions=io_instructions,
         )
         question = self._render_task_message(task_context)
-        perception_enabled = self._has_offline_docker_perception()
+        perception_enabled = self._has_safe_perception_sandbox()
         system_prompt = create_react_prompt(
             task_context,
             allow_explore=perception_enabled,
@@ -109,11 +110,14 @@ class ReActWorkflow(BaseWorkflow):
             create_perception_prompt() if perception_enabled else None
         )
 
+        perception_sessions: list[dict[str, Any]] = []
         answer, messages = await self._run_react_loop(
             question=question,
             system_prompt=system_prompt,
             perception_system_prompt=perception_system_prompt,
+            perception_task_context=description,
             output_path=output_path,
+            perception_sessions=perception_sessions,
         )
         logger.info(
             "[ReActWorkflow] loop finished. answer preview: %r",
@@ -121,6 +125,7 @@ class ReActWorkflow(BaseWorkflow):
         )
 
         self._save_messages(messages)
+        self._save_perception_sessions(perception_sessions)
 
     async def _run_react_loop(
         self,
@@ -128,7 +133,9 @@ class ReActWorkflow(BaseWorkflow):
         question: str,
         system_prompt: str,
         perception_system_prompt: str | None,
+        perception_task_context: str,
         output_path: Path,
+        perception_sessions: list[dict[str, Any]] | None = None,
     ) -> tuple[str | None, list[dict]]:
         context_manager = ReActContextManager(
             system_prompt=system_prompt,
@@ -197,6 +204,9 @@ class ReActWorkflow(BaseWorkflow):
                 perception_result = await self._run_perception_loop(
                     request=turn_result.explore_request,
                     system_prompt=perception_system_prompt,
+                    task_context=perception_task_context,
+                    parent_solver_step=step + 1,
+                    session_recorder=perception_sessions,
                 )
                 context_manager.add_runtime_reply(
                     self.react_op.build_perception_message(perception_result)
@@ -227,23 +237,50 @@ class ReActWorkflow(BaseWorkflow):
         *,
         request: str,
         system_prompt: str,
+        task_context: str,
+        parent_solver_step: int | None = None,
+        session_recorder: list[dict[str, Any]] | None = None,
     ) -> str:
         """Run a short, isolated-context Perception loop and return its report."""
-        if not self._has_offline_docker_perception():
+        if not self._has_safe_perception_sandbox():
             logger.error(
-                "[PerceptionAgent] refused to start without a shared offline "
-                "Docker sandbox."
+                "[PerceptionAgent] refused to start without a shared, "
+                "network-isolated sandbox."
             )
             return (
-                "Perception Agent was not started because its Docker sandbox cannot "
-                "prove that network access is disabled."
+                "Perception Agent was not started because its sandbox cannot prove "
+                "that network access and unsafe local execution are disabled."
             )
 
         context_manager = ReActContextManager(
             system_prompt=system_prompt,
-            task_message=f"Exploration Request:\n{request}",
+            task_message=(
+                "Original Task:\n"
+                f"{task_context}\n\n"
+                "Exploration Request:\n"
+                f"{request}"
+            ),
             config=self.context_config,
         )
+
+        segment_index = len(session_recorder or []) + 1
+        segment_id = f"perception-{segment_index:04d}"
+
+        def finish(report: str, *, status: str) -> str:
+            if session_recorder is not None:
+                session_recorder.append(
+                    {
+                        "schema_version": 1,
+                        "segment_id": segment_id,
+                        "agent_role": "perception",
+                        "parent_solver_step": parent_solver_step,
+                        "request": request,
+                        "status": status,
+                        "report": report,
+                        "messages": context_manager.export_full_history(),
+                    }
+                )
+            return report
 
         for step in range(PERCEPTION_MAX_STEPS):
             logger.info(
@@ -265,7 +302,7 @@ class ReActWorkflow(BaseWorkflow):
             context_manager.add_assistant_reply(normalized_reply.normalized_content)
             turn_result = parse_perception_reply(normalized_reply.normalized_content)
             if turn_result.report is not None:
-                return turn_result.report
+                return finish(turn_result.report, status="completed")
 
             if turn_result.action_code is not None:
                 exec_result = await self.execute_op(
@@ -291,21 +328,23 @@ class ReActWorkflow(BaseWorkflow):
                     "[PerceptionAgent] stopping after %d consecutive feedback turns.",
                     context_manager.consecutive_feedback_turns(),
                 )
-                return (
+                return finish(
                     "Perception Agent stopped after repeated protocol errors "
-                    "without returning a perception report."
+                    "without returning a perception report.",
+                    status="protocol_error",
                 )
 
         logger.warning(
             "[PerceptionAgent] reached its step limit without a perception report."
         )
-        return (
+        return finish(
             "Perception Agent reached its step limit without returning a final "
-            "perception report. Continue without it or send a narrower request."
+            "perception report. Continue without it or send a narrower request.",
+            status="step_limit",
         )
 
-    def _has_offline_docker_perception(self) -> bool:
-        """Return whether Perception can reuse the opt-in offline Docker sandbox."""
+    def _has_safe_perception_sandbox(self) -> bool:
+        """Return whether Perception can reuse a supported isolated sandbox."""
         if not self.perception_enabled:
             return False
 
@@ -314,14 +353,19 @@ class ReActWorkflow(BaseWorkflow):
             return False
 
         backend = getattr(execution_sandbox, "backend", None)
-        if not isinstance(backend, DockerSandboxBackend):
-            return False
-
         config = getattr(backend, "config", None)
-        return (
+        is_offline = (
             getattr(config, "environment_policy", None) == "allowlist"
             and getattr(config, "network_policy", None) == "disabled"
         )
+        if not is_offline:
+            return False
+
+        if isinstance(backend, DockerSandboxBackend):
+            return True
+        if isinstance(backend, LocalSandboxBackend):
+            return getattr(config, "isolation", None) == "bubblewrap"
+        return False
 
     def _build_output_contract_footer(self, output_path: Path) -> str | None:
         if not self.output_contract_config.require_output_before_completion:
@@ -396,3 +440,20 @@ class ReActWorkflow(BaseWorkflow):
             encoding="utf-8",
         )
         logger.info("[ReActWorkflow] messages saved to %s", messages_path)
+
+    def _save_perception_sessions(self, sessions: list[dict[str, Any]]) -> None:
+        """Persist isolated Perception histories for role-correct SFT/RL export."""
+        if not self.workspace_service:
+            return
+        artifacts_dir = self.workspace_service.get_path("artifacts")
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
+        sessions_path = artifacts_dir / "perception_sessions.json"
+        sessions_path.write_text(
+            json.dumps(sessions, indent=4, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        logger.info(
+            "[ReActWorkflow] %d perception session(s) saved to %s",
+            len(sessions),
+            sessions_path,
+        )

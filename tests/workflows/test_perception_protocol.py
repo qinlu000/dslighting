@@ -54,6 +54,20 @@ def test_parse_perception_repairs_one_unclosed_report() -> None:
     assert result.next_user_message is None
 
 
+def test_parse_perception_repairs_one_missing_action_opening_tag() -> None:
+    result = parse_perception_reply("```python\nprint('rows')\n```</Action>")
+
+    assert result.action_code == "print('rows')"
+    assert result.next_user_message is None
+
+
+def test_parse_perception_repairs_one_missing_report_opening_tag() -> None:
+    result = parse_perception_reply("rows=3; missing=0</Report>")
+
+    assert result.report == "rows=3; missing=0"
+    assert result.next_user_message is None
+
+
 @pytest.mark.parametrize(
     "reply",
     [

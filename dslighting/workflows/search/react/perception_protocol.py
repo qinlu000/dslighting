@@ -41,27 +41,45 @@ class PerceptionTurnResult:
 
 
 def normalize_perception_reply(content: str) -> NormalizedPerceptionReply:
-    """Close one unambiguous Action or Report block when its final tag is missing."""
+    """Repair one unambiguous Action or Report block missing one boundary tag."""
     raw_content = content if isinstance(content, str) else str(content)
     present_tags = [tag for tag in ("Action", "Report") if _has_tag(raw_content, tag)]
     if len(present_tags) != 1:
         return NormalizedPerceptionReply(raw_content, raw_content)
 
     tag = present_tags[0]
-    if (
-        _tag_count(raw_content, tag, closing=False) != 1
-        or _tag_count(raw_content, tag, closing=True) != 0
-    ):
+    open_count = _tag_count(raw_content, tag, closing=False)
+    close_count = _tag_count(raw_content, tag, closing=True)
+    if open_count == 1 and close_count == 0:
+        repaired = raw_content.rstrip() + f"\n</{tag}>"
+        reason = f"added missing </{tag}> closing tag"
+    elif open_count == 0 and close_count == 1:
+        close_match = re.search(rf"</{re.escape(tag)}>", raw_content, flags=re.IGNORECASE)
+        if close_match is None:
+            return NormalizedPerceptionReply(raw_content, raw_content)
+        prefix = raw_content[: close_match.start()]
+        if tag == "Action":
+            payload_match = re.search(r"```python\b", prefix, flags=re.IGNORECASE)
+            if payload_match is None:
+                return NormalizedPerceptionReply(raw_content, raw_content)
+            opening_index = payload_match.start()
+        else:
+            opening_index = len(prefix) - len(prefix.lstrip())
+        repaired = (
+            raw_content[:opening_index]
+            + f"<{tag}>"
+            + raw_content[opening_index:]
+        )
+        reason = f"added missing <{tag}> opening tag"
+    else:
         return NormalizedPerceptionReply(raw_content, raw_content)
-
-    repaired = raw_content.rstrip() + f"\n</{tag}>"
     if not _has_valid_payload(repaired, tag):
         return NormalizedPerceptionReply(raw_content, raw_content)
     return NormalizedPerceptionReply(
         raw_content=raw_content,
         normalized_content=repaired,
         repaired=True,
-        repair_reason=f"added missing </{tag}> closing tag",
+        repair_reason=reason,
     )
 
 

@@ -11,6 +11,7 @@ from dslighting.config import OutputContractConfig
 from dslighting.ops.presets.react import ReActOperator
 from dslighting.services.sandbox_backends.backends.base import SandboxBackendConfig
 from dslighting.services.sandbox_backends.backends.docker import DockerSandboxBackend
+from dslighting.services.sandbox_backends.backends.local import LocalSandboxBackend
 from dslighting.utils.typing import ExecutionResult
 from dslighting.workflows.search.react.workflow import ReActWorkflow
 
@@ -56,6 +57,22 @@ def _offline_docker_sandbox_service() -> SimpleNamespace:
         config=SandboxBackendConfig(
             environment_policy="allowlist",
             network_policy="disabled",
+        )
+    )
+    return SimpleNamespace(backend=backend)
+
+
+def _local_sandbox_service(
+    *,
+    isolation: str = "bubblewrap",
+    environment_policy: str = "allowlist",
+    network_policy: str = "disabled",
+) -> SimpleNamespace:
+    backend = LocalSandboxBackend(
+        config=SandboxBackendConfig(
+            isolation=isolation,
+            environment_policy=environment_policy,
+            network_policy=network_policy,
         )
     )
     return SimpleNamespace(backend=backend)
@@ -222,6 +239,8 @@ async def test_react_workflow_runs_perception_with_independent_context_and_retur
     perception_first_call = llm.calls[1]
     assert "Perception Agent" in perception_first_call[0]["content"]
     assert perception_first_call[1]["content"] == (
+        "Original Task:\n"
+        "Assess the claim using the local data.\n\n"
         "Exploration Request:\nInspect row count and missingness."
     )
     assert "I/O Requirements:" not in perception_first_call[1]["content"]
@@ -245,6 +264,24 @@ async def test_react_workflow_runs_perception_with_independent_context_and_retur
     saved_payload = "\n".join(message["content"] for message in saved_messages)
     assert "<PerceptionResult>\nrows=3; missing=0\n</PerceptionResult>" in saved_payload
     assert "print('rows=3, missing=0')" not in saved_payload
+
+    perception_sessions = json.loads(
+        (workspace.get_path("artifacts") / "perception_sessions.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert len(perception_sessions) == 1
+    session = perception_sessions[0]
+    assert session["agent_role"] == "perception"
+    assert session["segment_id"] == "perception-0001"
+    assert session["parent_solver_step"] == 1
+    assert session["status"] == "completed"
+    assert session["request"] == "Inspect row count and missingness."
+    assert session["report"] == "rows=3; missing=0"
+    session_payload = "\n".join(message["content"] for message in session["messages"])
+    assert "You are a Perception Agent" in session_payload
+    assert "print('rows=3, missing=0')" in session_payload
+    assert "<Report>rows=3; missing=0</Report>" in session_payload
 
 
 @pytest.mark.asyncio
@@ -420,12 +457,46 @@ def test_react_workflow_requires_explicit_perception_opt_in(tmp_path) -> None:
         agent_config={},
     )
 
-    assert default_workflow._has_offline_docker_perception() is False
-    assert enabled_workflow._has_offline_docker_perception() is True
+    assert default_workflow._has_safe_perception_sandbox() is False
+    assert enabled_workflow._has_safe_perception_sandbox() is True
+
+
+@pytest.mark.parametrize(
+    ("sandbox", "expected"),
+    [
+        (_local_sandbox_service(), True),
+        (_local_sandbox_service(isolation="process"), False),
+        (_local_sandbox_service(environment_policy="inherit"), False),
+        (_local_sandbox_service(network_policy="inherit"), False),
+    ],
+)
+def test_react_workflow_requires_strict_local_perception_sandbox(
+    tmp_path,
+    sandbox,
+    expected,
+) -> None:
+    workspace = _DummyWorkspaceService(tmp_path / "workspace")
+    execute_operator = _FakeExecuteOperator(workspace)
+    execute_operator.sandbox = sandbox
+    workflow = ReActWorkflow(
+        operators={
+            "react": ReActOperator(max_steps=1),
+            "execute": execute_operator,
+        },
+        services={
+            "llm": _DummyLLMService([]),
+            "sandbox": sandbox,
+            "workspace": workspace,
+            "perception_enabled": True,
+        },
+        agent_config={},
+    )
+
+    assert workflow._has_safe_perception_sandbox() is expected
 
 
 @pytest.mark.asyncio
-async def test_perception_loop_rechecks_offline_docker_capability(tmp_path) -> None:
+async def test_perception_loop_rechecks_sandbox_capability(tmp_path) -> None:
     workspace = _DummyWorkspaceService(tmp_path / "workspace")
     llm = _DummyLLMService([])
     execute_operator = _FakeExecuteOperator(workspace)
@@ -447,6 +518,7 @@ async def test_perception_loop_rechecks_offline_docker_capability(tmp_path) -> N
     report = await workflow._run_perception_loop(
         request="Inspect rows.",
         system_prompt="Perception",
+        task_context="Assess the local data.",
     )
 
     assert "was not started" in report
