@@ -18,6 +18,7 @@ class SandboxBackendConfig:
         isolation: Local process isolation mode ("process" or "bubblewrap").
         environment_policy: Child environment policy ("inherit" or "allowlist").
         network_policy: Network policy ("inherit" or "disabled").
+        python_executable: Optional interpreter used by the local backend.
         env_vars: Environment variables to set in the sandbox.
     """
 
@@ -27,6 +28,7 @@ class SandboxBackendConfig:
     isolation: str = "process"
     environment_policy: str = "inherit"
     network_policy: str = "inherit"
+    python_executable: Optional[str] = None
     env_vars: Dict[str, str] = field(default_factory=dict)
 
 

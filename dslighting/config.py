@@ -84,6 +84,7 @@ class SandboxConfig(BaseModel):
     backend: str = "local"  # Sandbox backend: local, docker, e2b, ds_sandbox
     backend_type: str = "docker"  # Backend type for ds_sandbox: docker, local
     api_key: Optional[str] = None  # API key for e2b
+    python_executable: Optional[str] = None  # Local sandbox interpreter override
     local_isolation: Literal["process", "bubblewrap"] = "process"
     environment_policy: Literal["inherit", "allowlist"] = "inherit"
     network_policy: Literal["inherit", "disabled"] = "inherit"

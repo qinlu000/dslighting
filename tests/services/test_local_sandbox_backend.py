@@ -4,6 +4,7 @@ import asyncio
 import json
 import shutil
 import time
+import venv
 from pathlib import Path
 
 import pytest
@@ -75,6 +76,57 @@ async def test_bubblewrap_missing_is_a_hard_failure(
 
     with pytest.raises(RuntimeError, match="bwrap.*unavailable"):
         await backend.initialize()
+
+
+@pytest.mark.asyncio
+async def test_missing_python_executable_is_a_hard_failure(tmp_path: Path) -> None:
+    backend = LocalSandboxBackend(
+        config=SandboxBackendConfig(
+            python_executable=str(tmp_path / "missing-python"),
+        )
+    )
+
+    with pytest.raises(ValueError, match="python_executable does not exist"):
+        await backend.initialize()
+
+
+@requires_bwrap
+@pytest.mark.asyncio
+async def test_bubblewrap_can_use_a_python_environment_separate_from_controller(
+    tmp_path: Path,
+) -> None:
+    runtime = tmp_path / "agent-runtime"
+    venv.EnvBuilder(with_pip=False, symlinks=True).create(runtime)
+    python_executable = runtime / "bin" / "python"
+    resolved_python = python_executable.resolve()
+    intermediate_runtime = tmp_path / "intermediate-runtime"
+    intermediate_python = intermediate_runtime / "bin" / "python"
+    intermediate_python.parent.mkdir(parents=True)
+    intermediate_python.symlink_to(resolved_python)
+    python_executable.unlink()
+    python_executable.symlink_to(intermediate_python)
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    backend = _strict_backend(python_executable=str(python_executable))
+
+    result = await backend.execute(
+        """
+import json
+import sys
+
+print(json.dumps({
+    "executable": sys.executable,
+    "prefix": sys.prefix,
+}, sort_keys=True))
+""",
+        str(workspace),
+    )
+
+    assert result.success, result.stderr
+    observed = json.loads(result.stdout)
+    assert Path(observed["executable"]) == python_executable
+    assert Path(observed["prefix"]) == runtime
+    assert Path(result.metadata["python_executable"]) == python_executable
 
 
 @pytest.mark.asyncio
@@ -339,6 +391,30 @@ async def test_scientific_runtime_remains_importable(tmp_path: Path) -> None:
 
 @requires_bwrap
 @pytest.mark.asyncio
+async def test_bubblewrap_exposes_only_required_scientific_host_configs(
+    tmp_path: Path,
+) -> None:
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    backend = _strict_backend()
+
+    result = await backend.execute(
+        """
+from pathlib import Path
+assert Path("/etc/fonts/fonts.conf").is_file()
+assert Path("/etc/localtime").exists()
+assert not Path("/etc/passwd").exists()
+print("ok")
+""",
+        str(workspace),
+    )
+
+    assert result.success, result.stderr
+    assert result.stdout.strip() == "ok"
+
+
+@requires_bwrap
+@pytest.mark.asyncio
 async def test_bubblewrap_cannot_modify_host_scientific_packages(tmp_path: Path) -> None:
     import numpy
 
@@ -401,3 +477,4 @@ def test_config_defaults_preserve_process_and_inherit() -> None:
     assert config.isolation == "process"
     assert config.environment_policy == "inherit"
     assert config.network_policy == "inherit"
+    assert config.python_executable is None

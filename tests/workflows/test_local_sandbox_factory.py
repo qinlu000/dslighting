@@ -14,6 +14,7 @@ def test_sandbox_config_compatibility_defaults() -> None:
     assert config.local_isolation == "process"
     assert config.environment_policy == "inherit"
     assert config.network_policy == "inherit"
+    assert config.python_executable is None
 
 
 def test_factory_wires_strict_local_isolation_settings(tmp_path: Path) -> None:
@@ -22,6 +23,7 @@ def test_factory_wires_strict_local_isolation_settings(tmp_path: Path) -> None:
             "local_isolation": "bubblewrap",
             "environment_policy": "allowlist",
             "network_policy": "disabled",
+            "python_executable": "/opt/dare/bin/python",
         },
         run={"parameters": {"sandbox_env": {"EXPLICIT_SAFE_VALUE": "visible"}}},
     )
@@ -33,5 +35,6 @@ def test_factory_wires_strict_local_isolation_settings(tmp_path: Path) -> None:
     assert service.backend.config.isolation == "bubblewrap"
     assert service.backend.config.environment_policy == "allowlist"
     assert service.backend.config.network_policy == "disabled"
+    assert service.backend.config.python_executable == "/opt/dare/bin/python"
     assert service.backend.config.env_vars["EXPLICIT_SAFE_VALUE"] == "visible"
     service._executor.shutdown(wait=True)

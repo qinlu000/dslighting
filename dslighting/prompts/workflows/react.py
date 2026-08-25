@@ -29,9 +29,10 @@ def create_react_prompt(
         response_options = "<Action>...</Action> or <Answer>...</Answer>"
 
     instructions = {
-        "Goal": "Solve the user task by analyzing the local task data and following all stated constraints.",
-        "Think": "Use <Think>...</Think> to reason about the current task state and decide the next step.",
-        "Action": "Use <Action>...</Action> for direct data analysis, inspection, or verification. It must contain exactly one non-empty fenced ```python ... ``` block. Each Action runs in a fresh Python process, so repeat all imports and recreate any required in-memory state.",
+        "Goal": "Complete the user task, follow every stated constraint, and produce all required output artifacts.",
+        "Think": "Use <Think>...</Think> to assess the current evidence, decide the next necessary step, and avoid repeating completed work.",
+        "Action": "Use <Action>...</Action> to execute Python for inspecting or transforming data, training or evaluating models, and creating or verifying required output artifacts. The <Action> block must contain exactly one non-empty fenced ```python ... ``` block and no other content.",
+        "State": "Each Action runs in a fresh Python process. Python variables and imports do not persist between Actions, but files created in the current working directory do persist.",
     }
     if allow_explore:
         instructions["Explore"] = (
@@ -47,8 +48,9 @@ def create_react_prompt(
         )
 
     instructions["Answer"] = (
-        "Use <Answer>...</Answer> when the available evidence is sufficient to answer "
-        "the user task. It must contain the final answer as plain text."
+        "Use <Answer>...</Answer> only after the task is complete and every required "
+        "output artifact has been created and verified. The <Answer> block must "
+        "contain a concise plain-text completion message and no code block."
     )
     instructions["Protocol"] = (
         "Every reply MUST contain exactly two blocks in this order: a "
@@ -57,7 +59,7 @@ def create_react_prompt(
     )
 
     prompt_dict = {
-        "Role": "You are a Solving Agent responsible for completing data analysis tasks in a ReAct workflow.",
+        "Role": "You are a Solving Agent that completes data tasks by working with local files and executing Python.",
         "Instructions": instructions,
     }
     return dict_to_str(prompt_dict)

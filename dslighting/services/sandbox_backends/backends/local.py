@@ -117,6 +117,8 @@ class LocalSandboxBackend(SandboxBackend):
         self._bwrap_path: Optional[str] = None
         self._bubblewrap_workspace: Optional[Path] = None
         self._bubblewrap_input_mounts: Optional[tuple[tuple[Path, Path], ...]] = None
+        self._python_executable = Path(sys.executable).absolute()
+        self._python_mounts: tuple[Path, ...] = ()
 
     async def initialize(self) -> None:
         """Validate the selected isolation mode before accepting executions."""
@@ -132,6 +134,23 @@ class LocalSandboxBackend(SandboxBackend):
             raise ValueError(f"Unsupported sandbox network policy: {network_policy!r}")
         if environment_policy == "allowlist":
             self._validate_configured_env()
+
+        configured_python = self.config.python_executable or sys.executable
+        self._python_executable = Path(configured_python).expanduser().absolute()
+        if not self._python_executable.is_file():
+            raise ValueError(
+                f"sandbox python_executable does not exist: {self._python_executable}"
+            )
+        python_mounts = [
+            self._python_executable.parent.parent,
+            self._python_executable.resolve().parent.parent,
+        ]
+        if self._python_executable.is_symlink():
+            target = Path(os.readlink(self._python_executable))
+            if not target.is_absolute():
+                target = self._python_executable.parent / target
+            python_mounts.append(Path(os.path.abspath(target)).parent.parent)
+        self._python_mounts = tuple(python_mounts)
 
         if isolation == "process":
             if network_policy != "inherit":
@@ -153,10 +172,12 @@ class LocalSandboxBackend(SandboxBackend):
                 )
 
         logger.info(
-            "Initializing LocalSandboxBackend (isolation=%s, env=%s, network=%s)",
+            "Initializing LocalSandboxBackend "
+            "(isolation=%s, env=%s, network=%s, python=%s)",
             isolation,
             environment_policy,
             network_policy,
+            self._python_executable,
         )
         self._initialized = True
 
@@ -335,6 +356,7 @@ class LocalSandboxBackend(SandboxBackend):
                 "environment_policy": self.config.environment_policy,
                 "network_policy": self.config.network_policy,
                 "frozen_input_mount_count": len(self._bubblewrap_input_mounts or ()),
+                "python_executable": str(self._python_executable),
             }
 
         return execution_result
@@ -357,7 +379,7 @@ class LocalSandboxBackend(SandboxBackend):
             {
                 "HOME": str(sandbox_home),
                 "MPLCONFIGDIR": str(matplotlib_config),
-                "PATH": f"{Path(sys.prefix) / 'bin'}:/usr/bin:/bin",
+                "PATH": f"{self._python_executable.parent}:/usr/bin:/bin",
                 "PYTHONDONTWRITEBYTECODE": "1",
                 "PYTHONNOUSERSITE": "1",
                 "TEMP": str(sandbox_tmp),
@@ -394,7 +416,7 @@ class LocalSandboxBackend(SandboxBackend):
         child_env: dict[str, str],
     ) -> list[str]:
         if self.config.isolation == "process":
-            return [sys.executable, str(script_path)]
+            return [str(self._python_executable), str(script_path)]
 
         if self._bwrap_path is None or self._bubblewrap_input_mounts is None:
             raise RuntimeError("Bubblewrap backend was not initialized safely")
@@ -425,18 +447,22 @@ class LocalSandboxBackend(SandboxBackend):
         command.extend(("--chdir", str(workspace)))
         for name, value in sorted(child_env.items()):
             command.extend(("--setenv", name, value))
-        command.extend((sys.executable, str(script_path)))
+        command.extend((str(self._python_executable), str(script_path)))
         return command
 
-    @staticmethod
-    def _runtime_mounts(workspace: Path) -> tuple[Path, ...]:
+    def _runtime_mounts(self, workspace: Path) -> tuple[Path, ...]:
         candidates = [
             Path("/usr"),
             Path("/bin"),
             Path("/lib"),
             Path("/lib64"),
-            Path(sys.base_prefix),
-            Path(sys.prefix),
+            # Scientific libraries need these small, non-secret host configs
+            # for deterministic font discovery and local-time parsing. Keep the
+            # rest of /etc unavailable to sandboxed code.
+            Path("/etc/fonts"),
+            Path("/etc/localtime"),
+            Path("/etc/timezone"),
+            *self._python_mounts,
         ]
         mounts: list[Path] = []
         for candidate in candidates:

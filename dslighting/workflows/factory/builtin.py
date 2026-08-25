@@ -87,6 +87,7 @@ def _create_sandbox_service(workspace: WorkspaceService, config: Any) -> Sandbox
         isolation=getattr(config.sandbox, "local_isolation", "process"),
         environment_policy=getattr(config.sandbox, "environment_policy", "inherit"),
         network_policy=getattr(config.sandbox, "network_policy", "inherit"),
+        python_executable=getattr(config.sandbox, "python_executable", None),
         env_vars=dict(env_overrides),
     )
 
