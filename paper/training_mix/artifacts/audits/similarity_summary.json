@@ -1,0 +1,84 @@
+{
+  "candidate_pair_export_thresholds": {
+    "dare_bench": 0.95,
+    "data_agent_rl": 0.75,
+    "datamind_sql": 0.75
+  },
+  "candidate_pairs_exported": 19,
+  "cross_source": {
+    "maximum_similarity": 0.574577,
+    "pairs_at_or_above_0_70": 0,
+    "pairs_at_or_above_0_80": 0
+  },
+  "exact_normalized_duplicate_pairs": 0,
+  "interpretation": {
+    "dare_bench": "High scores mainly reflect official fixed prompt templates; base tasks and inputs remain distinct.",
+    "data_agent_rl": "Pairs above 0.85 are genuine near-duplicate analytical instructions over different datasets.",
+    "datamind_sql": "No pair reaches 0.80; the top pair is a related filter variant in one database."
+  },
+  "manifest": "paper/training_mix/artifacts/manifests/training_mix_2000.jsonl",
+  "method": "NFKC + casefold + whitespace normalization; character TF-IDF 3-5 grams; cosine similarity",
+  "source_summary": {
+    "dare_bench": {
+      "largest_variable_normalized_template_groups": [
+        239,
+        213,
+        39,
+        27,
+        25,
+        23,
+        21,
+        9
+      ],
+      "pair_counts_at_or_above_cosine": {
+        "0.75": 14737,
+        "0.80": 5549,
+        "0.85": 1285,
+        "0.90": 140,
+        "0.95": 11,
+        "0.98": 1
+      },
+      "tasks": 600,
+      "tasks_in_variable_normalized_template_groups": 596,
+      "tasks_with_nearest_neighbor_at_or_above_0_85": 271,
+      "tasks_with_nearest_neighbor_at_or_above_0_90": 104,
+      "variable_normalized_template_groups": 8
+    },
+    "data_agent_rl": {
+      "largest_variable_normalized_template_groups": [
+        2,
+        2
+      ],
+      "pair_counts_at_or_above_cosine": {
+        "0.75": 7,
+        "0.80": 4,
+        "0.85": 2,
+        "0.90": 1,
+        "0.95": 0,
+        "0.98": 0
+      },
+      "tasks": 700,
+      "tasks_in_variable_normalized_template_groups": 4,
+      "tasks_with_nearest_neighbor_at_or_above_0_85": 4,
+      "tasks_with_nearest_neighbor_at_or_above_0_90": 2,
+      "variable_normalized_template_groups": 2
+    },
+    "datamind_sql": {
+      "largest_variable_normalized_template_groups": [],
+      "pair_counts_at_or_above_cosine": {
+        "0.75": 1,
+        "0.80": 0,
+        "0.85": 0,
+        "0.90": 0,
+        "0.95": 0,
+        "0.98": 0
+      },
+      "tasks": 700,
+      "tasks_in_variable_normalized_template_groups": 0,
+      "tasks_with_nearest_neighbor_at_or_above_0_85": 0,
+      "tasks_with_nearest_neighbor_at_or_above_0_90": 0,
+      "variable_normalized_template_groups": 0
+    }
+  },
+  "status": "passed"
+}

@@ -77,6 +77,44 @@ def test_completion_kwargs_forward_explicit_thinking_mode() -> None:
     assert disabled_kwargs["extra_body"] == {"thinking": {"type": "disabled"}}
     assert disabled_kwargs["timeout"] == 15
     assert disabled_kwargs["num_retries"] == 1
+    assert "temperature" not in disabled_kwargs
+
+    local_vllm = LLMService(
+        LLMConfig(
+            model="openai/local-qwen",
+            api_key="secret",
+            thinking=False,
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        )
+    )
+    local_kwargs = local_vllm._build_completion_kwargs(
+        messages=[{"role": "user", "content": "Return text"}],
+        response_format=None,
+        api_key="secret",
+    )
+    assert local_kwargs["extra_body"] == {
+        "chat_template_kwargs": {"enable_thinking": False},
+        "thinking": {"type": "disabled"},
+    }
+
+
+def test_bad_request_is_not_retried() -> None:
+    GlobalAPIKeyPool.clear_pools()
+    service = LLMService(
+        LLMConfig(
+            model="custom-deployment",
+            provider="openai",
+            api_key="secret",
+            api_base="https://example.com/v1",
+        )
+    )
+    error = litellm_exceptions.BadRequestError(
+        message="LLM Provider NOT provided",
+        model="custom-deployment",
+        llm_provider="openai",
+    )
+
+    assert service._classify_error_action(error) == "fail_fast"
 
     default_disabled = LLMService(
         LLMConfig(model="gpt-test", api_key="secret", api_base="https://example.com/v1")
@@ -129,6 +167,7 @@ def test_observed_completion_uses_llm_config_transport_settings(monkeypatch) -> 
     assert captured["timeout"] == 20
     assert captured["num_retries"] == 2
     assert captured["extra_body"] == {"thinking": {"type": "disabled"}}
+    assert "temperature" not in captured
 
 
 @pytest.mark.asyncio

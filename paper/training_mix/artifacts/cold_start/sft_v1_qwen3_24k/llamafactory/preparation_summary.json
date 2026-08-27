@@ -1,0 +1,21 @@
+{
+  "input": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/sft_v1_qwen3_24k/cold_start_sft_strict.json",
+  "records": 207,
+  "smoke_records": 8,
+  "smoke_token_lengths": [
+    19758,
+    18264,
+    17900,
+    13646,
+    13031,
+    11732,
+    11612,
+    11422
+  ],
+  "train_sha256": "901e4e54d543dadf6b090b02bef407f2b8d5d8aa0c29b4d7bbabc5ff75326920",
+  "outputs": {
+    "dataset_info": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/sft_v1_qwen3_24k/llamafactory/dataset_info.json",
+    "train": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/sft_v1_qwen3_24k/llamafactory/train.json",
+    "smoke": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/sft_v1_qwen3_24k/llamafactory/smoke_longest.json"
+  }
+}

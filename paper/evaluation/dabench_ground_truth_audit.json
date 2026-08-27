@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "upstream_repository": "InfiAgent-DABench",
+  "upstream_commit": "3d6c4a70198e0a41fadf539f5b43c88b8c1a2d9c",
+  "tasks": 257,
+  "prepared_tasks": 257,
+  "gold_selfscore_one": 257,
+  "criterion": "the materialized private answer is graded by the matching deterministic DSLighting DABench grader",
+  "status": "passed"
+}

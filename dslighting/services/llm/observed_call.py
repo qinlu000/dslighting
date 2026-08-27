@@ -284,7 +284,6 @@ def completion_with_observability(
         tags=_request_tags(
             provider=llm_config.provider,
             api_base=llm_config.api_base,
-            temperature=llm_config.temperature,
             response_format=response_format,
             max_tokens=max_tokens,
             extra_tags=extra_tags,
@@ -368,7 +367,6 @@ async def acompletion_with_observability(
         tags=_request_tags(
             provider=llm_config.provider,
             api_base=llm_config.api_base,
-            temperature=llm_config.temperature,
             response_format=response_format,
             max_tokens=max_tokens,
             extra_tags=extra_tags,
@@ -446,15 +444,17 @@ def _build_completion_kwargs(
         kwargs["api_key"] = api_keys[0]
     if response_format is not None:
         kwargs["response_format"] = response_format
-    kwargs["temperature"] = llm_config.temperature
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
     kwargs["timeout"] = llm_config.request_timeout_seconds
     kwargs["num_retries"] = llm_config.sdk_max_retries
+    extra_body = dict(llm_config.extra_body)
     if llm_config.thinking is not None:
-        kwargs["extra_body"] = {
-            "thinking": {"type": "enabled" if llm_config.thinking else "disabled"}
+        extra_body["thinking"] = {
+            "type": "enabled" if llm_config.thinking else "disabled"
         }
+    if extra_body:
+        kwargs["extra_body"] = extra_body
     return kwargs
 
 
@@ -462,7 +462,6 @@ def _request_tags(
     *,
     provider: str | None,
     api_base: str | None,
-    temperature: float | None,
     response_format: dict[str, Any] | None,
     max_tokens: int | None,
     extra_tags: dict[str, Any] | None,
@@ -472,8 +471,6 @@ def _request_tags(
         tags["provider"] = provider
     if api_base is not None:
         tags["api_base"] = api_base
-    if temperature is not None:
-        tags["temperature"] = temperature
     if response_format is not None:
         tags["response_format"] = response_format
     if max_tokens is not None:

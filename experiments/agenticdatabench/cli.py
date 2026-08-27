@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Sequence
@@ -18,6 +19,7 @@ from .runner import (
     DEFAULT_DATASETS_RELATIVE_PATH,
     DEFAULT_TASKS_RELATIVE_PATH,
     RunSettings,
+    is_perception_sandbox_supported,
     load_tasks,
     required_output_names,
     run_tasks,
@@ -55,8 +57,18 @@ def _parser() -> argparse.ArgumentParser:
 
     selection = parser.add_mutually_exclusive_group(required=True)
     selection.add_argument("--task", dest="task_ids", action="append", default=[])
+    selection.add_argument(
+        "--task-list-json",
+        type=Path,
+        help="JSON array of exact public task IDs",
+    )
     selection.add_argument("--index", dest="index_expression")
     selection.add_argument("--all", dest="select_all", action="store_true")
+    parser.add_argument(
+        "--exclude-task-list-json",
+        type=Path,
+        help="JSON array of task IDs to remove after selection",
+    )
 
     parser.add_argument("--workflow", choices=WORKFLOWS, default="react")
     parser.add_argument("--model", required=True)
@@ -111,18 +123,27 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--docker-image")
     parser.add_argument("--memory-mb", type=int, default=8192)
-    parser.add_argument("--cpu-cores", type=float, default=4.0)
+    parser.add_argument("--cpu-cores", type=float, default=2.0)
     parser.add_argument("--pids-limit", type=int, default=256)
     parser.add_argument(
         "--local-isolation",
         choices=("process", "bubblewrap"),
         default="bubblewrap",
     )
+    parser.add_argument(
+        "--sandbox-python",
+        type=Path,
+        default=os.getenv("AGENTICDATABENCH_PYTHON"),
+        help="Python interpreter used only inside the local sandbox",
+    )
     parser.add_argument("--allow-network", action="store_true")
     parser.add_argument(
         "--perception",
         action="store_true",
-        help="Enable the Perception treatment (ReAct with offline Docker only)",
+        help=(
+            "Enable the Perception treatment (ReAct with offline Docker or "
+            "local Bubblewrap)"
+        ),
     )
     parser.add_argument(
         "--llm-debug-logging",
@@ -188,12 +209,37 @@ def main(argv: Sequence[str] | None = None) -> int:
             staging_dir,
         ) = _resolve_paths(args)
         tasks = load_tasks(tasks_file)
+        task_ids = args.task_ids
+        if args.task_list_json:
+            task_ids = json.loads(args.task_list_json.expanduser().read_text(encoding="utf-8"))
+            if not isinstance(task_ids, list) or not all(
+                isinstance(value, str) for value in task_ids
+            ):
+                raise ValueError("--task-list-json must contain a JSON array of task IDs")
         selected = select_tasks(
             tasks,
-            task_ids=args.task_ids,
+            task_ids=task_ids,
             index_expression=args.index_expression,
             select_all=args.select_all,
         )
+        if args.exclude_task_list_json:
+            excluded = json.loads(
+                args.exclude_task_list_json.expanduser().read_text(encoding="utf-8")
+            )
+            if not isinstance(excluded, list) or not all(
+                isinstance(value, str) for value in excluded
+            ):
+                raise ValueError(
+                    "--exclude-task-list-json must contain a JSON array of task IDs"
+                )
+            known = {task.task_id for task in tasks}
+            unknown = sorted(set(excluded) - known)
+            if unknown:
+                raise ValueError(f"Unknown excluded task IDs: {unknown[:10]}")
+            excluded_set = set(excluded)
+            selected = [task for task in selected if task.task_id not in excluded_set]
+            if not selected:
+                raise ValueError("Task exclusion removed every selected task")
         if args.sandbox_backend == "docker" and not str(args.docker_image or "").strip():
             raise ValueError("--sandbox-backend docker requires --docker-image")
         if args.concurrency <= 0:
@@ -207,11 +253,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.summary_trigger_turns < args.keep_recent_turns:
             raise ValueError("--summary-trigger-turns must be >= --keep-recent-turns")
         if args.perception and (
-            args.workflow != "react" or args.sandbox_backend != "docker" or args.allow_network
+            args.workflow != "react"
+            or not is_perception_sandbox_supported(
+                backend=args.sandbox_backend,
+                local_isolation=args.local_isolation,
+                disable_network=not args.allow_network,
+            )
         ):
             raise ValueError(
-                "--perception requires --workflow react, --sandbox-backend docker, "
-                "and networking disabled"
+                "--perception requires --workflow react with either an offline "
+                "Docker sandbox or --sandbox-backend local "
+                "--local-isolation bubblewrap"
             )
         llm_config = build_llm_config(
             model=args.model,
@@ -241,6 +293,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "timeout_seconds": args.timeout_seconds,
                 "perception_enabled": args.perception,
                 "sandbox_backend": args.sandbox_backend,
+                "local_isolation": args.local_isolation,
+                "sandbox_python": str(args.sandbox_python or ""),
                 "docker_image": args.docker_image,
                 "tasks": [
                     {
@@ -277,6 +331,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             cpu_cores=args.cpu_cores,
             pids_limit=args.pids_limit,
             local_isolation=args.local_isolation,
+            sandbox_python=args.sandbox_python,
             disable_network=not args.allow_network,
             perception_enabled=args.perception,
             overwrite=args.overwrite,

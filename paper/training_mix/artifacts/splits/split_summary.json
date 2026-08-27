@@ -1,0 +1,50 @@
+{
+  "method": "row_level_random_split",
+  "seed": 42,
+  "total": 2000,
+  "train_full": {
+    "tasks": 2000
+  },
+  "train": {
+    "tasks": 1800,
+    "source_counts": {
+      "dare_bench": 545,
+      "data_agent_rl": 632,
+      "datamind_sql": 623
+    },
+    "task_family_counts": {
+      "classification": 248,
+      "exact_bool": 39,
+      "exact_short": 214,
+      "list": 10,
+      "list_csv": 21,
+      "numeric": 348,
+      "regression": 256,
+      "sql": 623,
+      "time_series_analysis": 41
+    }
+  },
+  "dev": {
+    "tasks": 200,
+    "source_counts": {
+      "dare_bench": 55,
+      "data_agent_rl": 68,
+      "datamind_sql": 77
+    },
+    "task_family_counts": {
+      "classification": 27,
+      "exact_bool": 1,
+      "exact_short": 26,
+      "list_csv": 4,
+      "numeric": 37,
+      "regression": 19,
+      "sql": 77,
+      "time_series_analysis": 9
+    }
+  },
+  "train_dev_overlap": 0,
+  "ood_test_benchmarks": [
+    "DABench",
+    "AgenticDataBench"
+  ]
+}

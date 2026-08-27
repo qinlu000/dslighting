@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "dataset_name": "training_mix_perception_joint_v1",
+  "policy": {
+    "solver": "unchanged strict task-success-gated records from the 900-task export",
+    "perception": "completed protocol-valid Perception with valid Python, no execution-error observation, within cutoff, one record per task; Solver outcome is advisory",
+    "deduplication": "unique trajectory and at most one Perception record per task"
+  },
+  "inputs": {
+    "base_output_dir": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/perception_sft_v2_expanded_900_qwen3_24k",
+    "candidates": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/teacher_candidates_900.jsonl",
+    "run_roots": [
+      "/data/caoqinlu/runs/training_mix_perception_cold_start/v1",
+      "/data/caoqinlu/runs/training_mix_perception_cold_start/v2_additional_500",
+      "/data/caoqinlu/runs/training_mix_perception_cold_start/v3_retry_no_perception_r1_t09",
+      "/data/caoqinlu/runs/training_mix_perception_cold_start/v4_retry_no_perception_r2_t09",
+      "/data/caoqinlu/runs/training_mix_perception_cold_start/v5_retry_no_perception_r3_t09"
+    ],
+    "observed_results_by_run": {
+      "v1": 400,
+      "v2_additional_500": 500,
+      "v3_retry_no_perception_r1_t09": 218,
+      "v4_retry_no_perception_r2_t09": 200,
+      "v5_retry_no_perception_r3_t09": 111
+    }
+  },
+  "accepted": {
+    "solver": 276,
+    "perception": 235,
+    "perception_with_successful_solver_outcome": 108,
+    "perception_independent_of_solver_outcome": 127,
+    "total": 511,
+    "perception_by_source": {
+      "dare_bench": 137,
+      "data_agent_rl": 64,
+      "datamind_sql": 34
+    }
+  },
+  "rejected_session_reason_counts": {
+    "invalid_python": 3,
+    "invalid_role_sequence": 66,
+    "missing_assistant_reply": 66,
+    "missing_terminal_report": 206,
+    "not_completed": 206,
+    "observation_execution_error": 48
+  },
+  "validation": {
+    "unique_trajectories": true,
+    "unique_perception_tasks": true,
+    "all_within_cutoff": true,
+    "all_perception_completed": true,
+    "max_tokens": 15577
+  },
+  "trainable": {
+    "format": "LLaMA-Factory ShareGPT messages",
+    "records": 511,
+    "train_sha256": "409a16d978f3ef685f52649d5d75fa172e67780d4799efd37971e880778203d8"
+  },
+  "outputs": {
+    "solver": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/perception_sft_final_medium_t09_qwen3_24k/clean/solver_sft_clean.json",
+    "perception": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/perception_sft_final_medium_t09_qwen3_24k/clean/perception_sft_clean.json",
+    "joint": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/perception_sft_final_medium_t09_qwen3_24k/clean/joint_sft_train.json",
+    "manifest": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/perception_sft_final_medium_t09_qwen3_24k/clean/perception_audit_manifest.jsonl",
+    "train": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/perception_sft_final_medium_t09_qwen3_24k/llamafactory/train.json",
+    "dataset_info": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/perception_sft_final_medium_t09_qwen3_24k/llamafactory/dataset_info.json",
+    "summary": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/perception_sft_final_medium_t09_qwen3_24k/export_summary.json"
+  }
+}

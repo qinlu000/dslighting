@@ -355,7 +355,6 @@ class LLMCallExecutor:
             llm_context=llm_context,
             payloads={"request_messages": ("request_messages", spec.messages)},
             tags={
-                "temperature": self._service.config.temperature,
                 "api_base": self._service.config.api_base,
                 "provider": self._service.config.provider,
                 "response_format": spec.response_format,

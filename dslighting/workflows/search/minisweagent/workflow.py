@@ -413,7 +413,6 @@ class MiniSWEAgentWorkflow(BaseWorkflow):
             model_kwargs["api_base"] = self.llm_config.api_base
         if self.llm_config.provider:
             model_kwargs["custom_llm_provider"] = self.llm_config.provider
-        model_kwargs["temperature"] = self.llm_config.temperature
         model_kwargs["timeout"] = self.llm_config.request_timeout_seconds
         model_kwargs["num_retries"] = self.llm_config.sdk_max_retries
         if self.llm_config.thinking is not None:

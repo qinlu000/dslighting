@@ -150,6 +150,16 @@ def normalize_react_reply(content: str) -> NormalizedReActReply:
             normalized_content=raw_content,
         )
 
+    fence_repair = _repair_action_fence_shell(raw_content)
+    if fence_repair is not None:
+        repaired_content, repair_reason = fence_repair
+        return NormalizedReActReply(
+            raw_content=raw_content,
+            normalized_content=repaired_content,
+            repaired=True,
+            repair_reason=repair_reason,
+        )
+
     shell_repair = _repair_response_shell(raw_content)
     if shell_repair is not None:
         repaired_content, repair_reason = shell_repair
@@ -164,6 +174,45 @@ def normalize_react_reply(content: str) -> NormalizedReActReply:
         raw_content=raw_content,
         normalized_content=raw_content,
     )
+
+
+def _repair_action_fence_shell(content: str) -> tuple[str, str] | None:
+    """Close one unambiguous Python fence at the Action boundary."""
+    if any(_has_tag(content, tag) for tag in ("Explore", "Answer", "Final Answer")):
+        return None
+    if _tag_count(content, "Action", closing=False) != 1:
+        return None
+    if _tag_count(content, "Action", closing=True) != 1:
+        return None
+
+    action_close = re.search(r"</Action>", content, flags=re.IGNORECASE)
+    action_open = re.search(r"<Action>", content, flags=re.IGNORECASE)
+    if action_open is None or action_close is None:
+        return None
+    body = content[action_open.end() : action_close.start()]
+    if not re.match(r"\s*```python\b", body, flags=re.IGNORECASE):
+        return None
+
+    fence_count = len(re.findall(r"```", content))
+    suffix = content[action_close.end() :]
+    if fence_count == 1 and not suffix.strip():
+        repaired = content[: action_close.start()] + "\n```" + content[action_close.start() :]
+        reason = "added missing Python fence before </Action>"
+    elif fence_count == 2 and re.fullmatch(r"\s*```\s*", suffix):
+        repaired = (
+            content[: action_close.start()]
+            + "\n```"
+            + content[action_close.start() : action_close.end()]
+        )
+        reason = "moved Python fence before </Action>"
+    else:
+        return None
+
+    is_valid, _ = validate_turn_structure(repaired, allow_explore=True)
+    action = extract_action_block(repaired)
+    if not is_valid or action is None or extract_strict_python_from_action(action) is None:
+        return None
+    return repaired, reason
 
 
 def extract_tag_block(content: str, tag: str) -> Optional[str]:
@@ -284,6 +333,59 @@ def validate_turn_structure(
     return True, None
 
 
+def validate_strict_react_reply(
+    content: str,
+    *,
+    allow_explore: bool = False,
+) -> tuple[bool, Optional[str]]:
+    """Validate a raw reply against the complete prompt-level protocol.
+
+    Unlike :func:`parse_react_reply`, this function does not normalize or repair
+    the response. It is intended for protocol metrics and rewards where a model
+    should only receive credit for the text it actually emitted.
+    """
+    raw_content = content if isinstance(content, str) else str(content)
+    think_open_count = _tag_count(raw_content, "Think", closing=False)
+    think_close_count = _tag_count(raw_content, "Think", closing=True)
+    if think_open_count != 1 or think_close_count != 1:
+        return False, "Reply must contain exactly one <Think>...</Think> block."
+
+    is_valid, reason = validate_turn_structure(
+        raw_content,
+        allow_explore=allow_explore,
+    )
+    if not is_valid:
+        return False, reason
+
+    response_tags = "Action|Explore|Answer" if allow_explore else "Action|Answer"
+    envelope = re.fullmatch(
+        rf"\s*<Think>(?P<think>.*?)</Think>\s*"
+        rf"<(?P<tag>{response_tags})>(?P<body>.*?)</(?P=tag)>\s*",
+        raw_content,
+        flags=re.DOTALL,
+    )
+    if envelope is None:
+        return (
+            False,
+            "Reply must contain <Think> first, exactly one response block second, "
+            "and no text outside the blocks.",
+        )
+    if not envelope.group("think").strip():
+        return False, "<Think> cannot be empty."
+
+    tag = envelope.group("tag")
+    body = envelope.group("body")
+    if tag == "Action" and not extract_strict_python_from_action(body):
+        return (
+            False,
+            "<Action> must contain exactly one non-empty fenced ```python``` block "
+            "and no other content.",
+        )
+    if tag == "Explore" and "```" in body:
+        return False, "<Explore> cannot contain a code block."
+    return True, None
+
+
 def _repair_response_shell(content: str) -> tuple[str, str] | None:
     """Repair one unambiguous response block missing one boundary tag."""
     if _has_tag(content, "Final Answer"):
@@ -347,10 +449,7 @@ def _tag_count(content: str, tag: str, *, closing: bool) -> int:
 
 
 def _has_tag(content: str, tag: str) -> bool:
-    return bool(
-        _tag_count(content, tag, closing=False)
-        or _tag_count(content, tag, closing=True)
-    )
+    return bool(_tag_count(content, tag, closing=False) or _tag_count(content, tag, closing=True))
 
 
 def wrap_observation(observation: str) -> str:
@@ -372,9 +471,7 @@ def build_protocol_error_feedback(
         formats += "<Think>...</Think>\n<Explore>...</Explore>\nor:\n"
     formats += "<Think>...</Think>\n<Answer>...</Answer>\n"
     explore_guidance = (
-        "Use <Explore> only for a plain-text perception request. "
-        if allow_explore
-        else ""
+        "Use <Explore> only for a plain-text perception request. " if allow_explore else ""
     )
     return (
         f"Protocol error: {detail}\n"
@@ -434,6 +531,7 @@ __all__ = [
     "normalize_react_reply",
     "parse_react_reply",
     "truncate_observation",
+    "validate_strict_react_reply",
     "validate_turn_structure",
     "wrap_feedback",
     "wrap_observation",

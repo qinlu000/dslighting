@@ -83,7 +83,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--docker-image")
     parser.add_argument("--memory-mb", type=int, default=8192)
-    parser.add_argument("--cpu-cores", type=float, default=4.0)
+    parser.add_argument("--cpu-cores", type=float, default=2.0)
     parser.add_argument("--pids-limit", type=int, default=256)
     parser.add_argument(
         "--local-isolation", choices=("process", "bubblewrap"), default="bubblewrap"

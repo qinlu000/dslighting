@@ -8,17 +8,14 @@ into the agent-visible directory.
 
 from __future__ import annotations
 
-import asyncio
-import fcntl
 import io
 import json
 import os
-import shutil
 import tempfile
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
@@ -26,6 +23,16 @@ from sklearn.metrics import f1_score, r2_score
 
 from dslighting.config import LLMConfig
 from dslighting.core.types import TaskDefinition
+from experiments.common import (
+    RuntimeConfig,
+    acquire_run_lock,
+    create_runner,
+    last_task_record,
+    prepare_task_output,
+    run_batch,
+    write_json,
+    write_jsonl,
+)
 
 PREDICTION_FILENAME = "prediction.csv"
 SELECTED_TASKS_FILENAME = "dare_bench_tasks.jsonl"
@@ -420,10 +427,16 @@ class RunSettings:
     staging_dir: Path
     workflow: str
     llm: LLMConfig
+    perception_enabled: bool = False
+    perception_llm: LLMConfig | None = None
     max_steps: int = 10
+    protocol_mode: str = "repair"
     max_history_chars: int = 48000
     keep_recent_turns: int = 14
     summary_trigger_turns: int = 18
+    recent_observation_window: int = 8
+    keep_latest_feedback_only: bool = True
+    max_feedback_retries: int = 1
     concurrency: int = 30
     timeout_seconds: int = 3600
     sandbox_backend: str = "local"
@@ -438,44 +451,7 @@ class RunSettings:
     retry_failed: bool = False
 
 
-def _last_task_record(
-    records: Iterable[Mapping[str, Any]], task_id: str
-) -> Mapping[str, Any] | None:
-    matches = [record for record in records if str(record.get("task_id")) == task_id]
-    return matches[-1] if matches else None
-
-
-def _existing_result(task_output: Path) -> dict[str, Any] | None:
-    result_path = task_output / "result.json"
-    if not result_path.is_file():
-        return None
-    try:
-        payload = json.loads(result_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    return payload if isinstance(payload, dict) else None
-
-
-def _prepare_output_target(task_output: Path, *, overwrite: bool, retry_failed: bool) -> str:
-    existing = _existing_result(task_output)
-    if existing is not None and not overwrite:
-        if not retry_failed or existing.get("status") == "completed":
-            return "skip"
-    if task_output.exists() and any(task_output.iterdir()):
-        if not (overwrite or retry_failed):
-            raise ValueError(
-                f"Non-empty task output has no reusable result: {task_output}; "
-                "use --overwrite or --retry-failed"
-            )
-        shutil.rmtree(task_output)
-    task_output.mkdir(parents=True, exist_ok=True)
-    return "run"
-
-
 async def run_tasks(tasks: Sequence[DareBenchTask], settings: RunSettings) -> dict[str, Any]:
-    from dslighting.core.config.builder import ConfigBuilder
-    from dslighting.runner import DSLightingRunner
-
     if not tasks:
         raise ValueError("At least one DARE task must be selected")
     if settings.concurrency <= 0 or settings.max_steps <= 0:
@@ -491,21 +467,10 @@ async def run_tasks(tasks: Sequence[DareBenchTask], settings: RunSettings) -> di
     for path in (output_root, workspace_root, staging_root):
         path.mkdir(parents=True, exist_ok=True)
 
-    lock_handle = (output_root / ".dslighting_run.lock").open("a+", encoding="utf-8")
-    try:
-        fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError as exc:
-        lock_handle.close()
-        raise RuntimeError(f"Run is already active for output directory: {output_root}") from exc
+    lock_handle = acquire_run_lock(output_root)
 
     selected_manifest = output_root / SELECTED_TASKS_FILENAME
-    selected_manifest.write_text(
-        "".join(
-            json.dumps(task.upstream_record, ensure_ascii=False, sort_keys=True) + "\n"
-            for task in tasks
-        ),
-        encoding="utf-8",
-    )
+    write_jsonl(selected_manifest, (task.upstream_record for task in tasks))
 
     sandbox: dict[str, Any] = {
         "backend": settings.sandbox_backend,
@@ -528,40 +493,45 @@ async def run_tasks(tasks: Sequence[DareBenchTask], settings: RunSettings) -> di
     elif settings.sandbox_backend == "docker":
         sandbox["docker_image"] = str(settings.docker_image).strip()
 
-    config = ConfigBuilder().build_config(
-        workflow=settings.workflow,
-        llm_config=settings.llm,
-        workspace_dir=str(workspace_root),
-        run_name=output_root.name,
-        keep_workspace=True,
-        keep_workspace_on_failure=True,
-        sandbox=sandbox,
-        data_analysis={"cache_enabled": False},
-        agent_runtime={
-            "max_steps": settings.max_steps,
-            "context": {
-                "max_history_chars": settings.max_history_chars,
-                "keep_recent_turns": settings.keep_recent_turns,
-                "summary_trigger_turns": settings.summary_trigger_turns,
+    runner = create_runner(
+        RuntimeConfig(
+            workflow=settings.workflow,
+            llm=settings.llm,
+            workspace_dir=workspace_root,
+            run_name=output_root.name,
+            sandbox=sandbox,
+            agent_runtime={
+                "max_steps": settings.max_steps,
+                "protocol_mode": settings.protocol_mode,
+                "perception_enabled": settings.perception_enabled,
+                **(
+                    {"perception_llm": settings.perception_llm.model_dump()}
+                    if settings.perception_llm is not None
+                    else {}
+                ),
+                "context": {
+                    "max_history_chars": settings.max_history_chars,
+                    "keep_recent_turns": settings.keep_recent_turns,
+                    "summary_trigger_turns": settings.summary_trigger_turns,
+                    "recent_observation_window": settings.recent_observation_window,
+                    "keep_latest_feedback_only": settings.keep_latest_feedback_only,
+                    "max_feedback_retries": settings.max_feedback_retries,
+                },
             },
-        },
-        output_contract={
-            "require_output_before_completion": True,
-            "missing_output_feedback_retries": 2,
-        },
+            cpu_threads=max(1, int(settings.cpu_cores)),
+        )
     )
-    runner = DSLightingRunner(config)
+    config = runner.config
     evaluate_task = runner.get_eval_function()
 
     async def run_one(task: DareBenchTask) -> dict[str, Any]:
         task_output = output_root / task.output_key
-        disposition = _prepare_output_target(
+        existing = prepare_task_output(
             task_output,
             overwrite=settings.overwrite,
             retry_failed=settings.retry_failed,
         )
-        if disposition == "skip":
-            existing = _existing_result(task_output) or {}
+        if existing is not None:
             return {
                 "task_id": task.task_id,
                 "status": "skipped",
@@ -582,7 +552,9 @@ async def run_tasks(tasks: Sequence[DareBenchTask], settings: RunSettings) -> di
                 output_path=prediction_path,
             )
             result, cost, usage = await evaluate_task(definition)
-            record = _last_task_record(runner.get_run_records(), task.task_id)
+            if isinstance(result, str) and result.startswith("[ERROR]"):
+                raise RuntimeError(result)
+            record = last_task_record(runner.get_run_records(), task.task_id)
             grade = score_prediction(task, prediction_path, settings.data_store)
             status = "completed" if grade.get("prediction_exist") else "failed"
             if grade.get("error") and grade.get("error") != "missing_target_columns":
@@ -628,10 +600,7 @@ async def run_tasks(tasks: Sequence[DareBenchTask], settings: RunSettings) -> di
                     "workspace_dir": "",
                 },
             }
-        (task_output / "result.json").write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        write_json(task_output / "result.json", payload)
         print(
             f"{status} task={task.task_id} score={payload['score']:.6f} "
             f"error={payload['grade'].get('error')}"
@@ -644,19 +613,14 @@ async def run_tasks(tasks: Sequence[DareBenchTask], settings: RunSettings) -> di
             "result": str(task_output / "result.json"),
         }
 
-    semaphore = asyncio.Semaphore(settings.concurrency)
-
-    async def run_indexed(index: int, task: DareBenchTask):
-        async with semaphore:
-            return index, await run_one(task)
-
     try:
-        indexed = await asyncio.gather(
-            *(run_indexed(index, task) for index, task in enumerate(tasks))
+        results = await run_batch(
+            tasks,
+            run_one,
+            concurrency=settings.concurrency,
         )
     finally:
         lock_handle.close()
-    results = [result for _, result in sorted(indexed)]
     scores = [float(item.get("score") or 0.0) for item in results]
     summary = {
         "schema_version": 1,
@@ -681,9 +645,7 @@ async def run_tasks(tasks: Sequence[DareBenchTask], settings: RunSettings) -> di
         "total_cost": sum(float(item.get("cost") or 0.0) for item in results),
         "tasks": results,
     }
-    (output_root / "run_summary.json").write_text(
-        json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    write_json(output_root / "run_summary.json", summary)
     return summary
 
 

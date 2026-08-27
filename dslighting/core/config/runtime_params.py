@@ -10,8 +10,16 @@ from __future__ import annotations
 from typing import Any
 
 AGENT_RUNTIME_ALLOWED_KEYS = frozenset(
-    {"max_steps", "perception_enabled", "observation", "context"}
+    {
+        "max_steps",
+        "protocol_mode",
+        "perception_enabled",
+        "perception_llm",
+        "observation",
+        "context",
+    }
 )
+AGENT_RUNTIME_PROTOCOL_MODES = frozenset({"repair", "strict_retry"})
 AGENT_RUNTIME_OBSERVATION_ALLOWED_KEYS = frozenset(
     {"max_tokens", "head_tokens", "tail_tokens", "max_chars"}
 )
@@ -140,11 +148,27 @@ def normalize_agent_runtime_params(
             minimum=1,
         )
 
+    if "protocol_mode" in params:
+        protocol_mode = str(params["protocol_mode"]).strip()
+        if protocol_mode not in AGENT_RUNTIME_PROTOCOL_MODES:
+            raise ValueError(
+                f"`{source}.protocol_mode` must be one of: {sorted(AGENT_RUNTIME_PROTOCOL_MODES)}"
+            )
+        normalized["protocol_mode"] = protocol_mode
+
     if "perception_enabled" in params:
         normalized["perception_enabled"] = _coerce_bool(
             params["perception_enabled"],
             field_name=f"{source}.perception_enabled",
         )
+
+    if "perception_llm" in params:
+        perception_llm = params["perception_llm"]
+        if hasattr(perception_llm, "model_dump"):
+            perception_llm = perception_llm.model_dump()
+        if not isinstance(perception_llm, dict):
+            raise TypeError(f"`{source}.perception_llm` must be a dictionary")
+        normalized["perception_llm"] = perception_llm
 
     observation = params.get("observation")
     if observation is not None:
@@ -221,6 +245,7 @@ __all__ = [
     "AGENT_RUNTIME_CONTEXT_ALLOWED_KEYS",
     "AGENT_RUNTIME_CONTEXT_ALLOWED_STRATEGIES",
     "AGENT_RUNTIME_OBSERVATION_ALLOWED_KEYS",
+    "AGENT_RUNTIME_PROTOCOL_MODES",
     "LEGACY_REACT_RUNTIME_KEYS",
     "OUTPUT_CONTRACT_ALLOWED_KEYS",
     "normalize_agent_runtime_context_params",

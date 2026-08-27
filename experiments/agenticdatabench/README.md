@@ -15,7 +15,7 @@ The boundary is intentionally small:
 
 1. Clone AgenticDataBench and download its Hugging Face datasets into
    `AgenticDataBench/testbed/datasets/` as described by the upstream README.
-2. Install DSLighting and the AgenticDataBench testbed requirements.
+2. Install DSLighting and the AgenticDataBench sandbox requirements.
 3. Configure the model API key through environment variables or the DSLighting
    repository's `.env`. Explicit environment variables take precedence.
 4. Install `bubblewrap` for the default local sandbox, or install the Docker
@@ -24,6 +24,20 @@ The boundary is intentionally small:
 The adapter uses the upstream `image.py` helper for plot tasks. It creates a
 lightweight persistent staging view made of symlinks, so the downloaded dataset
 is not modified or duplicated.
+
+For the non-Docker runtime, keep the benchmark interpreter separate from the
+DSLighting controller:
+
+```bash
+uv venv --python 3.10 /path/to/AgenticDataBench/.venv
+uv pip install --python /path/to/AgenticDataBench/.venv/bin/python \
+  -r experiments/agenticdatabench/requirements_sandbox.txt
+export AGENTICDATABENCH_PYTHON=/path/to/AgenticDataBench/.venv/bin/python
+```
+
+The local Bubblewrap runner mounts this interpreter read-only, limits it to the
+configured CPU threads, and exposes only the selected domain plus the writable
+task workspace.
 
 ## Build the benchmark execution image
 
@@ -79,6 +93,18 @@ tasks. Choose one of:
 - `--task TASK_ID` (repeatable)
 - `--index 0-5` or `--index 0,2,4`
 - `--all`
+
+For the ground-truth self-consistent paper subset, keep the upstream task file
+unchanged and pass:
+
+```bash
+--all \
+--exclude-task-list-json paper/evaluation/agenticdatabench_gold_selfscore_exclude_23.json
+```
+
+The exclusion list is derived only from the official evaluator's gold-on-gold
+self-score; full 246-task results should still be reported separately when
+strict comparability with the upstream public split is required.
 
 ## Run
 
@@ -148,20 +174,22 @@ python -m experiments.agenticdatabench \
   --task agriculture_02 \
   --workflow react \
   --model openai/your-model \
-  --sandbox-backend docker \
-  --docker-image dslighting-agenticdatabench:latest \
+  --sandbox-backend local \
+  --local-isolation bubblewrap \
   --perception
 ```
 
-The Perception treatment is Docker-only, ReAct-only, and requires networking
-to remain disabled. The Perception Agent and Solving Agent reuse the same
-task-scoped, persistent Docker container and the same read-write workspace.
+The Perception treatment is ReAct-only and requires networking to remain
+disabled. It supports either local Bubblewrap isolation (shown above) or an
+offline Docker sandbox. The Perception Agent and Solving Agent reuse the same
+task-scoped sandbox and the same read-write workspace.
 
 In this minimal version, the Perception Agent's no-write rule is prompt-only:
 its prompt instructs it to inspect files without creating, overwriting,
 deleting, or renaming anything. This is not a filesystem security boundary;
 Perception code technically has the same workspace permissions as Solver code.
-The shared Docker container still runs with networking disabled.
+The shared sandbox still runs with networking disabled. Local process isolation
+is intentionally rejected because it cannot enforce the network policy.
 
 The Perception Agent uses a lightweight Action–Report protocol rather than the
 Solving Agent's ReAct protocol. It returns either one `<Action>` containing a
@@ -169,9 +197,9 @@ single Python block or one plain-text `<Report>`. It never emits `<Think>` or
 `<Answer>`. Action output is returned to Perception as an observation, while
 the final report is wrapped in `<PerceptionResult>` for the Solving Agent.
 
-The local sandbox, including local Bubblewrap mode, does not support Perception
-in this rollout. Perception is offered only when the configured Docker backend
-uses `network_mode=none`; Solver Actions remain available under the configured
+Local Perception requires `--local-isolation bubblewrap`, an allowlisted child
+environment, and disabled networking. Docker Perception requires
+`network_mode=none`; Solver Actions remain available under the configured
 sandbox.
 
 `--max-steps` limits the Solving Agent loop. It does not include the nested

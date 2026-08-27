@@ -24,7 +24,7 @@ def grade(submission: pd.DataFrame, answers: pd.DataFrame) -> float:
 
         # Parse all key-value pairs
         # Expected keys: ['fare_outliers']
-        pattern = r'@(\w+)\[([^\]]+)\]'
+        pattern = r'@(\w+)\[([^\]]*)\]'
 
         submission_dict = dict(re.findall(pattern, submission_str))
         answer_dict = dict(re.findall(pattern, answer_str))

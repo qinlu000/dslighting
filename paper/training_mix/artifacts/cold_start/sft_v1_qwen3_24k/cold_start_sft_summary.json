@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "inputs": {
+    "run_root": "/data/caoqinlu/runs/training_mix_cold_start/v1",
+    "candidates": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/teacher_candidates_400.jsonl",
+    "candidate_count": 400,
+    "tokenizer": "/data/caoqinlu/models/Qwen3-4B-Instruct-2507",
+    "max_tokens": 24576
+  },
+  "policy": {
+    "dare_bench": "status=completed and score>=0.5",
+    "data_agent_rl": "status=completed and exact reward=1",
+    "datamind_sql": "status=completed and exact reward=1",
+    "common": "valid complete ReAct session, thinking=false, unique trajectory",
+    "protocol_normalization": "deterministic tag-shell normalization only; reasoning and response bodies unchanged"
+  },
+  "accepted": 207,
+  "pending_or_rejected": 193,
+  "protocol_repairs": {
+    "trajectories": 202,
+    "assistant_turns": 997
+  },
+  "accepted_by_source": {
+    "dare_bench": 42,
+    "data_agent_rl": 76,
+    "datamind_sql": 89
+  },
+  "accepted_by_taxonomy": {
+    "aggregation": 26,
+    "anomaly_detection": 1,
+    "arithmetic_calculation": 4,
+    "classification_modeling": 24,
+    "comparison": 4,
+    "correlation_analysis": 9,
+    "counting": 27,
+    "data_preprocessing": 2,
+    "data_quality_assessment": 6,
+    "descriptive_statistics": 5,
+    "distribution_analysis": 4,
+    "feature_engineering": 3,
+    "ranking": 38,
+    "record_retrieval": 29,
+    "regression_modeling": 20,
+    "statistical_inference": 2,
+    "temporal_analysis": 3
+  },
+  "rejection_reasons": {
+    "dare_score_below_threshold": 27,
+    "exact_reward_not_one": 66,
+    "invalid_python_action": 9,
+    "invalid_react_protocol": 41,
+    "missing_final_answer": 10,
+    "missing_reasoning": 6,
+    "status_failed": 34
+  },
+  "outputs": {
+    "sft_json": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/sft_v1_qwen3_24k/cold_start_sft_strict.json",
+    "sft_jsonl": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/sft_v1_qwen3_24k/cold_start_sft_strict.jsonl",
+    "manifest_jsonl": "/data/caoqinlu/projects/dslighting/paper/training_mix/artifacts/cold_start/sft_v1_qwen3_24k/cold_start_sft_screening.jsonl"
+  }
+}

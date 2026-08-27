@@ -1,0 +1,33 @@
+{
+  "acquired_usable_perception_in_retries": 0,
+  "base_successful_without_perception": 218,
+  "candidate_tasks": 900,
+  "excluded_base_tasks_with_any_perception": 119,
+  "selected_for_next_retry": 218,
+  "source_counts": {
+    "dare_bench": 34,
+    "data_agent_rl": 82,
+    "datamind_sql": 102
+  },
+  "taxonomy_counts": {
+    "aggregation": 29,
+    "anomaly_detection": 1,
+    "arithmetic_calculation": 8,
+    "classification_modeling": 14,
+    "comparison": 4,
+    "correlation_analysis": 10,
+    "counting": 25,
+    "data_preprocessing": 2,
+    "data_quality_assessment": 7,
+    "descriptive_statistics": 5,
+    "distribution_analysis": 8,
+    "fact_verification": 1,
+    "feature_engineering": 1,
+    "ranking": 45,
+    "record_retrieval": 32,
+    "regression_modeling": 20,
+    "statistical_inference": 2,
+    "temporal_analysis": 3,
+    "time_series_forecasting": 1
+  }
+}

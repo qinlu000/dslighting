@@ -20,8 +20,8 @@ _PYTHON_BLOCK_PATTERN = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 _THINK_PREFIX_PATTERN = re.compile(
-    r"\s*<Think>.*?</Think>\s*(?P<response>.*)\s*",
-    re.DOTALL | re.IGNORECASE,
+    r"<Think>.*?</Think>\s*(?P<response>.*)\s*",
+    re.DOTALL,
 )
 
 
@@ -72,11 +72,7 @@ def normalize_perception_reply(content: str) -> NormalizedPerceptionReply:
             opening_index = payload_match.start()
         else:
             opening_index = len(prefix) - len(prefix.lstrip())
-        repaired = (
-            raw_content[:opening_index]
-            + f"<{tag}>"
-            + raw_content[opening_index:]
-        )
+        repaired = raw_content[:opening_index] + f"<{tag}>" + raw_content[opening_index:]
         reason = f"added missing <{tag}> opening tag"
     else:
         return NormalizedPerceptionReply(raw_content, raw_content)
@@ -93,10 +89,10 @@ def normalize_perception_reply(content: str) -> NormalizedPerceptionReply:
 def parse_perception_reply(content: str) -> PerceptionTurnResult:
     """Parse one reply as either a Python action or a plain-text report."""
     reply = normalize_perception_reply(content).normalized_content
-    response = _strip_optional_think_prefix(reply)
+    response = _strip_think_prefix(reply)
     if response is None:
         return _protocol_error(
-            "The <Think>...</Think> block is malformed or is not followed by a response block."
+            "Reply must start with exactly one <Think>...</Think> block followed by a response block."
         )
     action_open = _tag_count(reply, "Action", closing=False)
     action_close = _tag_count(reply, "Action", closing=True)
@@ -107,15 +103,12 @@ def parse_perception_reply(content: str) -> PerceptionTurnResult:
 
     if has_action == has_report:
         return _protocol_error(
-            "Reply must contain exactly one of <Action>...</Action> or "
-            "<Report>...</Report>."
+            "Reply must contain exactly one of <Action>...</Action> or " "<Report>...</Report>."
         )
 
     if has_action:
         if action_open != 1 or action_close != 1:
-            return _protocol_error(
-                "Reply must contain exactly one <Action>...</Action> block."
-            )
+            return _protocol_error("Reply must contain exactly one <Action>...</Action> block.")
         match = _ACTION_PATTERN.fullmatch(response)
         if match is None:
             return _protocol_error(
@@ -124,20 +117,15 @@ def parse_perception_reply(content: str) -> PerceptionTurnResult:
         code_match = _PYTHON_BLOCK_PATTERN.fullmatch(match.group("body"))
         if code_match is None or not code_match.group("code").strip():
             return _protocol_error(
-                "<Action> must contain exactly one non-empty fenced "
-                "```python``` block."
+                "<Action> must contain exactly one non-empty fenced " "```python``` block."
             )
         return PerceptionTurnResult(action_code=code_match.group("code").strip())
 
     if report_open != 1 or report_close != 1:
-        return _protocol_error(
-            "Reply must contain exactly one <Report>...</Report> block."
-        )
+        return _protocol_error("Reply must contain exactly one <Report>...</Report> block.")
     match = _REPORT_PATTERN.fullmatch(response)
     if match is None:
-        return _protocol_error(
-            "Reply must contain only <Report>...</Report> with no extra text."
-        )
+        return _protocol_error("Reply must contain only <Report>...</Report> with no extra text.")
     report = match.group("body").strip()
     if not report:
         return _protocol_error("<Report> cannot be empty.")
@@ -146,8 +134,20 @@ def parse_perception_reply(content: str) -> PerceptionTurnResult:
     return PerceptionTurnResult(report=report)
 
 
+def validate_strict_perception_reply(content: str) -> tuple[bool, str | None]:
+    """Validate the raw Perception protocol without applying runtime repairs."""
+    normalized = normalize_perception_reply(content)
+    if normalized.repaired:
+        return False, normalized.repair_reason or "reply required protocol repair"
+
+    result = parse_perception_reply(content)
+    if result.action_code is not None or result.report is not None:
+        return True, None
+    return False, "reply must contain a valid <Action> or <Report> after <Think>"
+
+
 def _has_valid_payload(reply: str, tag: str) -> bool:
-    response = _strip_optional_think_prefix(reply)
+    response = _strip_think_prefix(reply)
     if response is None:
         return False
     if tag == "Action":
@@ -164,13 +164,11 @@ def _has_valid_payload(reply: str, tag: str) -> bool:
     return bool(report and "```" not in report)
 
 
-def _strip_optional_think_prefix(reply: str) -> str | None:
-    """Return the response block while tolerating a missing Think envelope."""
+def _strip_think_prefix(reply: str) -> str | None:
+    """Return the response block after one required, exact Think envelope."""
     think_open = _tag_count(reply, "Think", closing=False)
     think_close = _tag_count(reply, "Think", closing=True)
-    if think_open == 0 and think_close == 0:
-        return reply.strip()
-    if think_open != 1 or think_close != 1:
+    if not reply.startswith("<Think>") or think_open != 1 or think_close != 1:
         return None
     match = _THINK_PREFIX_PATTERN.fullmatch(reply)
     if match is None:
@@ -190,10 +188,7 @@ def _tag_count(content: str, tag: str, *, closing: bool) -> int:
 
 
 def _has_tag(content: str, tag: str) -> bool:
-    return bool(
-        _tag_count(content, tag, closing=False)
-        or _tag_count(content, tag, closing=True)
-    )
+    return bool(_tag_count(content, tag, closing=False) or _tag_count(content, tag, closing=True))
 
 
 def _protocol_error(reason: str) -> PerceptionTurnResult:
@@ -214,4 +209,5 @@ __all__ = [
     "PerceptionTurnResult",
     "normalize_perception_reply",
     "parse_perception_reply",
+    "validate_strict_perception_reply",
 ]

@@ -13,6 +13,7 @@ from dslighting.services.sandbox_backends.backends.base import SandboxBackendCon
 from dslighting.services.sandbox_backends.backends.docker import DockerSandboxBackend
 from dslighting.services.sandbox_backends.backends.local import LocalSandboxBackend
 from dslighting.utils.typing import ExecutionResult
+from dslighting.workflows.search.react.protocol import parse_react_reply
 from dslighting.workflows.search.react.workflow import ReActWorkflow
 
 
@@ -118,6 +119,20 @@ class _FakeExecuteOperator:
         return ExecutionResult(success=True, stdout=self.stdout, stderr="")
 
 
+@pytest.mark.parametrize(
+    "reply",
+    [
+        "<Think>x</Think><Action>```python\nprint('ok')\n</Action>```",
+        "<Think>x</Think><Action>```python\nprint('ok')\n</Action>",
+    ],
+)
+def test_react_protocol_repairs_python_fence_at_action_boundary(reply: str) -> None:
+    result = parse_react_reply(reply)
+
+    assert result.action_code == "print('ok')"
+    assert result.next_user_message is None
+
+
 def _bind_offline_docker_sandbox(
     execute_operator: _FakeExecuteOperator,
 ) -> SimpleNamespace:
@@ -206,9 +221,10 @@ async def test_react_workflow_runs_perception_with_independent_context_and_retur
                 "<Explore>Inspect row count and missingness.</Explore>"
             ),
             (
+                "<Think>Inspect the rows.</Think>"
                 "<Action>```python\nprint('rows=3, missing=0')\n```</Action>"
             ),
-            "<Report>rows=3; missing=0</Report>",
+            "<Think>Report the findings.</Think><Report>rows=3; missing=0</Report>",
             "<Think>Use the evidence.</Think><Answer>final answer</Answer>",
         ]
     )
@@ -304,10 +320,9 @@ async def test_react_workflow_rejects_nested_perception_request_without_recursin
     llm = _DummyLLMService(
         [
             "<Think>Need evidence.</Think><Explore>Inspect rows.</Explore>",
-            (
-                "<Explore>Ask another Perception Agent to inspect rows.</Explore>"
-            ),
-            "<Report>rows=3</Report>",
+            "<Think>Delegate again.</Think>"
+            "<Explore>Ask another Perception Agent to inspect rows.</Explore>",
+            "<Think>Report directly.</Think><Report>rows=3</Report>",
             "<Think>Done.</Think><Answer>final answer</Answer>",
         ]
     )
@@ -346,6 +361,51 @@ async def test_react_workflow_rejects_nested_perception_request_without_recursin
 
 
 @pytest.mark.asyncio
+async def test_react_workflow_can_use_a_separate_perception_llm(tmp_path) -> None:
+    workspace = _DummyWorkspaceService(tmp_path / "workspace")
+    solver_llm = _DummyLLMService(
+        [
+            "<Think>Need evidence.</Think><Explore>Inspect rows.</Explore>",
+            "<Think>Done.</Think><Answer>final answer</Answer>",
+        ]
+    )
+    perception_llm = _DummyLLMService(
+        ["<Think>Read the data.</Think><Report>rows=3</Report>"]
+    )
+    execute_operator = _FakeExecuteOperator(workspace)
+    workflow = ReActWorkflow(
+        operators={
+            "react": ReActOperator(max_steps=2),
+            "execute": execute_operator,
+        },
+        services={
+            "llm": solver_llm,
+            "perception_llm": perception_llm,
+            "sandbox": _bind_offline_docker_sandbox(execute_operator),
+            "workspace": workspace,
+            "perception_enabled": True,
+        },
+        agent_config={},
+    )
+
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    await workflow.solve(
+        description="Assess the local data.",
+        io_instructions="Return the conclusion.",
+        data_dir=data_dir,
+        output_path=tmp_path / "out" / "answer.txt",
+    )
+
+    assert len(solver_llm.calls) == 2
+    assert len(perception_llm.calls) == 1
+    assert "Perception Agent" in perception_llm.calls[0][0]["content"]
+    assert "<PerceptionResult>\nrows=3\n</PerceptionResult>" in "\n".join(
+        message["content"] for message in solver_llm.calls[1]
+    )
+
+
+@pytest.mark.asyncio
 async def test_react_workflow_returns_bounded_failure_when_perception_exhausts_steps(
     tmp_path,
     monkeypatch,
@@ -358,6 +418,7 @@ async def test_react_workflow_returns_bounded_failure_when_perception_exhausts_s
     llm = _DummyLLMService(
         [
             "<Think>Need evidence.</Think><Explore>Inspect rows.</Explore>",
+            "<Think>Inspect partial evidence.</Think>"
             "<Action>```python\nprint('partial')\n```</Action>",
             "<Think>Continue without it.</Think><Answer>final answer</Answer>",
         ]
@@ -647,6 +708,53 @@ async def test_react_workflow_repairs_unclosed_answer_and_stops(tmp_path) -> Non
     messages_path = workspace.get_path("artifacts") / "messages.json"
     saved_messages = json.loads(messages_path.read_text(encoding="utf-8"))
     assert saved_messages[-1]["content"] == "<Think>x</Think>\n<Answer>42\n</Answer>"
+
+
+@pytest.mark.asyncio
+async def test_react_workflow_strict_retry_preserves_raw_reply_and_skips_execution(
+    tmp_path,
+) -> None:
+    workspace = _DummyWorkspaceService(tmp_path / "workspace")
+    malformed = "<Think>inspect</Think><Action>```python\nprint('must not run')\n</Action>```"
+    llm = _DummyLLMService(
+        [
+            malformed,
+            "<Think>Correct the protocol.</Think><Answer>finished</Answer>",
+        ]
+    )
+    execute_operator = _FakeExecuteOperator(workspace)
+    workflow = ReActWorkflow(
+        operators={"react": ReActOperator(max_steps=2), "execute": execute_operator},
+        services={
+            "llm": llm,
+            "sandbox": SimpleNamespace(),
+            "workspace": workspace,
+            "protocol_mode": "strict_retry",
+            "react_context_config": {"max_feedback_retries": 1},
+        },
+        agent_config={},
+    )
+
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    await workflow.solve(
+        description="Inspect the data.",
+        io_instructions="Return the answer.",
+        data_dir=data_dir,
+        output_path=tmp_path / "out" / "answer.txt",
+    )
+
+    assert len(llm.calls) == 2
+    assert execute_operator.calls == []
+    assert {"role": "assistant", "content": malformed} in llm.calls[1]
+    assert any(
+        message["role"] == "user" and "Protocol error:" in message["content"]
+        for message in llm.calls[1]
+    )
+    saved_messages = json.loads(
+        (workspace.get_path("artifacts") / "messages.json").read_text(encoding="utf-8")
+    )
+    assert {"role": "assistant", "content": malformed} in saved_messages
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,234 @@
+version: "1.0"
+name: "General Data-Agent Task Taxonomy"
+
+# The axes are intentionally orthogonal. Only primary_task is used for a
+# part-to-whole chart. All other axes may overlap.
+basis:
+  - name: "DataMind task taxonomy"
+    role: "Fine-grained analytical intents and reasoning patterns"
+    url: "https://arxiv.org/html/2509.25084v3"
+  - name: "DARE-Bench task types"
+    role: "Classification, regression, and time-series forecasting"
+    url: "https://github.com/Snowflake-Labs/dare-bench"
+  - name: "CRISP-DM"
+    role: "Separation of data understanding, preparation, and modeling stages"
+    url: "https://www.ibm.com/docs/en/spss-modeler/saas?topic=dm-crisp-help-overview"
+
+principles:
+  - "Classify the requested analytical objective, not the implementation language or scorer."
+  - "Choose exactly one primary task according to the final requested result."
+  - "Use secondary tasks only when the prompt explicitly requires another substantive objective."
+  - "Represent SQL/Python, scalar/list/table output, multi-step reasoning, and domain knowledge on separate axes."
+  - "Use unresolved rather than forcing a label when the prompt lacks enough evidence."
+
+primary_tasks:
+  - id: record_retrieval
+    name_zh: "记录检索与筛选"
+    stage: "data_understanding"
+    definition: "Return existing rows, entities, or fields that satisfy conditions, without making a computed analytic quantity the main result."
+    include: "Lookup, filtering, projection, selecting matching records."
+    exclude: "A requested count, aggregate, ranking, or comparison takes precedence."
+
+  - id: fact_verification
+    name_zh: "事实核验"
+    stage: "data_understanding"
+    definition: "Determine whether an explicit claim or condition is true using the supplied data."
+    include: "Yes/no verification and checking a stated assertion."
+    exclude: "Ordinary lookup phrased as a question is record_retrieval."
+
+  - id: data_quality_assessment
+    name_zh: "数据质量检查"
+    stage: "data_understanding"
+    definition: "Assess completeness, uniqueness, validity, consistency, schema, or integrity of data."
+    include: "Missingness, duplicates, invalid values, type/schema checks, referential integrity."
+    exclude: "Actually cleaning or transforming the data is data_preprocessing."
+
+  - id: data_preprocessing
+    name_zh: "数据预处理"
+    stage: "data_preparation"
+    definition: "Clean, normalize, encode, impute, reshape, merge, or otherwise prepare data for downstream use."
+    include: "Cleaning, missing-value handling, encoding, scaling, reshaping."
+    exclude: "Merely reporting data-quality problems is data_quality_assessment."
+
+  - id: feature_engineering
+    name_zh: "特征工程"
+    stage: "data_preparation"
+    definition: "Create or select derived variables intended to improve or enable an analysis or model."
+    include: "Feature derivation, feature selection, transformations used as model inputs."
+    exclude: "A derived value requested as the final answer is arithmetic_calculation."
+
+  - id: counting
+    name_zh: "计数"
+    stage: "data_understanding"
+    definition: "Return the number of rows, entities, events, or distinct values satisfying conditions."
+    include: "COUNT, frequency as a single requested count, unique-count questions."
+    exclude: "A full frequency distribution is distribution_analysis."
+
+  - id: aggregation
+    name_zh: "聚合汇总"
+    stage: "data_understanding"
+    definition: "Compute one or more grouped or overall summaries such as sum, mean, minimum, or maximum."
+    include: "Totals, averages, extrema, grouped summaries."
+    exclude: "If the central request is to compare groups or rank entities, comparison or ranking takes precedence."
+
+  - id: arithmetic_calculation
+    name_zh: "算术与派生指标"
+    stage: "data_understanding"
+    definition: "Compute a formula, ratio, rate, percentage change, difference, or other derived numeric measure."
+    include: "Ratios, margins, rates, differences, weighted formulas."
+    exclude: "A plain sum/mean/min/max is aggregation; a group contrast is comparison."
+
+  - id: descriptive_statistics
+    name_zh: "描述性统计"
+    stage: "data_understanding"
+    definition: "Characterize a dataset or variable with a statistical profile or several descriptive measures."
+    include: "Mean/median/std/quantiles together, statistical profiling and interpretation."
+    exclude: "A single requested aggregate is aggregation; distribution shape is distribution_analysis."
+
+  - id: distribution_analysis
+    name_zh: "分布分析"
+    stage: "data_understanding"
+    definition: "Analyze how values or categories are distributed, including frequencies, proportions, quantiles, spread, or shape."
+    include: "Frequency tables, proportions across bins/categories, quantiles, skewness, distribution shape."
+    exclude: "A single count is counting; unusual observations are anomaly_detection."
+
+  - id: comparison
+    name_zh: "比较分析"
+    stage: "data_understanding"
+    definition: "Contrast two or more entities, groups, periods, or measures and report differences or relative performance."
+    include: "Group differences, before/after contrasts without a causal claim, side-by-side comparisons."
+    exclude: "Selecting an ordered winner or top-k is ranking."
+
+  - id: ranking
+    name_zh: "排序与 Top-K"
+    stage: "data_understanding"
+    definition: "Order entities by a criterion or identify top/bottom performers."
+    include: "Top-k, bottom-k, highest/lowest, rank positions."
+    exclude: "Unordered group contrasts are comparison."
+
+  - id: correlation_analysis
+    name_zh: "相关性分析"
+    stage: "data_understanding"
+    definition: "Quantify or characterize non-causal association between variables."
+    include: "Pearson/Spearman correlation, association strength or direction."
+    exclude: "A causal effect claim is causal_analysis; significance tests belong to statistical_inference when they are the main objective."
+
+  - id: statistical_inference
+    name_zh: "统计推断"
+    stage: "evaluation"
+    definition: "Draw population-level conclusions using uncertainty-aware statistical procedures."
+    include: "Hypothesis tests, p-values, confidence intervals, significance, inferential parameter estimates."
+    exclude: "Descriptive summaries without uncertainty are descriptive_statistics or aggregation."
+
+  - id: anomaly_detection
+    name_zh: "异常检测"
+    stage: "data_understanding"
+    definition: "Identify observations, groups, or periods that deviate unusually from an expected pattern."
+    include: "Outliers, unusual spikes/drops, abnormal records or behavior."
+    exclude: "Invalid or missing data checks are data_quality_assessment."
+
+  - id: temporal_analysis
+    name_zh: "时间分析"
+    stage: "data_understanding"
+    definition: "Analyze historical time ordering, trends, lags, durations, growth, rolling values, or period-based changes without predicting the future."
+    include: "Trend, growth, moving/rolling statistics, elapsed time, cumulative values over time."
+    exclude: "Future prediction is time_series_forecasting."
+
+  - id: causal_analysis
+    name_zh: "因果分析"
+    stage: "evaluation"
+    definition: "Estimate or reason about a causal effect using an explicit intervention, treatment, counterfactual, or identification strategy."
+    include: "Treatment effects, counterfactuals, controlled causal comparisons."
+    exclude: "Observed association is correlation_analysis; descriptive event changes are impact_analysis."
+
+  - id: impact_analysis
+    name_zh: "影响分析"
+    stage: "evaluation"
+    definition: "Measure changes associated with an event, policy, or intervention without sufficient evidence for a causal identification claim."
+    include: "Before/after event impact, change attributed descriptively to an event."
+    exclude: "Use causal_analysis only when causal identification is explicitly required."
+
+  - id: classification_modeling
+    name_zh: "分类建模"
+    stage: "modeling"
+    definition: "Train, select, or apply a model whose target is categorical."
+    include: "Binary or multiclass prediction and classification model evaluation."
+    exclude: "Rule-based category counts or lookups are not modeling."
+
+  - id: regression_modeling
+    name_zh: "回归建模"
+    stage: "modeling"
+    definition: "Train, select, or apply a model whose target is continuous numeric."
+    include: "Continuous-value prediction and regression model evaluation."
+    exclude: "A statistical regression used mainly for inference is statistical_inference."
+
+  - id: time_series_forecasting
+    name_zh: "时间序列预测"
+    stage: "modeling"
+    definition: "Predict future values from time-indexed observations, with or without exogenous features."
+    include: "Forecasting future horizons, canonical or exogenous-feature forecasts."
+    exclude: "Historical trend or rolling calculations without future prediction are temporal_analysis."
+
+  - id: unresolved
+    name_zh: "无法判定"
+    stage: "unknown"
+    definition: "The prompt does not contain enough information to assign a defensible primary objective."
+    include: "Genuinely underspecified or incompatible tasks."
+    exclude: "Do not use merely because more than one label applies; choose the final requested objective and add secondary labels."
+
+operation_tags:
+  - selection_filtering
+  - projection_lookup
+  - join
+  - grouping
+  - aggregation
+  - counting
+  - arithmetic
+  - sorting_topk
+  - window_cumulative
+  - temporal_transformation
+  - distribution_estimation
+  - correlation_computation
+  - statistical_test
+  - data_quality_check
+  - data_cleaning
+  - feature_derivation
+  - model_training
+  - prediction
+
+reasoning_complexity:
+  - single_step
+  - multi_step
+
+domain_knowledge:
+  - none
+  - helpful
+  - required
+
+requested_outputs:
+  - scalar
+  - boolean
+  - short_text
+  - list
+  - table
+  - prediction_file
+  - visualization
+  - transformed_dataset
+  - other
+
+primary_precedence:
+  - "Future prediction -> time_series_forecasting before temporal_analysis."
+  - "Categorical/continuous predictive model -> classification_modeling or regression_modeling."
+  - "Causal identification -> causal_analysis; event-associated change without identification -> impact_analysis."
+  - "Top/bottom/order -> ranking; explicit contrast -> comparison."
+  - "Full distribution -> distribution_analysis; requested count -> counting; other summary -> aggregation."
+  - "The requested final objective takes precedence over intermediate operations."
+
+official_mappings:
+  dare_bench:
+    classification: classification_modeling
+    regression: regression_modeling
+    time_series_analysis: time_series_forecasting
+  datamind_reasoning_axes:
+    Multi-hop_Numerical_Reasoning: multi_step
+    Domain_Specific_Numerical_Reasoning: required

@@ -1,0 +1,191 @@
+{
+  "schema_version": 2,
+  "date": "2026-08-26",
+  "training": {
+    "tasks": 2000,
+    "source_counts": {
+      "dare_bench": 600,
+      "data_agent_rl": 700,
+      "datamind_sql": 700
+    },
+    "manifest_sha256": "ac19493cbc21c493db7e66f1e3b41c0068996d7f0892c93e1feeab40b76e247a",
+    "bundle": {
+      "files": 5185,
+      "bytes": 8854076046,
+      "all_file_hashes_verified": true
+    },
+    "strict_preflight": {
+      "status": "passed",
+      "jobs": [
+        550963,
+        550964
+      ],
+      "ground_truth_selfscore_failures": {
+        "dare_bench": 0,
+        "datamind_sql": 0
+      },
+      "data_agent_missing_cache_prefixes": 0
+    },
+    "agent_lightning": {
+      "version": "1.0.1",
+      "commit": "8435586d147b4cf7bff33e687d7317149e79cbb8"
+    },
+    "gpu_training_executed": true,
+    "gpu_runs": {
+      "balanced_smoke": {
+        "job": 551209,
+        "state": "COMPLETED",
+        "exit_code": 0,
+        "gpus": 2,
+        "tasks": 32,
+        "rollouts": 128,
+        "updates": 1,
+        "reward_mean": 0.4581,
+        "checkpoint_step": 1
+      },
+      "balanced_pilot": {
+        "job": 551353,
+        "state": "COMPLETED",
+        "exit_code": 0,
+        "elapsed_seconds": 2702,
+        "gpus": 4,
+        "tasks": 96,
+        "tasks_per_source": 32,
+        "group_size": 4,
+        "rollouts": 384,
+        "rollout_states": {
+          "succeeded": 384,
+          "failed": 0
+        },
+        "rollouts_per_source": {
+          "dare_bench": 128,
+          "data_agent_rl": 128,
+          "datamind_sql": 128
+        },
+        "reward_scorer": {
+          "programmatic": 384
+        },
+        "reward_mean_by_source": {
+          "dare_bench": 0.3451334784230142,
+          "data_agent_rl": 0.5859375,
+          "datamind_sql": 0.375
+        },
+        "reward_mean_by_update": [
+          0.5558157831530015,
+          0.3191808215112566,
+          0.431074373758756
+        ],
+        "model_requests": 2617,
+        "internal_thinking_disabled_requests": 2617,
+        "nonempty_reasoning_content": 0,
+        "visible_react_think_messages": 2612,
+        "responses_without_visible_think": 5,
+        "truncated_training_samples": 1,
+        "updates": 3,
+        "checkpoint_step": 3,
+        "checkpoint_complete": true
+      }
+    },
+    "checkpoint_merge": {
+      "job": 551277,
+      "state": "COMPLETED",
+      "source_step": 1,
+      "model_checksums_verified": 12
+    },
+    "full_2000_task_run": {
+      "job": 551562,
+      "state_at_audit": "RUNNING",
+      "node": "ACD1-15",
+      "actual_run_root": "/data/user/qinlucao/runs/training_mix/551562",
+      "stable_run_root": "/data/user/qinlucao/runs/training_mix/grpo-full2000-v1",
+      "gpus": 4,
+      "train_batch_size": 40,
+      "group_size": 4,
+      "expected_updates": 50,
+      "checkpoint_frequency_updates": 10,
+      "time_limit_hours": 36,
+      "cuda_preflight": "passed",
+      "first_update": {
+        "completed": true,
+        "rollouts": 160,
+        "rollout_failures": 0,
+        "task_groups": 40,
+        "samples_per_group": 4,
+        "programmatic_rewards": 160,
+        "reward_mean": 0.4064773058398409,
+        "truncated_samples": 0,
+        "model_requests": 1084,
+        "internal_thinking_disabled_requests": 1084,
+        "generation_seconds": 766.0384657736868,
+        "update_actor_seconds": 37.74569294974208,
+        "step_seconds": 823.687830183655
+      },
+      "dependent_jobs": {
+        "merge_checkpoint": {
+          "job": 551714,
+          "dependency": "afterok:551562"
+        },
+        "full_ood_evaluation": {
+          "job": 551715,
+          "dependency": "afterok:551714",
+          "gpus": 1,
+          "cpus": 12,
+          "concurrency": 4,
+          "stable_run_root": "/data/user/qinlucao/runs/training_mix/ood-full2000-v1"
+        }
+      },
+      "completed": false
+    }
+  },
+  "evaluation": {
+    "public_tasks": 503,
+    "full_hpc_entrypoint": {
+      "implemented": true,
+      "dabench_tasks": 257,
+      "agenticdatabench_tasks": 246,
+      "llm_judge": false,
+      "result_row_completeness_enforced": true
+    },
+    "hpc_model_smoke": {
+      "job": 551535,
+      "state": "COMPLETED",
+      "exit_code": 0,
+      "elapsed_seconds": 354,
+      "internal_thinking": false,
+      "dabench": {
+        "task": "dabench-0-mean-fare-paid",
+        "score": 1.0,
+        "grader": "deterministic"
+      },
+      "agenticdatabench": {
+        "task": "strategy_3",
+        "score": 0.0,
+        "finished": true,
+        "grader": "official_programmatic",
+        "interpretation": "model answer was wrong; evaluator and artifact pipeline completed"
+      }
+    },
+    "dabench": {
+      "public_tasks": 257,
+      "prepared_tasks": 257,
+      "gold_selfscore_one": 257,
+      "deepseek_v4flash_smoke_task": "dabench-0-mean-fare-paid",
+      "deepseek_v4flash_smoke_score": 1.0
+    },
+    "agenticdatabench": {
+      "public_tasks": 246,
+      "private_withheld_tasks": 98,
+      "resolved_public_task_inputs": 246,
+      "gold_selfscore_one": 223,
+      "gold_selfscore_below_one": 23,
+      "deepseek_v4flash_smoke_task": "financial_83",
+      "deepseek_v4flash_smoke_score": 1.0
+    }
+  },
+  "tests": {
+    "passed": 610,
+    "skipped": 12,
+    "failed": 0
+  },
+  "remaining_gate": "complete job 551562, merge its selected checkpoint, and run the complete 503-task OOD evaluation"
+}

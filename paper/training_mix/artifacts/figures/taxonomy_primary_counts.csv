@@ -1,0 +1,22 @@
+stage,primary_task,name_zh,count,share
+data_understanding,ranking,排序与 Top-K,364,0.182
+data_understanding,record_retrieval,记录检索与筛选,218,0.109
+data_understanding,aggregation,聚合汇总,216,0.108
+data_understanding,counting,计数,205,0.1025
+data_understanding,correlation_analysis,相关性分析,58,0.029
+data_understanding,distribution_analysis,分布分析,43,0.0215
+data_understanding,arithmetic_calculation,算术与派生指标,40,0.02
+data_understanding,comparison,比较分析,35,0.0175
+data_understanding,data_quality_assessment,数据质量检查,35,0.0175
+data_understanding,descriptive_statistics,描述性统计,35,0.0175
+data_understanding,temporal_analysis,时间分析,29,0.0145
+data_understanding,anomaly_detection,异常检测,5,0.0025
+data_understanding,fact_verification,事实核验,3,0.0015
+data_preparation,data_preprocessing,数据预处理,21,0.0105
+data_preparation,feature_engineering,特征工程,12,0.006
+modeling,regression_modeling,回归建模,302,0.151
+modeling,classification_modeling,分类建模,291,0.1455
+modeling,time_series_forecasting,时间序列预测,51,0.0255
+evaluation,statistical_inference,统计推断,30,0.015
+evaluation,causal_analysis,因果分析,1,0.0005
+unknown,unresolved,无法判定,6,0.003

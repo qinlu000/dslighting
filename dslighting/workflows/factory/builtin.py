@@ -12,7 +12,12 @@ from typing import Any, Dict, Optional, Type
 
 from dslighting.benchmark.core.base import BaseBenchmark
 from dslighting.config import OutputContractConfig
+from dslighting.core.visualization_policy import (
+    resolve_visualization_policy_from_config,
+    should_force_noninteractive_backend,
+)
 from dslighting.error import ConfigurationError, DynamicImportError
+from dslighting.ops.base import Operator
 from dslighting.ops.code import ExecuteAndTestOperator
 from dslighting.ops.llm.basic import (
     GenerateCodeAndPlanOperator,
@@ -26,12 +31,8 @@ from dslighting.ops.presets.dsagent import (
     ExecutePlanOperator,
     ReviseLogOperator,
 )
-from dslighting.core.visualization_policy import (
-    resolve_visualization_policy_from_config,
-    should_force_noninteractive_backend,
-)
-from dslighting.services.llm import LLMService
 from dslighting.services.data_analysis_provider import create_data_perception_runtime
+from dslighting.services.llm import LLMService
 from dslighting.services.sandbox import SandboxService
 from dslighting.services.vdb import VDBService
 from dslighting.services.workspace import WorkspaceService
@@ -480,6 +481,11 @@ class ReActWorkflowFactory(BaseWorkflowFactory):
             workspace_base = config.workflow.params.get("workspace_base_dir")
         workspace = WorkspaceService(run_name=config.run.run_name, base_dir=workspace_base)
         llm_service = LLMService(config=config.llm)
+        perception_llm_service = (
+            LLMService(config=config.agent_runtime.perception_llm)
+            if config.agent_runtime.perception_llm
+            else llm_service
+        )
         sandbox_service = _create_sandbox_service(workspace, config)
 
         max_steps, obs_max_tokens, obs_head_tokens, obs_tail_tokens, context_config = (
@@ -501,10 +507,12 @@ class ReActWorkflowFactory(BaseWorkflowFactory):
         }
         services = {
             "llm": llm_service,
+            "perception_llm": perception_llm_service,
             "sandbox": sandbox_service,
             "workspace": workspace,
             "react_context_config": context_config,
             "output_contract_config": output_contract_config,
+            "protocol_mode": config.agent_runtime.protocol_mode,
             "perception_enabled": bool(config.agent_runtime.perception_enabled),
         }
         return ReActWorkflow(
@@ -521,7 +529,7 @@ class DynamicWorkflowFactory(BaseWorkflowFactory):
     def __init__(
         self,
         code_string: str,
-        operator_classes: Optional[Dict[str, Type["Operator"]]] = None,
+        operator_classes: Optional[Dict[str, Type[Operator]]] = None,
     ):
         self.code_string = code_string
         self.operator_classes = operator_classes
@@ -589,7 +597,7 @@ class DynamicWorkflowFactory(BaseWorkflowFactory):
 
     @staticmethod
     def _instantiate_operator(
-        cls: Type["Operator"],
+        cls: Type[Operator],
         llm_service: LLMService,
         sandbox_service: SandboxService,
         workspace: WorkspaceService,

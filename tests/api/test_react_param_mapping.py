@@ -36,12 +36,36 @@ def test_normalize_agent_runtime_params_coerces_perception_enabled(
     }
 
 
+def test_normalize_agent_runtime_params_keeps_perception_llm() -> None:
+    perception_llm = {
+        "model": "openai/perception-sft",
+        "api_base": "http://127.0.0.1:33039/v1",
+        "api_key": "local",
+    }
+
+    assert normalize_agent_runtime_params({"perception_llm": perception_llm}) == {
+        "perception_llm": perception_llm
+    }
+
+
+def test_normalize_agent_runtime_params_accepts_strict_retry() -> None:
+    assert normalize_agent_runtime_params({"protocol_mode": "strict_retry"}) == {
+        "protocol_mode": "strict_retry"
+    }
+
+
+def test_normalize_agent_runtime_params_rejects_unknown_protocol_mode() -> None:
+    with pytest.raises(ValueError, match="protocol_mode"):
+        normalize_agent_runtime_params({"protocol_mode": "best_effort"})
+
+
 def test_agent_config_builder_maps_agent_runtime_to_shared_config() -> None:
     config = _builder().build(
         task_id="demo",
         run_kwargs={
             "agent_runtime": {
                 "max_steps": "12",
+                "protocol_mode": "strict_retry",
                 "observation": {
                     "max_tokens": "1200",
                     "head_tokens": "600",
@@ -63,6 +87,7 @@ def test_agent_config_builder_maps_agent_runtime_to_shared_config() -> None:
     assert config.workflow is not None
     assert config.workflow.params == {}
     assert config.agent_runtime.max_steps == 12
+    assert config.agent_runtime.protocol_mode == "strict_retry"
     assert config.agent_runtime.observation.max_tokens == 1200
     assert config.agent_runtime.observation.head_tokens == 600
     assert config.agent_runtime.observation.tail_tokens == 600

@@ -275,6 +275,39 @@ def test_cli_dry_run_is_explicit_and_does_not_require_datasets(tmp_path: Path, c
     assert not output_dir.exists()
 
 
+def test_cli_dry_run_supports_task_list_exclusions_and_sandbox_python(
+    tmp_path: Path, capsys
+) -> None:
+    benchmark = tmp_path / "AgenticDataBench"
+    tasks_file = benchmark / "testbed" / "tasks" / "dev.jsonl"
+    _write_tasks(tasks_file)
+    excluded = tmp_path / "excluded.json"
+    excluded.write_text(json.dumps(["agriculture_14"]), encoding="utf-8")
+    sandbox_python = tmp_path / "sandbox" / "bin" / "python"
+
+    exit_code = main(
+        [
+            "--benchmark-root",
+            str(benchmark),
+            "--output-dir",
+            str(tmp_path / "output"),
+            "--all",
+            "--exclude-task-list-json",
+            str(excluded),
+            "--sandbox-python",
+            str(sandbox_python),
+            "--model",
+            "test/model",
+            "--dry-run",
+        ]
+    )
+
+    assert exit_code == 0
+    plan = json.loads(capsys.readouterr().out)
+    assert [task["task_id"] for task in plan["tasks"]] == ["agriculture_02"]
+    assert plan["sandbox_python"] == str(sandbox_python)
+
+
 def test_cli_accepts_minisweagent_with_benchmark_docker_image(
     tmp_path: Path,
     capsys,
@@ -335,7 +368,7 @@ def test_cli_requires_image_for_docker_backend(tmp_path: Path, capsys) -> None:
     assert "--docker-image" in capsys.readouterr().err
 
 
-def test_cli_perception_is_explicit_and_requires_offline_react_docker(
+def test_cli_perception_accepts_local_bubblewrap_and_offline_docker(
     tmp_path: Path, capsys
 ) -> None:
     benchmark = tmp_path / "AgenticDataBench"
@@ -351,15 +384,23 @@ def test_cli_perception_is_explicit_and_requires_offline_react_docker(
         "--model",
         "test/model",
         "--perception",
-        "--dry-run",
     ]
 
-    assert main(common) == 2
+    assert main(common + ["--dry-run"]) == 0
+    plan = json.loads(capsys.readouterr().out)
+    assert plan["perception_enabled"] is True
+    assert plan["sandbox_backend"] == "local"
+    assert plan["local_isolation"] == "bubblewrap"
+
+    assert main(common + ["--local-isolation", "process", "--dry-run"]) == 2
+    assert "--local-isolation bubblewrap" in capsys.readouterr().err
+
+    assert main(common + ["--allow-network", "--dry-run"]) == 2
     assert "--perception requires" in capsys.readouterr().err
 
     assert (
         main(
-            common[:-1]
+            common
             + [
                 "--sandbox-backend",
                 "docker",
@@ -372,6 +413,7 @@ def test_cli_perception_is_explicit_and_requires_offline_react_docker(
     )
     plan = json.loads(capsys.readouterr().out)
     assert plan["perception_enabled"] is True
+    assert plan["sandbox_backend"] == "docker"
 
 
 @pytest.mark.asyncio

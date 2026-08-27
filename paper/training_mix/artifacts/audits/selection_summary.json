@@ -1,0 +1,77 @@
+{
+  "counts_by_source": {
+    "dare_bench": 600,
+    "data_agent_rl": 700,
+    "datamind_sql": 700
+  },
+  "dare": {
+    "by_type_version": {
+      "classification::v2": 275,
+      "regression::v2": 275,
+      "time_series_analysis::v1": 25,
+      "time_series_analysis::v2": 25
+    },
+    "candidate_tasks": 2818,
+    "input_size_limit_bytes": 26214400,
+    "max_input_bytes": 26060515,
+    "selected": 600,
+    "size_eligible_tasks": 2666,
+    "unique_base_tasks": 600
+  },
+  "data_agent_rl": {
+    "by_difficulty": {
+      "1": 171,
+      "2": 300,
+      "3": 116,
+      "4": 111,
+      "5": 2
+    },
+    "by_package_tier": {
+      "0": 65,
+      "1": 517,
+      "2": 92,
+      "3": 26
+    },
+    "by_reward_mode": {
+      "exact_bool": 40,
+      "exact_short": 240,
+      "list": 10,
+      "list_csv": 25,
+      "numeric": 385
+    },
+    "candidate_tasks": 1759,
+    "difficulty_5_tasks": 2,
+    "difficulty_used_as_cost_filter": false,
+    "max_tasks_per_dataset": 10,
+    "runtime_heavy_definition": "packages_used contains tensorflow or keras",
+    "runtime_heavy_tasks": 47,
+    "selected": 700,
+    "unique_datasets": 330
+  },
+  "datamind_sql": {
+    "database_size_limit_bytes": 33554432,
+    "eligible_rows": 4173,
+    "excluded": {
+      "duplicate_question": 1,
+      "empty_gold": 210
+    },
+    "ground_truth_size_limit_bytes": 1048576,
+    "max_database_bytes": 26550272,
+    "max_ground_truth_bytes": 397469,
+    "max_tasks_per_database": 4,
+    "selected": 700,
+    "size_eligible_rows": 2935,
+    "source_rows": 4384,
+    "unique_databases": 566
+  },
+  "quality": {
+    "cross_source_exact_question_duplicates": 0,
+    "ground_truth_agent_visible": false,
+    "programmatic_evaluators_only": true,
+    "unique_normalized_questions": 2000,
+    "unique_source_task_keys": 2000
+  },
+  "seed": 20260825,
+  "status": "passed",
+  "total": 2000
+}

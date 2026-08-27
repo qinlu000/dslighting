@@ -88,6 +88,27 @@ def test_openai_api_key_is_only_a_global_fallback(monkeypatch) -> None:
     assert build_llm_config(model="openai-fallback-test-model").api_key == "primary-key"
 
 
+def test_custom_api_base_defaults_to_openai_compatible_provider(monkeypatch) -> None:
+    monkeypatch.setenv("API_BASE", "https://gateway.example/v1")
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+
+    config = build_llm_config(model="custom-deployment", api_key="key")
+
+    assert config.provider == "openai"
+
+
+def test_explicit_provider_beats_openai_compatible_default(monkeypatch) -> None:
+    monkeypatch.setenv("API_BASE", "https://gateway.example/v1")
+
+    config = build_llm_config(
+        model="custom-deployment",
+        api_key="key",
+        provider="anthropic",
+    )
+
+    assert config.provider == "anthropic"
+
+
 def test_build_config_rejects_conflicting_api_key_and_api_keys() -> None:
     with pytest.raises(ConfigurationError, match="Only one of `api_key` or `api_keys`"):
         ConfigBuilder().build_config(model="model-a", api_key="k1", api_keys=["k2"])

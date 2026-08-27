@@ -12,12 +12,12 @@ from __future__ import annotations
 
 import asyncio
 import copy
-from contextlib import asynccontextmanager
 import hashlib
 import logging
 import threading
 import time
 import weakref
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
@@ -32,6 +32,7 @@ from dslighting.services.llm.executor import LLMCallExecutor, LLMCallSpec
 from dslighting.services.llm.observed_call import extract_usage, serialize_response_for_debug
 from dslighting.services.llm.pool import GlobalAPIKeyPool
 from dslighting.utils.constants import DEFAULT_CACHE_TTL_SECONDS
+from dslighting.utils.host_overrides import activate_api_host_overrides
 
 # Ensure custom pricing is applied
 apply_custom_model_pricing()
@@ -157,6 +158,7 @@ class LLMService:
         Args:
             config: LLM 配置
         """
+        activate_api_host_overrides()
         self.config = config
         self.max_concurrent_per_key = config.max_concurrent_per_key
         self.total_cost = 0.0
@@ -264,7 +266,6 @@ class LLMService:
         kwargs = {
             "model": self.config.model,
             "messages": messages,
-            "temperature": self.config.temperature,
             "api_key": api_key,
             "api_base": self.config.api_base,
             "timeout": self.config.request_timeout_seconds,
@@ -272,12 +273,13 @@ class LLMService:
         }
         if self.config.provider:
             kwargs["custom_llm_provider"] = self.config.provider
+        extra_body = dict(self.config.extra_body)
         if self.config.thinking is not None:
-            kwargs["extra_body"] = {
-                "thinking": {
-                    "type": "enabled" if self.config.thinking else "disabled",
-                }
+            extra_body["thinking"] = {
+                "type": "enabled" if self.config.thinking else "disabled",
             }
+        if extra_body:
+            kwargs["extra_body"] = extra_body
         if response_format:
             kwargs["response_format"] = response_format
         return kwargs
@@ -317,6 +319,7 @@ class LLMService:
             return "retry_next_key"
 
         fail_fast_errors = (
+            litellm_exceptions.BadRequestError,  # Malformed request/provider config
             litellm_exceptions.InvalidRequestError,  # Request format/parameter issues
             litellm_exceptions.NotFoundError,  # Model/endpoint not found
         )

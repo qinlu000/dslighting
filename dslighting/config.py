@@ -35,6 +35,10 @@ class LLMConfig(BaseModel):
             "the provider default unchanged."
         ),
     )
+    extra_body: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional OpenAI-compatible request fields passed to the provider.",
+    )
     max_retries: int = Field(
         10,
         ge=1,
@@ -142,7 +146,9 @@ class AgentRuntimeConfig(BaseModel):
     """Shared runtime settings consumed by agent workflows."""
 
     max_steps: int = 10
+    protocol_mode: Literal["repair", "strict_retry"] = "repair"
     perception_enabled: bool = False
+    perception_llm: Optional[LLMConfig] = None
     observation: AgentRuntimeObservationConfig = Field(
         default_factory=AgentRuntimeObservationConfig
     )

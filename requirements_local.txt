@@ -22,6 +22,7 @@ catboost
 cython
 dacite
 datasets
+dateparser
 deepchem
 efficientnet-pytorch
 evaluate
@@ -73,6 +74,7 @@ rouge-score
 sacrebleu
 scikit-image
 scikit-optimize
+scikit-posthocs
 scikit-surprise
 scipy
 seaborn
@@ -81,6 +83,7 @@ sentence-transformers
 sentencepiece
 sklearn-pandas
 spacy
+statsmodels
 sympy
 tensorflow
 tensorflow-hub
@@ -95,3 +98,4 @@ torchmetrics
 torchtext
 torchvision
 xlrd
+xlsxwriter

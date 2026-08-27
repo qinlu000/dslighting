@@ -32,6 +32,7 @@ _SAFE_INHERITED_ENV = frozenset(
         "LANGUAGE",
         "LC_ALL",
         "LC_CTYPE",
+        "LOKY_MAX_CPU_COUNT",
         "MKL_NUM_THREADS",
         "NUMEXPR_NUM_THREADS",
         "NVIDIA_VISIBLE_DEVICES",

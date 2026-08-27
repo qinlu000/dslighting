@@ -32,7 +32,12 @@ from dslighting.workflows.search.react.perception_protocol import (
     normalize_perception_reply,
     parse_perception_reply,
 )
-from dslighting.workflows.search.react.protocol import normalize_react_reply, wrap_feedback
+from dslighting.workflows.search.react.protocol import (
+    build_protocol_error_feedback,
+    normalize_react_reply,
+    validate_strict_react_reply,
+    wrap_feedback,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +56,7 @@ class ReActWorkflow(BaseWorkflow):
     ) -> None:
         super().__init__(operators, services, agent_config)
         self.llm_service = services["llm"]
+        self.perception_llm_service = services.get("perception_llm", self.llm_service)
         self.sandbox_service = services["sandbox"]
         self.workspace_service = services.get("workspace")
         self.benchmark = benchmark
@@ -60,6 +66,9 @@ class ReActWorkflow(BaseWorkflow):
         self.context_config: ReActContextConfig = build_react_context_config(
             services.get("react_context_config")
         )
+        self.protocol_mode = str(services.get("protocol_mode", "repair"))
+        if self.protocol_mode not in {"repair", "strict_retry"}:
+            raise ValueError(f"Unsupported ReAct protocol mode: {self.protocol_mode}")
         self.perception_enabled = bool(services.get("perception_enabled", False))
         self.output_contract_config: OutputContractConfig = self._build_output_contract_config(
             services.get("output_contract_config")
@@ -151,18 +160,46 @@ class ReActWorkflow(BaseWorkflow):
                 context_manager.build_messages(),
             )
             content = response.choices[0].message.content or ""
-            normalized_reply = normalize_react_reply(content)
-            if normalized_reply.repaired:
-                logger.info(
-                    "[ReActWorkflow] repaired assistant reply at step %d: %s",
-                    step + 1,
-                    normalized_reply.repair_reason,
+            allow_explore = perception_system_prompt is not None
+            if self.protocol_mode == "strict_retry":
+                context_manager.add_assistant_reply(content)
+                is_valid, reason = validate_strict_react_reply(
+                    content,
+                    allow_explore=allow_explore,
                 )
-            context_manager.add_assistant_reply(normalized_reply.normalized_content)
+                if not is_valid:
+                    context_manager.add_runtime_reply(
+                        wrap_feedback(
+                            build_protocol_error_feedback(
+                                reason,
+                                allow_explore=allow_explore,
+                            )
+                        )
+                    )
+                    feedback_turns = context_manager.consecutive_feedback_turns()
+                    if feedback_turns > self.context_config.max_feedback_retries:
+                        logger.warning(
+                            "[ReActWorkflow] stopping after %d consecutive protocol "
+                            "feedback turns.",
+                            feedback_turns,
+                        )
+                        break
+                    continue
+                turn_content = content
+            else:
+                normalized_reply = normalize_react_reply(content)
+                if normalized_reply.repaired:
+                    logger.info(
+                        "[ReActWorkflow] repaired assistant reply at step %d: %s",
+                        step + 1,
+                        normalized_reply.repair_reason,
+                    )
+                turn_content = normalized_reply.normalized_content
+                context_manager.add_assistant_reply(turn_content)
 
             turn_result = await self.react_op(
-                normalized_reply.normalized_content,
-                allow_explore=perception_system_prompt is not None,
+                turn_content,
+                allow_explore=allow_explore,
             )
             if turn_result.final_answer is not None:
                 if self.output_contract_config.require_output_before_completion:
@@ -288,7 +325,7 @@ class ReActWorkflow(BaseWorkflow):
                 step + 1,
                 PERCEPTION_MAX_STEPS,
             )
-            response = await self.llm_service.call_messages(
+            response = await self.perception_llm_service.call_messages(
                 context_manager.build_messages(),
             )
             content = response.choices[0].message.content or ""

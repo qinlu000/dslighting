@@ -1,0 +1,120 @@
+task_id,source,primary_task,confidence,unresolved,adjudicated,question
+0000_856_856349_qa_4,data_agent_rl,fact_verification,0.7,False,False,Which method (TF-IDF or simple word frequency) does the analysis explicitly conclude to produce a more informative representation of Trump's tweet content based on the dataset?
+0001_173_1173665_qa_5,data_agent_rl,descriptive_statistics,0.7,False,False,"Which feature, 'Balance' or 'EstimatedSalary', has a higher standard deviation after normalization?"
+0001_232_1232019_qa_4,data_agent_rl,temporal_analysis,0.7,False,False,Have the seasonal temperature patterns in the Philippines shifted over time according to the year-by-year analysis?
+0001_239_1239559_qa_4,data_agent_rl,arithmetic_calculation,0.7,False,False,How much does the average food pinching efficiency decrease from the optimal length (240mm) to the next length tested (270mm)?
+0001_445_1445988_qa_2,data_agent_rl,temporal_analysis,0.7,False,False,What is the length of the longest unbeaten streak (wins + draws) achieved by PSG during the Qatari investment period?
+0001_466_1466571_qa_1,data_agent_rl,record_retrieval,0.7,False,False,Which intent category has 100% police involvement based on the dataset analysis?
+0001_488_1488441_qa_4,data_agent_rl,temporal_analysis,0.7,False,False,On which hour of the day is there a consistent drop in taxi demand observed across all weekdays according to the weekly demand analysis?
+0001_628_1628992_qa_4,data_agent_rl,feature_engineering,0.7,False,False,What is the number of features used in the XGBoost model after preprocessing?
+0001_638_1638152_qa_5,data_agent_rl,regression_modeling,0.7,False,False,"According to the final gradient boosting model's feature importance analysis, which feature has the highest impact on apartment prices?"
+0001_770_1770623_qa_1,data_agent_rl,arithmetic_calculation,0.7,False,False,What is the ratio of the upper bound of the 95% confidence interval for veteran suicide rates to the upper bound for civilian suicide rates in 2005?
+0010_860_10860955_qa_1,data_agent_rl,feature_engineering,0.7,False,False,Which four features were identified as the most important based on the Random Forest feature importance analysis?
+0013_067_13067540_qa_5,data_agent_rl,feature_engineering,0.7,False,False,Which two features were discarded from the final model due to high correlation with other features?
+0025_485_25485079_qa_3,data_agent_rl,comparison,0.7,False,False,"Based on the scatter plots, which pair of features provides the most distinct separation between the three species classes in the dataset?"
+0034_748_34748003_qa_3,data_agent_rl,record_retrieval,0.7,False,False,Which primary Pokémon types have no Legendary Pokémon as shown in the stacked bar plot and count plots?
+0035_350_35350224_qa_5,data_agent_rl,aggregation,0.7,False,False,What is the maximum number of items in a frequent itemset identified by the Apriori algorithm in this dataset?
+0039_156_39156457_qa_3,data_agent_rl,statistical_inference,0.7,False,False,What is the highest p-value observed in any Augmented Dickey-Fuller test during the stationarity analysis?
+0046_955_46955725_qa_3,data_agent_rl,ranking,0.7,False,False,Which early game event shows the second-highest impact on determining the winner according to the mean analysis of correlated events?
+0051_802_51802195_qa_3,data_agent_rl,anomaly_detection,0.7,False,False,Which mean-based feature shows the largest discrepancy between its minimum value and left whisker threshold in the outlier analysis?
+0057_503_57503702_qa_1,data_agent_rl,unresolved,0.6,True,False,What is the optimal number of clusters determined by the Elbow method for the K-Means clustering model based on the RFM features?
+0063_793_63793650_qa_5,data_agent_rl,temporal_analysis,0.7,False,False,What is the initial value of the 12-period exponentially weighted moving average (EWMA) for the passenger data?
+0063_931_63931182_qa_5,data_agent_rl,aggregation,0.7,False,False,"Which cluster in the K-Means model has the lowest average annual income, and what is its value in k$?"
+0064_330_64330026_qa_2,data_agent_rl,time_series_forecasting,0.7,False,False,"What is the order (p, d, q) of the ARIMA model selected by the auto_arima function for the temperature time series?"
+0065_594_65594972_qa_5,data_agent_rl,unresolved,0.6,True,False,"When presented with two identical images from the same individual, how does the model predict their similarity?"
+0066_757_66757922_qa_3,data_agent_rl,descriptive_statistics,0.7,False,False,"Which three features in the dataset have high standard deviations relative to their mean values, as identified in the analysis as potentially affecting model performance?"
+0066_820_66820736_qa_5,data_agent_rl,regression_modeling,0.7,False,False,What is the root mean squared error (RMSE) of the model's predictions?
+0068_060_68060356_qa_4,data_agent_rl,regression_modeling,0.7,False,False,Which number of components yields the best performance for the partial least squares (PLS) regression model according to the cross-validation results?
+0071_835_71835908_qa_4,data_agent_rl,unresolved,0.6,True,False,Which three features are visualized in the 3D scatter plot to analyze their combined relationship with price_range?
+0076_177_76177455_qa_1,data_agent_rl,ranking,0.7,False,False,Which year of establishment had the highest sales volume according to the countplot in the exploratory data analysis section?
+0095_690_95690898_qa_5,data_agent_rl,arithmetic_calculation,0.7,False,False,What is the Kulczynski score for the association rule 'mineral water' → 'ground beef'?
+0102_350_102350231_qa_5,data_agent_rl,feature_engineering,0.6,False,False,"Which feature among CRIM, ZN, and INDUS has the highest variance inflation factor (VIF) according to the multicollinearity analysis?"
+0110_893_110893794_qa_1,data_agent_rl,temporal_analysis,0.7,False,False,What are the two peak time ranges for household global active power consumption based on hourly analysis in the dataset?
+0120_574_120574465_qa_2,data_agent_rl,classification_modeling,0.7,False,False,What is the overall test accuracy of the model on the 200-sample test set after training completion?
+0123_606_123606886_qa_3,data_agent_rl,data_preprocessing,0.7,False,False,"What was the original maximum age value identified as an outlier, and what value was it replaced with during preprocessing?"
+0127_585_127585527_qa_4,data_agent_rl,unresolved,0.8,True,True,What is the adjusted significance threshold (alpha) used for the Bonferroni correction in the A/B testing analysis?
+0128_655_128655611_qa_4,data_agent_rl,record_retrieval,0.7,False,False,"What is the top recommended movie similar to ""The Shawshank Redemption"" using the overview-based similarity approach?"
+0131_072_131072256_qa_3,data_agent_rl,data_quality_assessment,0.7,False,False,Which alphabetic character corresponding to a label is missing in the classes mapping?
+0137_338_137338171_qa_1,data_agent_rl,descriptive_statistics,0.7,False,False,What is the mean of the sample means of the displacement values after applying the Central Limit Theorem with 30 samples of size 30?
+agricultural_revenue_management_and_optimization_18,datamind_sql,ranking,0.7,False,False,How many farmers have the highest average revenue over the years?
+algorithmic_trading_and_risk_management_8,datamind_sql,ranking,0.7,False,False,"- Total trade value is calculated by summing the product of the price and quantity for each trade;
+- The `DENSE_RANK()` function assigns a unique rank to each asset based on its total trade value, with ties receiving the same rank;
+- The performance metrics include various measures such as return, volatility, and others, which are calculated on specific dates;
+- The minimum risk tolerance for a strategy represents the lowest acceptable level of risk for that strategy.
+What are the key metrics and rankings for the most valuable assets, and how do they relate to the minimum risk tolerance and performance of the associated trading strategies?"
+american_football_game_data_and_analytics_0,datamind_sql,comparison,0.7,False,False,"; A 'play type' might refer to a specific category of actions in a game, such as passing or running; The 'cumulative points' refer to the total points scored by consecutive players in a specific play type within a game; The 'average cumulative points' are the mean cumulative points scored across all games with the same weather conditions.
+What are the types of plays, their corresponding cumulative points scored by the first player, the average cumulative points scored under the same weather conditions, and how much higher or lower these are compared to the average, across all weather conditions, sorted by play type and cumulative points in descending order?"
+battery_25,datamind_sql,descriptive_statistics,0.6,False,False,"NMC refers to a type of lithium-ion battery chemistry (Lithium Nickel Manganese Cobalt Oxide); C20 is a standard discharge test rate where the battery is discharged over 20 hours.
+What is the typical voltage observed in NMC cells during C20 testing when the voltage is above zero?"
+biomedical_research_data_management_11,datamind_sql,ranking,0.7,False,False,"Could you determine the highest average value of mean arterial blood pressure measured using the intra-aortic abdominal radiotelemetry method, and provide the study name, institution, strain name, and unit of measurement for the experiment with this value?"
+bus_stop_wait_time_analysis_0,datamind_sql,record_retrieval,0.7,False,False,"Could you tell me the wait time category (whether it is 'Low', 'Medium', or 'High') for the bus stop with the unique identifier of 1, based on the average wait time during peak hours?"
+business_contact_information_and_company_directory_7,datamind_sql,record_retrieval,0.7,False,False,"Return the names of companies along with their interaction counts, contact counts, and employee counts, ordered in descending order by company name."
+climate_change_impact_analysis_and_emissions_tracking_0,datamind_sql,temporal_analysis,0.7,False,False,"- Cumulative carbon emissions represent the total amount of carbon released into the atmosphere over the years;
+- Average CO2 concentration is measured in parts per million (ppm) and provides insight into the levels of this greenhouse gas in the atmosphere;
+- The query helps in understanding the historical trend of carbon emissions and CO2 concentrations, which are key indicators of climate change.
+What is the year-by-year journey of our planet's cumulative carbon burden and its atmospheric CO2 blanket, as it weaves through the tapestry of time?"
+clothing_size_standards_and_measurement_data_0,datamind_sql,record_retrieval,0.7,False,False,"'Poor' fit ratings refer to dissatisfaction with how a product fits; 'Bust' measurements are taken professionally to ensure accuracy; Inventory levels and reorder points help manage stock; Returned products are those sent back to the seller; Preferred style refers to the customer's favored clothing style.
+What are the detailed fit satisfaction ratings, corresponding inventory levels, and 'Bust' measurements for returned products, categorized by size and preferred style, where at least one poor fit has been reported?"
+clothing_sizing_and_measurement_423153_27,datamind_sql,aggregation,0.7,False,False,"- 'Active clothing types' refer to clothing types that are currently available or in use in the system;
+- 'Active size measurements' refer to measurements that are currently valid or applicable for the clothing types.
+What is the average measurement of the active clothing types, as if they were all part of a harmonious ensemble?"
+country_economic_and_industrial_data_analysis_15,datamind_sql,record_retrieval,0.6,False,False,"""Economic landscapes"" metaphorically refers to the economic activities and structures present in different countries; ""cultivate"" metaphorically suggests the development and nurturing of particular economic sectors within a country.
+Illuminate the map of the world's economic landscapes by naming the countries and uncovering the sectors they cultivate."
+cybersecurity_threat_classification_and_metrics_0,datamind_sql,record_retrieval,0.7,False,False,"- F1 score is a measure of a test's accuracy, considering both precision and recall.
+- Average detection rate refers to the overall accuracy of a system in identifying threats.
+- ""Categories without system-specific details"" refers to the cases where only the category's average detection rate is provided, not linked to a specific system.
+Could you list the names of the threat categories along with the names of the detection systems and their associated total F1 scores? Additionally, for categories without system-specific details, could you also provide the average detection rates?"
+demographic_and_economic_data_analysis_159485_18,datamind_sql,temporal_analysis,0.7,False,False,"What is the cumulative population for each region, ordered by age group, gender, and income bracket?"
+education_and_employment_statistics_161016_5,datamind_sql,unresolved,0.9,True,True,"- ""Active user reports"" refer to reports that are currently marked as active in the system;
+- ""Report accesses"" refer to the number of times reports have been accessed by users;
+- ""Employees in each age group"" refers to the total count of employees categorized by age group;
+- ""Average salaries in each region"" refers to the mean salary calculated for each region.
+What is the combined total of all active user reports, report accesses, employees in each age group, and average salaries in each region, as if these were ingredients in a grand recipe of organizational metrics?"
+election_results_and_voter_turnout_3312_0,datamind_sql,aggregation,0.7,False,False,"I want to know the names of the provinces, the total number of elections held, and the total number of valid ballots cast in each province, along with the district name, election date, and voter turnout percentage for the election with the highest turnout in each province, as well as the average voter turnout for each province, and the name, party, and percentage of votes received by the top candidate in the top election for each district."
+energy_demand_forecasting_and_analysis_25000_5,datamind_sql,aggregation,0.6,False,False,"- 'ER' refers to a specific geographic area at the state level.
+- 'Frequently accessed' implies more than 5 log entries in the access logs.
+- 'Warm temperature' is defined as above 25 degrees Celsius.
+- 'Low humidity' is defined as below 60%.
+What is the maximum energy demand in the geographic area 'ER' during the season, where the area has the highest energy demand, the previous energy demand is recorded, the total seasonal energy demand exceeds 10,000, the area is frequently accessed, the temperature is warm, and the humidity is low?"
+environmental_monitoring_and_data_analysis_874180_22,datamind_sql,arithmetic_calculation,0.7,False,False,"Could you find the minimum squared distance from the average geographic coordinates (latitude and longitude) of all active stations, including the sensor measurements and their respective stations?"
+facial_emotion_recognition_and_analysis_8,datamind_sql,temporal_analysis,0.7,False,False,"Could you provide the cumulative difference in emotion intensity (zdiff) for the 'brow' muscle, recorded over time, for all marketing trials where participants have given consent?"
+film_industry_data_management_176662_9,datamind_sql,counting,0.7,False,False,How many directors have directed the most movies or have directed an average number of movies?
+financial_market_data_analysis_618414_0,datamind_sql,counting,0.7,False,False,How many stock instruments have the highest trading volume on any given date?
+financial_market_data_analysis_720209_25,datamind_sql,ranking,0.7,False,False,"I want to know the highest prices and the corresponding timestamps of the most recently accessed market data for the top 3 cryptocurrency pairs, based on the most recent access dates."
+financial_performance_and_revenue_analysis_2,datamind_sql,counting,0.7,False,False,"What is the total number of financial metrics, considering their associations with financial data, alerts, report metrics, reports, notifications, user permissions, and audit logs?"
+fitness_and_exercise_management_17,datamind_sql,record_retrieval,0.7,False,False,"Retrieve the user ID, name, and email of each trainer, the name, start date, and end date of each workout routine they created, along with the following statistics: the number of unique trainers involved, the average number of workouts per client, the average heart rate during workouts, the average mood after workouts, the total count of excellent moods, the number of unique clients who provided feedback, the average rating given by these clients, the count of five-star ratings, and the count of four-to-five star ratings. Order the results by user ID and routine ID."
+global_terrorism_database_14,datamind_sql,temporal_analysis,0.7,False,False,"What is the highest cumulative number of casualties from attacks, considering the cumulative impact across cities, states, and countries over the years and months?"
+housing_and_support_services_data_management_10,datamind_sql,temporal_analysis,0.7,False,False,"Could you provide the cumulative total of individuals or households that moved, categorized by exit destination, household type, and movement type, and list the results in order of most recent update time, followed by exit destination, household type, and movement type?"
+marine_ecosystem_monitoring_and_data_analysis_0,datamind_sql,record_retrieval,0.7,False,False,"I want to know the names, statuses, average record values, minimum depth ranges, and maximum depth ranges of marine features that are either monitored or endangered, have a habitat type of either 'Benthic' or 'Pelagic', and have been surveyed between 2022 and 2023, listed in order from shallowest to deepest and then alphabetically by feature name."
+marine_research_and_scientific_expeditions_29,datamind_sql,record_retrieval,0.7,False,False,"External knowledge: The concept of ""top-level cruises"" implies cruises that do not have a parent or superior cruise, possibly indicating they are the primary or initial cruises from which others may be derived or organized. A ""cruise code"" is a unique identifier or reference number assigned to each cruise for identification, tracking, or organization purposes.
+What are the codes for all the top-level cruises, ordered by their assigned codes?"
+medical_imaging_data_analysis_and_patient_diagnosis_11,datamind_sql,record_retrieval,0.7,False,False,"I want to know the detailed information for the most recent images of each patient, including the patient's ID, age, gender, contact information, the number of images they have, the first and last upload dates of these images, the names of any findings, and the confidence scores of those findings. Can you provide this information, ordered by patient ID and finding name?"
+movie_information_and_review_platform_0,datamind_sql,record_retrieval,0.7,False,False,"Could you tell me the title of the top-rated movie with a featured review, the content of the featured review, the rating given, the date the review was written, the username of the reviewer, the number of reviews the reviewer has written, and the average rating of the movie?"
+movies_74,datamind_sql,ranking,0.7,False,False,"1. ""Big-budget films"" = movies with budget > $100 million
+2. ""Financially successful"" = highest (revenue - budget) profit
+3. ""Directors' track records"" = includes their career total profit and profitability rank
+4. ""Genre trends"" = categorization based on:
+   - Title containing ""Pirate"" → Adventure
+   - High ratings (>7.5) → Critical Darling
+   - High popularity (>100) → Blockbuster
+   - Others → Other
+5. ""Best investments by filmmakers"" = top 3 most profitable films per director
+What are the most financially successful big-budget films, considering their directors' track records and how they fit into broader genre trends, focusing on those that represent the best investments by their filmmakers?
+
+Break this down to show:
+1. The top 20 most profitable films with budgets exceeding $100 million
+2. Their directors' gender and overall career performance
+3. How these films are categorized based on their themes and reception
+4. Only including films that rank among the top 3 most profitable works by their respective directors"
+pharmaceutical_research_and_development_27,datamind_sql,aggregation,0.7,False,False,"What is the average molecular weight of the proteins associated with the top assay results for each small molecule, where the top results are determined by the highest standard deviation, sequence length, and molecular weight of the protein?"
+professional_baseball_player_statistics_and_salary_15,datamind_sql,record_retrieval,0.7,False,False,Find the dates of games where the top batting average performers played.
+project_management_and_issue_tracking_for_software_development_26,datamind_sql,unresolved,0.2,True,False,"How many users have issues that match the total number of issues in terms of active and inactive plugins, comments, and status counts?"
+sailing_competition_management_and_analysis_0,datamind_sql,counting,0.7,False,False,Could you please calculate the total number of boats that have been ranked within their respective fleets based on the number of competitions they have participated in?
+stellar_astrophysics_and_star_properties_14,datamind_sql,counting,0.7,False,False,"I want to know how many unique evolutionary stages are represented in the distribution of stars with different spectral types and masses, considering their metallicity and position in the sky. Specifically, I am interested in stars on the main sequence, red giant branch, and asymptotic giant branch, and I want to see how these stars are distributed across various regions of the sky."
+transportation_mode_share_and_policy_analysis_20,datamind_sql,ranking,0.7,False,False,"- 'Government Target' is a specific scenario name in the database, likely referring to a governmental initiative or policy.
+- '18-35' is an age group, indicating young adults.
+- 'Total access events' include all types of user interactions with the system, such as viewing and editing.
+What are the geographical areas with the highest number of cyclists for the 'Government Target' scenario in 2011 for the age group 18-35, and who is the most active user in terms of total access events?"
+university_database_management_3,datamind_sql,ranking,0.7,False,False,"Leading institutions: considered to be universities in the United States with large student bodies and significant academic prestige; Main city locations: refer to the primary city where the flagship campus of the university is situated; Presidents steering these educational giants: refers to the head administrators (presidents or chancellors) of the universities; Size of their student bodies: directly relates to the total number of students enrolled in each university.
+Could you provide the names of some leading institutions in the US, alongside their main city locations, current enrollment figures, and the presidents steering these educational giants, arranged by the size of their student bodies from largest to smallest?"
+weather_data_collection_and_analysis_235934_10,datamind_sql,record_retrieval,0.7,False,False,"What is the most recent weather data entry, including the station name, location, weather parameters, geographical and elevational data, data source details, average temperature, station count per data source, average quality score, alarm count, and the title of the latest report?"

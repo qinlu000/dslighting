@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "benchmark_commit": "61bb0d6be3439797d2c75a6ede198b0b296cc226",
+  "criterion": "official evaluator score for prediction files identical to the published gold files",
+  "tasks": 246,
+  "score_one": 223,
+  "score_below_one": 23,
+  "scores_below_one": {
+    "ecommerce_21": 0.8333333333333333,
+    "ecommerce_35": 0.5,
+    "healthcare_26": 0.8333333333333334,
+    "loan_model_13": 0.5959779999999999,
+    "loan_model_14": 0.6343136971519829,
+    "loan_model_18": 0.8,
+    "loan_model_2": 0.3467144423880174,
+    "loan_model_20": 0.9,
+    "loan_model_3": 0.2916977861307948,
+    "loan_model_5": 0.5048597944147937,
+    "loan_model_8": 0.5066977788346324,
+    "loan_model_9": 0.5488466246474948,
+    "marketing_12": 0.0,
+    "marketing_13": 0.0,
+    "marketing_14": 0.0,
+    "marketing_2": 0.0,
+    "marketing_3": 0.0,
+    "marketing_4": 0.0,
+    "marketing_5": 0.0,
+    "marketing_6": 0.0,
+    "marketing_9": 0.0,
+    "real_estate_17": 0.0,
+    "real_estate_29": 0.0
+  },
+  "reporting_policy": {
+    "upstream_public_split": 246,
+    "ground_truth_self_consistent_subset": 223,
+    "note": "Report both; never present the filtered subset as the unmodified upstream benchmark."
+  }
+}

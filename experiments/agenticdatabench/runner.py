@@ -12,22 +12,44 @@ in the DSLighting task payload.
 
 from __future__ import annotations
 
-import asyncio
-import fcntl
 import json
 import os
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
 from dslighting.config import LLMConfig
 from dslighting.core.types import TaskDefinition
+from experiments.common import (
+    RuntimeConfig,
+    acquire_run_lock,
+    create_runner,
+    last_task_record,
+    prepare_task_output,
+    run_batch,
+    write_json,
+    write_jsonl,
+)
 
 PLOT_HELPER_RELATIVE_PATH = Path("testbed/da_agent/configs/scripts/image.py")
 DEFAULT_TASKS_RELATIVE_PATH = Path("testbed/tasks/dev.jsonl")
 DEFAULT_DATASETS_RELATIVE_PATH = Path("testbed/datasets")
 SELECTED_TASKS_FILENAME = "agenticdatabench_tasks.jsonl"
+
+
+def is_perception_sandbox_supported(
+    *,
+    backend: str,
+    local_isolation: str,
+    disable_network: bool,
+) -> bool:
+    """Return whether the requested sandbox can safely run Perception."""
+    if not disable_network:
+        return False
+    if backend == "docker":
+        return True
+    return backend == "local" and local_isolation == "bubblewrap"
 
 
 @dataclass(frozen=True)
@@ -103,6 +125,7 @@ class RunSettings:
     cpu_cores: float = 4.0
     pids_limit: int = 256
     local_isolation: str = "bubblewrap"
+    sandbox_python: Path | None = None
     disable_network: bool = True
     perception_enabled: bool = False
     overwrite: bool = False
@@ -169,12 +192,7 @@ def write_selected_task_config(
         if str(task.upstream_record.get("id") or "") != task.task_id:
             raise ValueError(f"Task {task.task_id!r} has no matching upstream record")
 
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(
-        "".join(json.dumps(task.upstream_record, ensure_ascii=False) + "\n" for task in tasks),
-        encoding="utf-8",
-    )
-    return destination
+    return write_jsonl(destination, (task.upstream_record for task in tasks))
 
 
 def select_tasks(
@@ -389,9 +407,7 @@ def _load_messages(record: Mapping[str, Any] | None) -> list[dict[str, Any]]:
             continue
         if nested and isinstance(payload, Mapping):
             payload = payload.get("messages")
-        if isinstance(payload, list) and all(
-            isinstance(item, dict) for item in payload
-        ):
+        if isinstance(payload, list) and all(isinstance(item, dict) for item in payload):
             return payload
     return []
 
@@ -448,52 +464,8 @@ def write_upstream_result(
         },
     }
     result_path = output_dir / "dabench" / "result.json"
-    result_path.parent.mkdir(parents=True, exist_ok=True)
-    result_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    write_json(result_path, payload)
     return payload
-
-
-def _existing_result(output_dir: Path) -> dict[str, Any] | None:
-    path = output_dir / "dabench" / "result.json"
-    if not path.is_file():
-        return None
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    return payload if isinstance(payload, dict) else None
-
-
-def _prepare_output_target(
-    output_dir: Path,
-    *,
-    overwrite: bool,
-    retry_failed: bool,
-) -> str:
-    """Return run/skip while preserving existing outputs unless explicitly replaced."""
-
-    existing = _existing_result(output_dir)
-    if existing is not None and not overwrite:
-        if not retry_failed or bool(existing.get("finished")):
-            return "skip"
-    if output_dir.exists() and any(output_dir.iterdir()):
-        if not (overwrite or retry_failed):
-            raise ValueError(
-                f"Output directory is non-empty without a reusable result: {output_dir}. "
-                "Use --overwrite or --retry-failed."
-            )
-        shutil.rmtree(output_dir)
-    return "run"
-
-
-def _last_task_record(
-    records: Iterable[Mapping[str, Any]], task_id: str
-) -> Mapping[str, Any] | None:
-    matching = [record for record in records if str(record.get("task_id")) == task_id]
-    return matching[-1] if matching else None
 
 
 async def run_tasks(
@@ -501,9 +473,6 @@ async def run_tasks(
     settings: RunSettings,
 ) -> dict[str, Any]:
     """Run selected tasks with bounded concurrency and write a summary."""
-
-    from dslighting.core.config.builder import ConfigBuilder
-    from dslighting.runner import DSLightingRunner
 
     if not tasks:
         raise ValueError("At least one task must be selected")
@@ -513,9 +482,7 @@ async def run_tasks(
         or settings.keep_recent_turns <= 0
         or settings.timeout_seconds <= 0
     ):
-        raise ValueError(
-            "max_steps, max_history_chars, and timeout_seconds must be positive"
-        )
+        raise ValueError("max_steps, max_history_chars, and timeout_seconds must be positive")
     if settings.summary_trigger_turns < settings.keep_recent_turns:
         raise ValueError("summary_trigger_turns must be >= keep_recent_turns")
     if settings.concurrency <= 0:
@@ -526,20 +493,21 @@ async def run_tasks(
         raise ValueError("Docker sandbox requires docker_image")
     if settings.perception_enabled and (
         settings.workflow != "react"
-        or settings.sandbox_backend != "docker"
-        or not settings.disable_network
+        or not is_perception_sandbox_supported(
+            backend=settings.sandbox_backend,
+            local_isolation=settings.local_isolation,
+            disable_network=settings.disable_network,
+        )
     ):
-        raise ValueError("Perception requires ReAct with an offline Docker sandbox")
+        raise ValueError(
+            "Perception requires ReAct with either an offline Docker sandbox "
+            "or an offline local Bubblewrap sandbox"
+        )
     output_root = settings.output_dir.expanduser().resolve()
     workspace_root = settings.workspace_dir.expanduser().resolve()
     staging_root = settings.staging_dir.expanduser().resolve()
     output_root.mkdir(parents=True, exist_ok=True)
-    run_lock = (output_root / ".dslighting_run.lock").open("a+", encoding="utf-8")
-    try:
-        fcntl.flock(run_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError as exc:
-        run_lock.close()
-        raise RuntimeError(f"Run is already active for output directory: {output_root}") from exc
+    lock_handle = acquire_run_lock(output_root)
     workspace_root.mkdir(parents=True, exist_ok=True)
     staging_root.mkdir(parents=True, exist_ok=True)
     selected_tasks_file = write_selected_task_config(
@@ -563,6 +531,8 @@ async def run_tasks(
         )
     if settings.sandbox_backend == "local":
         sandbox["local_isolation"] = settings.local_isolation
+        if settings.sandbox_python is not None:
+            sandbox["python_executable"] = str(settings.sandbox_python.expanduser().absolute())
     elif settings.sandbox_backend == "docker":
         sandbox["docker_image"] = str(settings.docker_image).strip()
 
@@ -575,29 +545,33 @@ async def run_tasks(
             "summary_trigger_turns": settings.summary_trigger_turns,
         },
     }
-    config = ConfigBuilder().build_config(
-        workflow=settings.workflow,
-        llm_config=settings.llm,
-        workspace_dir=str(workspace_root),
-        run_name=output_root.name,
-        keep_workspace=True,
-        keep_workspace_on_failure=True,
-        sandbox=sandbox,
-        data_analysis={"cache_enabled": False},
-        agent_runtime=agent_runtime,
+    runner = create_runner(
+        RuntimeConfig(
+            workflow=settings.workflow,
+            llm=settings.llm,
+            workspace_dir=workspace_root,
+            run_name=output_root.name,
+            sandbox=sandbox,
+            agent_runtime=agent_runtime,
+            cpu_threads=max(1, int(settings.cpu_cores)),
+        )
     )
-    runner = DSLightingRunner(config)
+    config = runner.config
     evaluate_task = runner.get_eval_function()
     plot_helper = settings.benchmark_root / PLOT_HELPER_RELATIVE_PATH
 
     async def run_one(task: AgenticDataBenchTask) -> dict[str, Any]:
         task_output = output_root / task.task_id
-        disposition = _prepare_output_target(
+        existing = prepare_task_output(
             task_output,
             overwrite=settings.overwrite,
             retry_failed=settings.retry_failed,
+            result_file="dabench/result.json",
+            complete_field="finished",
+            complete_value=True,
+            create=False,
         )
-        if disposition == "skip":
+        if existing is not None:
             print(f"skip task={task.task_id} reason=existing_result")
             return {"task_id": task.task_id, "status": "skipped"}
 
@@ -614,7 +588,7 @@ async def run_tasks(
             output_dir=task_output,
         )
         result, cost, usage = await evaluate_task(definition)
-        record = _last_task_record(runner.get_run_records(), task.task_id)
+        record = last_task_record(runner.get_run_records(), task.task_id)
         upstream = write_upstream_result(
             task,
             output_dir=task_output,
@@ -635,19 +609,14 @@ async def run_tasks(
         print(f"{status} task={task.task_id} cost={cost:.6f} missing={upstream['missing_files']}")
         return task_summary
 
-    semaphore = asyncio.Semaphore(settings.concurrency)
-
-    async def run_indexed(
-        index: int,
-        task: AgenticDataBenchTask,
-    ) -> tuple[int, dict[str, Any]]:
-        async with semaphore:
-            return index, await run_one(task)
-
-    indexed_results = await asyncio.gather(
-        *(run_indexed(index, task) for index, task in enumerate(tasks))
-    )
-    results = [result for _, result in sorted(indexed_results, key=lambda indexed: indexed[0])]
+    try:
+        results = await run_batch(
+            tasks,
+            run_one,
+            concurrency=settings.concurrency,
+        )
+    finally:
+        lock_handle.close()
 
     summary = {
         "workflow": settings.workflow,
@@ -663,6 +632,7 @@ async def run_tasks(
         "summary_trigger_turns": settings.summary_trigger_turns,
         "timeout_seconds": settings.timeout_seconds,
         "sandbox_backend": settings.sandbox_backend,
+        "sandbox_python": str(config.sandbox.python_executable or ""),
         "task_config": str(selected_tasks_file),
         "task_count": len(tasks),
         "completed": sum(item.get("status") == "completed" for item in results),
@@ -671,8 +641,5 @@ async def run_tasks(
         "total_cost": sum(float(item.get("cost") or 0.0) for item in results),
         "tasks": results,
     }
-    (output_root / "dslighting_run_summary.json").write_text(
-        json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    write_json(output_root / "dslighting_run_summary.json", summary)
     return summary

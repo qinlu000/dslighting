@@ -179,6 +179,11 @@ def build_llm_config(
     merged = _merge_with_credential_override(merged, model_override)
     merged = _merge_with_credential_override(merged, explicit)
     merged["model"] = resolved_model
+    # A custom API base is an OpenAI-compatible endpoint unless the caller
+    # explicitly names another provider.  LiteLLM cannot infer a provider for
+    # arbitrary deployment names such as ``DeepSeek-V4-Flash``.
+    if merged.get("api_base") and not merged.get("provider"):
+        merged["provider"] = "openai"
     normalized = normalize_api_credentials(merged, source="LLM config")
     return LLMConfig(**normalized)
 

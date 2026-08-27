@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "training_tasks": 2000,
+  "evaluation_tasks": {
+    "dabench": 257,
+    "agenticdatabench": 246,
+    "total": 503
+  },
+  "normalization": "NFKC + casefold + whitespace normalization",
+  "exact_normalized_prompt_overlaps": 0,
+  "similarity_method": "character TF-IDF 3-5 grams with cosine similarity",
+  "cross_split_pairs_at_or_above_0_85": 0,
+  "cross_split_pairs_at_or_above_0_70": 0,
+  "maximum_cross_split_similarity": 0.4393343708174,
+  "status": "passed"
+}

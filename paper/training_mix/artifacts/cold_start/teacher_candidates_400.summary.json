@@ -1,0 +1,58 @@
+{
+  "runtime_heavy": 11,
+  "seed": 20260826,
+  "source_counts": {
+    "dare_bench": 120,
+    "data_agent_rl": 140,
+    "datamind_sql": 140
+  },
+  "task_lists": {
+    "dare_bench": "paper/training_mix/artifacts/cold_start/teacher_candidates_400.dare_bench_ids.json",
+    "data_agent_rl": "paper/training_mix/artifacts/cold_start/teacher_candidates_400.data_agent_rl_ids.json",
+    "datamind_sql": "paper/training_mix/artifacts/cold_start/teacher_candidates_400.datamind_sql_ids.json"
+  },
+  "tasks": 400,
+  "taxonomy_counts": {
+    "dare_bench": {
+      "classification_modeling": 55,
+      "regression_modeling": 55,
+      "time_series_forecasting": 10
+    },
+    "data_agent_rl": {
+      "aggregation": 13,
+      "anomaly_detection": 2,
+      "arithmetic_calculation": 4,
+      "causal_analysis": 1,
+      "classification_modeling": 4,
+      "comparison": 5,
+      "correlation_analysis": 11,
+      "counting": 25,
+      "data_preprocessing": 5,
+      "data_quality_assessment": 7,
+      "descriptive_statistics": 7,
+      "distribution_analysis": 8,
+      "fact_verification": 2,
+      "feature_engineering": 3,
+      "ranking": 24,
+      "record_retrieval": 4,
+      "regression_modeling": 6,
+      "statistical_inference": 6,
+      "temporal_analysis": 2,
+      "time_series_forecasting": 1
+    },
+    "datamind_sql": {
+      "aggregation": 28,
+      "anomaly_detection": 1,
+      "arithmetic_calculation": 5,
+      "comparison": 3,
+      "correlation_analysis": 1,
+      "counting": 13,
+      "data_quality_assessment": 1,
+      "descriptive_statistics": 1,
+      "distribution_analysis": 1,
+      "ranking": 43,
+      "record_retrieval": 38,
+      "temporal_analysis": 5
+    }
+  }
+}

@@ -1,0 +1,27 @@
+# AgenticDataBench's Python 3.10 execution image, plus official evaluator deps.
+db-dtypes
+duckdb
+fuzzywuzzy
+geopandas
+google-cloud-bigquery
+joblib
+jsonlines
+lightgbm
+matplotlib
+nbformat
+numpy
+opencv-python-headless
+openpyxl
+pandas
+Pillow
+plotly
+python-Levenshtein
+PyYAML
+scikit-learn
+scipy
+seaborn
+snowflake-connector-python
+statsmodels
+tabulate
+tqdm
+xgboost
